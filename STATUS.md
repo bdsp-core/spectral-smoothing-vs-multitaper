@@ -56,11 +56,15 @@ found *numerically* that the K-taper kernel ≈ box ⊛ smooth bump. The exact s
 Verified (`tests/test_identity.py`, `demos/verify_equivalence.py`; MATLAB cross-check 1.95e−15):
 identity holds to 2e−15; the K-taper kernel and box ⊛ Fejér kernel differ only in the sidelobes.
 
-**This is almost certainly not new.** It is the "ideal band-limited estimator" argument in Thomson
-(1982) and Percival & Walden §7.1, and the multitaper-as-quadratic-window view of Walden, McCoy &
-Percival (1995), Riedel & Sidorenko (1995), Hansson & Salomonsson (1997), Prieto et al. (2007). Do
-a literature pass before claiming a theorem; the paper's contribution is the exposition and the
-practical recipe with quantified trade-offs, which is what the advertisement promised anyway.
+**Literature pass done (see LITERATURE.md).** The identity is Thomson's own equation (8.3), Proc.
+IEEE 1982, §VIII, p. 1070, including his remark that the smoothed periodogram and the eigenspectra
+agree "only for white spectra" because the higher-order eigenspectra carry the bias. The general
+quadratic-estimator equivalence is in Percival & Walden (1993, ch. 7), Riedel & Sidorenko (1995,
+§5) and Walden (2000); the empirical multitaper-vs-smoothed-periodogram comparison was done by
+Riedel, Sidorenko & Thomson (1994, Phys. Plasmas). No practitioner-facing account exists (Babadi &
+Brown 2014, Prerau 2017 and Wikipedia do not mention it), which is consistent with Kay not knowing
+it. So: cite (8.3) up front, and make the paper the exposition, the quantified price of the
+single-taper route, and the EEG recipe.
 
 ### 2d. What "nearly the same" turns out to mean (the honest part)
 1. **Raw periodogram + box has the same variance as multitaper but keeps the periodogram's leakage.**
@@ -120,7 +124,7 @@ as this repo. Outline:
    Bronez 1992's performance comparison; Welch/Nuttall-Carter for §2a).
 
 ## 5. To-do, in order
-1. Literature pass on §2c (half a day). Decide the framing accordingly.
+1. ~~Literature pass on §2c~~ done, see LITERATURE.md: build on Thomson (8.3); add the Riedel-Sidorenko-Thomson 1994 hybrid (few tapers, then smooth) to Fig. 3.
 2. Adaptive-weight MT in `specsmooth`; regenerate Figs 2–3.
 3. Fig 0 and the band-power EEG table.
 4. Rewrite `paper/main.tex` around the outline in §4; fix the notational slips in §2b.
