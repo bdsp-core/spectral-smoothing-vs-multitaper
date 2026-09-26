@@ -8,3 +8,13 @@ __pycache__/
 # MATLAB autosaves, macOS
 *.asv
 .DS_Store
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.bbl
+*.blg

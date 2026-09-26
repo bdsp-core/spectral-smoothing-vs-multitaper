@@ -138,7 +138,65 @@ def fig4_eeg(NW=3, win_s=4.0, fmax=30.0):
     print(f"fig4: {len(tt)} epochs of {win_s:.0f} s; MT vs smoothed |diff| median {np.median(np.abs(dd)):.2f} dB, 95% {np.percentile(np.abs(dd), 95):.2f} dB")
 
 
+def fig0_pedagogy(N=256, nfft=8192, seed=11):
+    """Three ways to see one operation: the periodogram's kernel (Fejer), a taper's kernel (Hann), and box smoothing."""
+    rng = np.random.default_rng(seed)
+    x = ss.ar_process(ss.AR4, N, rng)
+    f = np.arange(nfft // 2) / nfft
+    truth = ss.ar_psd(ss.AR4, f)
+    hann = ss.unit_taper("hann", N)
+    W = 4 / N
+    hb = ss.box_lag_window(N, W)
+    fs = ss.signed_freq(nfft); o = np.argsort(fs)
+    fig, ax = plt.subplots(2, 3, figsize=(13, 7))
+    # top row: estimates on one AR(4) realization
+    for a, (S, title) in zip(ax[0], [(ss.periodogram(x, nfft)[0], "periodogram (rectangular taper)"),
+                                     (ss.periodogram(x, nfft, taper=hann)[0], "Hann-tapered periodogram"),
+                                     (ss.lag_window_estimate(x, hb, nfft, taper=hann)[0], "Hann-tapered, then box-smoothed")]):
+        a.plot(f, 10 * np.log10(truth), "k", lw=2, label="true PSD")
+        a.plot(f, 10 * np.log10(S[:nfft // 2]), "C3", lw=.7, label="estimate")
+        a.set(title=title, xlabel="frequency (cycles/sample)", ylabel="dB", ylim=(-45, 55)); a.grid(alpha=.3); a.legend(fontsize=8)
+    # bottom row: the expected-value kernels of the same three estimators
+    ks = [ss.kernel_smoothed(np.ones(N) / np.sqrt(N), np.ones(N), nfft),     # all-ones lag window = no smoothing
+          ss.kernel_smoothed(hann, np.ones(N), nfft),
+          ss.kernel_smoothed(hann, hb, nfft)]
+    for a, H, title in zip(ax[1], ks, ["Fejer kernel: narrow but leaky", "Hann kernel: wider, far less leaky", "Hann kernel, then box of half-width W"]):
+        a.plot(fs[o] * N, 10 * np.log10(np.maximum(H[o], 1e-15)), "C0", lw=1.2)
+        a.axvspan(-W * N, W * N, color="0.9")
+        a.set(title=title, xlim=(-24, 24), ylim=(-80, 5), xlabel="frequency offset (1/N)", ylabel="kernel (dB)"); a.grid(alpha=.3)
+    fig.suptitle("Every estimator here is 'true spectrum convolved with a kernel', plus noise. Tapering shapes the kernel's skirts; smoothing widens its top.")
+    fig.tight_layout(); fig.savefig(FIG / "fig0_pedagogy.png", dpi=130); plt.close(fig)
+
+
+def fig5_slepian_fill(N=256, NW=4, nfft=8192):
+    """The Slepian windows tile the band: running eigenvalue-weighted sum of |U_k|^2 converges to the box (Thomson 1982 eq. 8.3)."""
+    W = NW / N
+    V, lam = ss.dpss_all(N, W)
+    fs = ss.signed_freq(nfft); o = np.argsort(fs)
+    Uk = np.abs(np.fft.fft(V, nfft, axis=0)) ** 2 / N   # per-taper spectral windows, unit-norm tapers
+    box = ss.kernel_box(nfft, W) / N
+    fig, ax = plt.subplots(2, 2, figsize=(12, 8))
+    t = np.arange(N)
+    for k in range(6):
+        ax[0, 0].plot(t, V[:, k] + 0.25 * k, lw=1, label=f"k={k}")
+    ax[0, 0].set(title=f"first six Slepian tapers (N={N}, NW={NW}), offset for display", xlabel="sample", yticks=[]); ax[0, 0].legend(fontsize=7, ncol=3)
+    for k in range(8):
+        ax[0, 1].plot(fs[o] * N, Uk[o, k], lw=1, label=f"k={k}")
+    ax[0, 1].axvspan(-NW, NW, color="0.92"); ax[0, 1].set(xlim=(-2 * NW, 2 * NW), title="their spectral windows |U_k(f)|^2, k = 0..7", xlabel="frequency offset (1/N)"); ax[0, 1].legend(fontsize=7, ncol=2)
+    cum = np.cumsum(Uk * lam, axis=1)
+    for K, c in [(1, "C0"), (3, "C1"), (5, "C2"), (7, "C3"), (9, "C4"), (N, "k")]:
+        ax[1, 0].plot(fs[o] * N, cum[o, K - 1] / (2 * NW), color=c, lw=1.2, label=f"first {K} tapers" if K < N else "all N tapers (exactly the box)")
+    ax[1, 0].plot(fs[o] * N, box[o] * N * 0 + (np.abs(fs[o]) <= W) / (2 * W) / N, "k--", lw=.8)
+    ax[1, 0].set(xlim=(-2 * NW, 2 * NW), title="running sum of eigenvalue-weighted windows fills the box [-W, W]", xlabel="frequency offset (1/N)"); ax[1, 0].legend(fontsize=7)
+    ax[1, 1].semilogy(np.arange(N), np.maximum(1 - lam, 1e-16), "o-", ms=3, lw=.8)
+    ax[1, 1].axvline(2 * NW, color="r", ls="--", label="2NW"); ax[1, 1].axvline(2 * NW - 1, color="0.5", ls=":", label="K = 2NW-1 (usual)")
+    ax[1, 1].set(xlim=(-0.5, 2 * NW + 8), ylim=(1e-16, 2), xlabel="taper index k", ylabel="1 - lambda_k (leakage fraction)", title="eigenvalue ladder: tapers beyond 2NW carry only leakage"); ax[1, 1].legend(fontsize=8); ax[1, 1].grid(alpha=.3)
+    fig.tight_layout(); fig.savefig(FIG / "fig5_slepian_fill.png", dpi=130); plt.close(fig)
+
+
 if __name__ == "__main__":
+    fig0_pedagogy(); print("fig0 done")
+    fig5_slepian_fill(); print("fig5 done")
     fig1_kernels(); print("fig1 done")
     fig2_ar4(); print("fig2 done")
     fig3_tradeoff(); print("fig3 done")

@@ -1,130 +1,272 @@
-\documentclass{article}
-\usepackage[utf8]{inputenc}
-\usepackage{amsmath}
-\usepackage{amssymb}
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{../figures/}}
+\captionsetup{font=small,labelfont=bf}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\dd}{\,\mathrm{d}}
 
-\title{Spectral Estimation Review Paper}
-\author{Siddharth Biswal, M. Brandon Westover}
-\date{May 2015}
+\title{Multitaper Spectral Estimation Is a Smoothed Periodogram:\\an Intuitive Account and a Practical Recipe}
+\author{M.~Brandon Westover$^{1,2}$ \quad [co-authors to be added]\\[4pt]
+\small $^1$Department of Neurology, Beth Israel Deaconess Medical Center and Harvard Medical School, Boston, MA\\
+\small $^2$[additional affiliations]}
+\date{Draft v1 --- \today}
 
 \begin{document}
-
 \maketitle
+
+\begin{abstract}
+Multitaper spectral estimation is the recommended way to estimate power spectra of neural signals, but many users experience it as a black box: a time--bandwidth product, a set of Slepian tapers, a number of eigenspectra to average. At the same time, nearly every practitioner has the plain intuition that a periodogram is noisy and should be smoothed, and many smooth their spectrograms by hand. We show that these two ideas are the same idea. An identity that Thomson stated in his original 1982 paper but that has gone almost unnoticed says that the multitaper estimate, when all $N$ Slepian tapers are used and weighted by their eigenvalues, is \emph{exactly} the periodogram averaged over a frequency box of half-width $W$. The usual estimator, which keeps only the $K=2NW-1$ well-concentrated tapers, is that box-smoothed periodogram with the leaky part removed. We explain this with pictures rather than theorems, put the theorems in an appendix, and then ask what ``nearly the same'' means in practice. Three things follow. Smoothing cannot undo leakage, so the periodogram must be tapered before it is smoothed. Tapering before smoothing costs variance, about a third of the equivalent degrees of freedom at a typical bandwidth, because a single taper wastes the ends of the record. And the last Slepian taper leaks enough that a Hann-tapered, box-smoothed periodogram can beat the equal-weight multitaper estimate on spectra with large dynamic range. We give a recipe (taper, transform, convolve with a box), quantify its resolution, leakage and variance against multitaper estimation, and demonstrate it on EEG. Code reproducing every figure is provided.
+\end{abstract}
 
 \section{Introduction}
 
-\section{The convolution theorem}
-Derivation of the fact that the spectrum of two signals multiplied together is  equal to the convolution of the spectra of those two signals. Show standard examples of various widths to illustrate that wide in time domain means narrow in frequency domain. Show gaussian, sinc, square wave. 
+Spectral analysis is the workhorse of quantitative electrophysiology. Whether the object is a sleep spectrogram, a spike-triggered spectrum, or the power in the alpha band before and after a drug, the computation underneath is an estimate of the power spectral density (PSD) of a short, noisy record. Two tutorials aimed at neuroscientists, by Babadi and Brown \cite{babadi2014} and by Prerau and colleagues \cite{prerau2017}, have made the multitaper method \cite{thomson1982} the recommended estimator, and for good reasons: it controls leakage, it reduces variance, and it comes with a clean theory.
 
-\section{Spectral leakage}
-For this discussion we assume that the signal is bandlimited and that the sampling rate is sufficiently high any aliasing artifacts are negligible. In fact, we will assume that our signals are continuous. This will allow us to focus solely on artifacts that arise as a consequence of signal \textit{length}. 
+Yet the method is often used without being understood. Its parameters, a time--bandwidth product $NW$ and a number of tapers $K$, do not map onto the intuitions users already have, and the tapers themselves, the discrete prolate spheroidal sequences of Slepian \cite{slepian1978}, are unfamiliar objects. Meanwhile, those intuitions are sound. Everyone who has looked at a periodogram knows it is too noisy to read, and the natural response is to smooth it across frequency. Many analysis pipelines do exactly this, sometimes on top of a multitaper estimate, sometimes instead of one, by convolving a spectrogram with a Gaussian or a box.
 
-Spectral artifacts that arise as a consequence of having only a short segment of a signal to work with are known as \textit{spectral leakage} artifacts. Leakage can be best understood by viewing a short segment of a signal as arising from multiplying a long (infinite) segment by a `truncation window', that is, by a rectangular window equal to 1 over the legnth of the signal segment that we have available, and equal to 0 outside of this range (Figure XXX). Recall from the previous section that the spectrum of a square window $w(t)=\mathrm{rect}(t/T)$ is a sinc function, $W(f)=\mathrm{sinc}(Tf)$. As explained in the previous section, the convolution theorem tells us that `multiplication in the time domain is convolution in the frequency domain'. Therefore, the spectrum of a `truncated' signal is the actual spectrum of the (untruncated) signal, distorted by convolution with the sinc function. 
+This paper shows that the black box and the intuition are the same thing. The multitaper estimate \emph{is} a smoothed periodogram, and the smoothing kernel is a box of half-width $W$. This is not an approximation or an analogy. It is an identity, and it appears as equation (8.3) in Thomson's 1982 paper \cite{thomson1982}, where it occupies half a page in a late section that few readers reach. Neither of the neuroscience tutorials mentions it, and in our experience most signal-processing specialists are unaware of it. We explain the identity with figures, state precisely how the everyday estimator differs from the exact one, and then answer the practical question that follows: if multitaper estimation is smoothing, can one simply smooth?
 
-As shown in Figure XX, the convolution arising from truncation affects the original `true' spectrum in two ways. First, it smooths out or smears the original spectrum, and it adds decaying oscillations, or `ripples'. The smearing component is because the width of the central lobe of the sinc function acts to replace each point in the true spectrum with a weighted average of the neighboring values. The ripples are due to the decaying sidelobes of the sinc function. 
+The answer is ``yes, if you taper first, and it costs you some variance,'' and the rest of the paper makes those two clauses quantitative. Section~\ref{sec:periodogram} sets up the one picture, the \emph{expected-value kernel}, in which all the estimators can be compared. Section~\ref{sec:fixes} shows tapering and smoothing as two ways of shaping that kernel. Section~\ref{sec:mt} describes multitaper estimation as it is usually presented, and Section~\ref{sec:identity} shows why it is a smoothed periodogram. Section~\ref{sec:nearly} quantifies the three ways the two differ. Section~\ref{sec:recipe} gives the recipe and Section~\ref{sec:eeg} applies it to EEG. Mathematics beyond a displayed equation or two is confined to the appendices.
 
-Spectral leakage artifacts are not very noticeable when the underlying spectrum of the signal is relatively smooth and lacks any narrow peaks. If the true spectrum contains prominent sharp peaks or sharp `jumps', then leakage can be substantial. [example -- cosine]. In the case of peaks, leakage smears out each peak (by an amount proportoinal to the width of the main lobe), and adds a ripple effect which spreads out both sides of the true peak into areas where no spectral energy actually exists. This effect is the origin of term `leakage'. In the case of signals whose specra have sharp discontinuities (Figure XX), leakage produces an overshoot on either side of the discontinuity, followed by gradually diminishing flanking ripples. 
+\section{The periodogram, and the one picture that explains it}
+\label{sec:periodogram}
 
-Two remedies exist for reducing the effects of spectral leakage. First, one can increase the length of a sianal segment. This effectively creates a wider truncation window, whose corresponding spectrum will have a narrower sinc function. Because the resulting function more closely resembles an `impulse', convolving it with the true signal spectrum produces less smearing and less ripple artifact. Second, one can truncate the signal more softly than is done by a rectangular window, by multiplying the signal by an appropriate \textit{tapering function}, or simply \textit{taper}. 
-
-Numeerous tapering functions have been proposed, with various associated pros and cons. All are subject to a fundamental tradeoff between the amount of ripple and the amount of smearing that they induce. In general, tapers that have narrower main lobes will necessarily have larger side lobes, and will thus produce more smearing but larger ripple artifact. By contrast, tapers whose spectra have smaller side lobes will have larger main lobes, and will consequently produce less ripple but more smearing. 
-
-Figure: show longer signal segments --> less leakage.
-
-Figure plan: show series of signals and spectra with progressively larger truncation windows (see fig 6.1,2) -- gaussian, cosine, mixed frequencies, sinc function
-
-Show taper tradeoffs -- vary the size of the tapers. 
-
-
-
-\subsection{Fourier transform of a discrete time signal}
-Suppose that the continuous time $L^2(-\infty,\infty)$ signal $g(t)$ is sampled at equally spaced time points with the time between samples equal to  $\Delta$. This defines a discrete time sequence $$g_t\triangleq (t\Delta), \mathrm{ } t=\ldots,-2,-1,0,1,2,\ldots$$ The Fourier transform of this sequence is defined to be
+Let $x_0,\dots,x_{N-1}$ be $N$ samples of a stationary signal, and take the sampling interval as the unit of time so that frequency $f$ is in cycles per sample and runs from $-\tfrac12$ to $\tfrac12$. The periodogram is
 \begin{equation}
-    G(f)\triangleq \Delta \sum_{-\infty}^{\infty}g_t e^{-2\pi ft\Delta}
+\hat I(f) = \frac{1}{N}\Bigl|\sum_{t=0}^{N-1} x_t\, e^{-i2\pi f t}\Bigr|^2 ,
+\label{eq:periodogram}
+\end{equation}
+the squared magnitude of the discrete Fourier transform, evaluated on as fine a frequency grid as one likes by zero-padding. It has two well-known defects, illustrated in the left column of Fig.~\ref{fig:pedagogy}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig0_pedagogy.png}
+\caption{\textbf{Every estimator is the true spectrum blurred by a kernel, plus noise.} Top: one realization of an autoregressive process with a 70~dB dynamic range (black: true PSD), estimated by the periodogram, by a Hann-tapered periodogram, and by a Hann-tapered periodogram smoothed with a box of half-width $W=4/N$. Bottom: the expected-value kernel of each estimator on a decibel scale; the shaded band is $|f|\le W$. The periodogram's Fej\'er kernel has a narrow main lobe but skirts that fall off slowly, so power leaks from the peaks into the 40~dB-weaker high-frequency region. The Hann taper trades a main lobe twice as wide for skirts 20--50~dB lower. Smoothing widens the top of the kernel and reduces the noise; it does not change the skirts.}
+\label{fig:pedagogy}
+\end{figure}
+
+\paragraph{It is noisy.} At any one frequency the periodogram of a Gaussian signal is distributed like the true PSD times a chi-square variable with two degrees of freedom divided by two. Its standard deviation equals its mean. Recording for longer does not help: a longer record gives more frequency points, each just as noisy.
+
+\paragraph{It leaks.} The periodogram is not unbiased. Its expected value is the true PSD $S$ convolved with a kernel,
+\begin{equation}
+\E[\hat I(f)] = \int_{-1/2}^{1/2} F(f-f')\,S(f')\dd f' ,
+\qquad F(f)=\frac{1}{N}\biggl(\frac{\sin N\pi f}{\sin \pi f}\biggr)^{2},
+\label{eq:fejer}
+\end{equation}
+where $F$ is Fej\'er's kernel, the squared Fourier transform of the rectangular window that truncated the record. $F$ has a main lobe of width about $2/N$ and side lobes that fall off only as $1/f^2$. Where the true spectrum varies by tens of decibels across the band, as neural spectra do, the tails of $F$ carry power from the strong region into the weak one, and the estimate there floors at a level set by leakage rather than by the signal. The top-left panel of Fig.~\ref{fig:pedagogy} shows this floor.
+
+\paragraph{The one picture.} Equation~\eqref{eq:fejer} is the template for everything that follows. Every estimator in this paper has the form
+\begin{equation}
+\E[\hat S(f)] = \int H(f-f')\,S(f')\dd f' ,
+\label{eq:kernel}
+\end{equation}
+a blurred view of the truth through an \emph{expected-value kernel} $H$, together with some amount of noise around that expected value. Three numbers characterize an estimator: the width of the main lobe of $H$ (its \emph{resolution}), the height of the skirts of $H$ (its \emph{leakage}), and the noise, which we report as an equivalent number of degrees of freedom $\nu$ (its \emph{variance}; the estimate behaves like $S\,\chi^2_\nu/\nu$, so its relative standard error is $\sqrt{2/\nu}$). The periodogram has the narrowest possible main lobe, bad leakage, and $\nu=2$. Every improvement trades among the three. Appendix~\ref{app:quadratic} gives the formulas by which the kernel and $\nu$ of any estimator in this family can be computed exactly; all numbers quoted below come from them.
+
+\section{Two classical fixes, seen as kernel design}
+\label{sec:fixes}
+
+\subsection{Tapering shapes the skirts}
+Multiply the data by a window $w_t$ that goes smoothly to zero at both ends before transforming. The kernel becomes $|\mathcal{W}(f)|^2$, the squared Fourier transform of the taper. For the Hann window the first side lobe drops from $-13$~dB to $-31$~dB and the tails fall as $1/f^6$ instead of $1/f^2$; the price is a main lobe twice as wide (Fig.~\ref{fig:pedagogy}, middle column). Tapering does nothing for the variance: a single tapered periodogram still has $\nu=2$, as the ragged middle-top panel shows.
+
+\subsection{Smoothing widens the top}
+Average the periodogram over a window of frequencies: a box of half-width $W$ (Daniell's estimator \cite{daniell1946}), a triangle, a Gaussian. Since expectation commutes with averaging, the kernel of the smoothed estimate is the kernel of the unsmoothed one convolved with the smoothing window: $H = B_W * |\mathcal{W}|^2$ for a box $B_W$. Three things happen. The main lobe widens to about $2W$: this is now the resolution, and it is under the user's direct control. The noise drops: the periodogram values spaced $1/N$ apart are nearly independent, so averaging over a band of width $2W$ pools roughly $2NW$ of them and gives $\nu \approx 2\cdot 2NW$. And the leakage is unchanged, because convolving with a non-negative window can spread the skirts around but cannot cancel them. This last point matters in Section~\ref{sec:nearly}.
+
+Fig.~\ref{fig:kernels} shows the kernels of several estimators designed to the same bandwidth $W=4/N$. The two operations are complementary: the taper decides how fast the skirts fall, the smoothing window decides how wide the top is. Welch's method of averaging periodograms of overlapping segments belongs to the same family; Appendix~\ref{app:welch} shows that in the limit of full overlap it is exactly a smoothed periodogram.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig1_kernels.png}
+\caption{\textbf{Expected-value kernels at the same design bandwidth} ($N=256$, $W=4/N$), on a linear scale near the main lobe (left) and on a decibel scale (right). The ideal box; the standard multitaper kernel with $K=2NW-1=7$ Slepian tapers; and three ``taper, then box-smooth'' kernels using no taper, a Hann taper, and a Bohman (Papoulis) taper. All have main lobes of nearly the same width. They differ in the skirts: the untapered box-smoothed periodogram inherits the Fej\'er tails; the multitaper kernel sits at $-20$ to $-25$~dB with ripple from its seventh taper; the tapered, smoothed kernels fall below $-60$~dB.}
+\label{fig:kernels}
+\end{figure}
+
+\section{Multitaper estimation, as usually presented}
+\label{sec:mt}
+
+Thomson's method \cite{thomson1982} asks a different question. Instead of one window, use several. Choose a half-bandwidth $W$ and take the $K$ sequences of length $N$ that are orthogonal to one another and whose Fourier transforms are most concentrated in $[-W,W]$. These are Slepian's discrete prolate spheroidal sequences (DPSS) $v_0,\dots,v_{N-1}$ \cite{slepian1978}, ordered by their concentrations $1>\lambda_0>\lambda_1>\dots>\lambda_{N-1}>0$, where $\lambda_k$ is the fraction of the $k$th taper's spectral energy that falls inside the band. The first $2NW$ or so have $\lambda_k$ within a hair of one; after that the concentrations collapse to zero (Fig.~\ref{fig:slepian}, bottom right). Each taper yields an \emph{eigenspectrum}
+\begin{equation}
+\hat S_k(f)=\Bigl|\sum_{t} v_{k,t}\,x_t\,e^{-i2\pi f t}\Bigr|^2,
+\end{equation}
+and the multitaper estimate averages the first $K=2NW-1$ of them,
+\begin{equation}
+\hat S_{\mathrm{mt}}(f)=\frac1K\sum_{k=0}^{K-1}\hat S_k(f).
+\label{eq:mt}
 \end{equation}
 
-Suppose that $G(f)$ is in $L^2[-F_s/2,F_s/2]$, where $Fs = 1/\Delta$. $F_s/2$ is the Nyquist frequency. In this case the FT pair is: 
+Two features make this work. Each taper has excellent leakage properties on its own, so each eigenspectrum is nearly bias-free. And because the tapers are orthogonal, the eigenspectra are nearly uncorrelated, so averaging $K$ of them gives $\nu\approx 2K$: variance reduction without having to smooth across frequency. In the kernel picture, the kernel of \eqref{eq:mt} is the average of the $K$ individual kernels $|U_k(f)|^2$, where $U_k$ is the Fourier transform of $v_k$. Fig.~\ref{fig:slepian} (top right) shows these: the zeroth is a single bump at the center of the band, the first has two bumps flanking it, the second three, and so on, each filling in the gaps left by the previous ones. Their sum is nearly flat over $[-W,W]$ and nearly zero outside, which is to say it is nearly a box.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig5_slepian_fill.png}
+\caption{\textbf{Why the multitaper kernel is a box.} Top left: the first six Slepian tapers for $N=256$, $W=4/N$. Top right: their spectral windows $|U_k(f)|^2$; each fills the gaps left by the previous ones within the band (shaded). Bottom left: the running sum $\sum_{k<K}\lambda_k|U_k(f)|^2$ as tapers are added. With all $N$ tapers it is \emph{exactly} the box, which is Thomson's identity \eqref{eq:identity}; with the usual $K=2NW-1$ it is the box with slightly rounded shoulders and small ripple. Bottom right: the leakage fraction $1-\lambda_k$ of each taper. Tapers beyond $2NW$ have essentially all their energy outside the band; they are the part of the periodogram that leaks.}
+\label{fig:slepian}
+\end{figure}
+
+\section{Multitaper estimation is a smoothed periodogram}
+\label{sec:identity}
+
+The reader who has followed the figures already sees the claim. Fig.~\ref{fig:kernels} shows that the multitaper kernel is a box with soft shoulders; Section~\ref{sec:fixes} shows that a box-smoothed periodogram has a kernel that is a box convolved with the periodogram's own kernel. Are these the same object?
+
+\subsection{The identity}
+Yes, and exactly so, provided one keeps all $N$ tapers and weights each eigenspectrum by its concentration:
 \begin{equation}
-    G(f)=\sum_{t=-\infty}^{\infty}g_t e^{i2 \pi ft\Delta}, \text{      } g_t = \Delta \int_{-F_s/2}^{F_s/2} G(f)e^{-i 2\pi ft\Delta}df
+\boxed{\;\frac{1}{2NW}\sum_{k=0}^{N-1}\lambda_k\,\hat S_k(f)\;=\;\frac{1}{2W}\int_{f-W}^{f+W}\hat I(f')\dd f'\;}
+\label{eq:identity}
 \end{equation}
+The left side is the eigenvalue-weighted average of all $N$ eigenspectra (the weights sum to $2NW$, so this is a genuine average). The right side is the periodogram averaged over a box of half-width $W$. Equation~\eqref{eq:identity} is Thomson's equation (8.3) \cite{thomson1982}. It holds for every data record, not just in expectation, and to machine precision: on our test signals the two sides agree to a relative error of $2\times10^{-15}$.
 
-\section{The Spectral Representation Theorem}
+\subsection{Why it is true, in one paragraph}
+The Slepian tapers are defined as the eigenvectors of a particular $N\times N$ matrix $A$, whose entries depend only on the lag $t-t'$ and equal $\sin(2\pi W(t-t'))/(\pi(t-t'))$. The eigenvalues of $A$ are the concentrations $\lambda_k$. That lag sequence, a sinc, is the inverse Fourier transform of a box of half-width $W$. So $A$ is nothing but the box kernel written as a matrix, and the Slepian tapers with their eigenvalues are that matrix taken apart into orthogonal pieces. Putting the pieces back together, $A=\sum_k\lambda_k v_k v_k^{\!\top}$, and evaluating the quadratic form $x^{\!\top}\!A x$ after modulating the data to frequency $f$ gives the left side of \eqref{eq:identity}. Writing the same quadratic form in terms of the sample autocovariance and the sinc lag sequence gives the right side. Appendix~\ref{app:proof} does this in five lines.
 
-Some quotes explaining the meaning (informally) of the SRT. These all implicitly rely on the notion of convergence of a sequence of stochastic processes. 
+Said differently: \emph{the Slepian tapers are the box kernel, factored.} Any smoothed periodogram can be taken apart in the same way (Appendix~\ref{app:quadratic}); what is special about the box is that its factors are the DPSS, and what is special about the DPSS is that their concentrations $\lambda_k$ separate cleanly into a set that is essentially one and a set that is essentially zero.
 
-Cramer and Leadbetter (1967), p. 129: “the spectral representation (1) shows how the process is additively built up by elementary and mutually orthogonal harmonic oscillations”
-
-Anderson (1971), p. 398: “any stationary (wide sense) stochastic process can be considered as a weighted sum or integral of trigonometric functions of time with the weights being random variables.”
-
-Priestley (1981), p. 245: “any stationary process can be represented as (the limit of) the
-sum of sine and cosine functions with random coefficients”. 
-
-\subsection{Spectral decomposition of a random signal}
-A spectral decomposition is a representation of a random signal by a series or integral with respect to some special system of functions, such that the coefficients in this expansion are pairwise uncorrelated random variables. 
-
-The existence of a spectral decomposition for a random signal follows from the Wiener–Khinchin theorem on the integral representation of the correlation function for stationary random signals. This shows that any stationary random signal can be regarded as the superposition of mutually uncorrelated harmonic oscillations of various frequencies and with random phases and amplitudes.
-
-Let $X_t$ be a s.o.s. random process on the finite interval $(0,T)$. The spectral representation theorem says that we can represent $X_t$ in terms of an \textit{orthogonal process}
+\subsection{The everyday estimator}
+The standard multitaper estimate \eqref{eq:mt} differs from the left side of \eqref{eq:identity} in two ways: it uses equal weights instead of $\lambda_k$, and it stops at $K=2NW-1$ instead of $N$. Since $\lambda_k\approx 1$ for $k<K$, the first difference is negligible. The second is the whole point. Rearranging \eqref{eq:identity},
 \begin{equation}
-    X_t =\Delta \int_{-F_s/2}^{F_s/2} e^{i2\pi ft\Delta} dZ(f)
+\hat S_{\mathrm{mt}}(f)\;\approx\;\underbrace{\frac{1}{2W}\int_{f-W}^{f+W}\hat I(f')\dd f'}_{\text{box-smoothed periodogram}}\;-\;\underbrace{\frac{1}{2NW}\sum_{k\ge K}\lambda_k\hat S_k(f)}_{\text{leaky remainder}} .
+\label{eq:corollary}
 \end{equation}
-The properties of $Z(f)$ and $dZ(f)$ are as follows.  First, define
-\begin{eqnarray}
-    dZ(f) & \triangleq & Z(f+df)-Z(f) \\
-    dS^{(I)}(f) &\triangleq& E[|dZ(f)|^2]
-\end{eqnarray}
-where $df$ is an infinitesimal frequency increment $df$, and $dS^{(I)}(f)$ is called the  \textit{integrated spectrum of} $X_t$. For all values of $f\leq 1/2$, $Z(f)$ satisfies
-\begin{eqnarray}
-E[dZ(f)]&=&0 \\
-\mathrm{cov}[dZ(f'),dZ(f)]&=&E[dZ^*(f'),dZ(f)]=\Delta(f'-f)dS^{(I)}(f) \label{eqn:oip}
-\end{eqnarray}
-If the integrated spectrum $S^{(I)}(f)$ is smooth (differentiable everywhere), with derivative equal to $S(f)$, then we have $$E[|dZ(f)|^2] = dS^{(I)}(f) = S(f)df.$$ The function $S(f)$ is called the power spectral density function (PSD). From here on we will assume that $S(f)$ exists. 
+The dropped eigenspectra belong to tapers whose energy lies almost entirely \emph{outside} $[-W,W]$ (Fig.~\ref{fig:slepian}, bottom right). Each of them contributes to the periodogram at $f$ only what has leaked in from elsewhere. Multitaper estimation is therefore the box-smoothed periodogram with its leakage subtracted: the same smoothing, without the Fej\'er tails. Thomson said as much in 1982, noting that the two agree ``only for white spectra'' and that ``otherwise the higher order eigenspectra contribute significant bias to the periodogram'' \cite{thomson1982}. On white noise plus a sinusoid, where there is nothing to leak, the standard estimate and the box-smoothed periodogram agree to a median $0.4$~dB across the band; on the process of Fig.~\ref{fig:pedagogy}, they disagree by a median $6$~dB.
 
-Because of property (\ref{eqn:oip}), we say that $Z(f)$ has \textit{orthognonal increments}. This property allows us to derive a relationship between the autocovariance sequence $s_\tau$ and the integrated spectrum, $S^{(I)}(f)$: 
-\begin{eqnarray}
-    s_\tau &=& E[X_t X_{t+\tau}] \\
-    &=& (\Delta)^2 E\int_{-F_s/2}^{F_s/2} e^{i2\pi f't\Delta}dZ^*(f')\int_{-1/2}^{1/2}e^{i2\pi f(t+\tau)\Delta} dZ(f) \\
-    &=& (\Delta)^2 \int_{-F_s/2}^{F_s/2}\int_{-F_s/2}^{F_s/2}e^{i2\pi(f-f')t\Delta}e^{i2\pi f\tau\Delta} E[dZ^*(f)dZ(f)] \\
-    &=& (\Delta)^2\int_{-F_s/2}^{F_s/2}\int_{-F_s/2}^{F_s/2}e^{i2\pi(f-f')t\Delta}e^{i2\pi f\tau\Delta}S(f)df \\
-    &=& (\Delta)^2 \int_{-F_s/2}^{F_s/2}e^{i2\pi f\tau\Delta} S(f)df \\
-\end{eqnarray}
-This result shows that the PSD defines the autocovariance sequecne (ACS) for a stationary random process. In addition, if we assume that $S(f)$ is square integrable, then from standard Fourier theory we have that $S(f)$ is the Fourier transform of $s_\tau$, 
+\section{What ``nearly the same'' means}
+\label{sec:nearly}
+
+If multitaper estimation is smoothing minus leakage, the practical question is whether one can remove the leakage some other way and then just smooth. One can, with a taper. Three lessons follow, each visible in one figure.
+
+\subsection{Smoothing cannot undo leakage}
+Fig.~\ref{fig:ar4} estimates the PSD of an autoregressive process whose spectrum spans 70~dB, a standard stress test \cite{percival1993}. The box-smoothed \emph{untapered} periodogram is smooth and has the right resolution, but where the true spectrum is at $-20$~dB the estimate floors near $0$~dB: the leakage in the Fej\'er tails has been averaged, not removed, exactly as \eqref{eq:corollary} predicts. Over the band its median error is about 20~dB. The same periodogram tapered with a Hann window before smoothing tracks the truth with a median error of about 2~dB. Lesson one: smooth a \emph{tapered} periodogram. In the kernel picture, use a smoothing window to set the width of the top and a taper to set the skirts; a smoothing window cannot do the taper's job.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{fig2_ar4_leakage.png}
+\caption{\textbf{Smoothing cannot undo leakage, and the last Slepian taper leaks.} One realization of the AR(4) process of \cite{percival1993} ($N=1024$, design bandwidth $W=4/N$) and four estimates. The box-smoothed untapered periodogram (blue) floors 20~dB above the truth at high frequencies. The equal-weight multitaper estimate with the usual $K=7$ tapers (red) floors 10~dB above it; dropping the leakiest taper ($K=6$, orange) helps. The Hann-tapered, box-smoothed periodogram (green) follows the truth.}
+\label{fig:ar4}
+\end{figure}
+
+\subsection{The taper costs variance}
+A single taper discards the ends of the record; the Slepian family uses $K$ orthogonal tapers and, between them, all of the data. Table~\ref{tab:dof} gives exact equivalent degrees of freedom at a common design bandwidth. The untapered box-smoothed periodogram has $\nu=17.2$, identical, as \eqref{eq:identity} requires, to the eigenvalue-weighted estimate with all tapers. The standard $K=7$ estimate has $\nu=14.0$. The Hann-tapered, box-smoothed periodogram has $\nu=8.9$, a third fewer, and the Bohman taper, with lower skirts, costs a little more. In terms of the relative standard error $\sqrt{2/\nu}$, this is 38\% for multitaper against 47\% for Hann-then-box: a real but modest price, worth stating in exactly these terms so that a user can decide whether to pay it. Fig.~\ref{fig:tradeoff} sweeps the bandwidth for each method and plots $\nu$, leakage and peak side lobe against the \emph{measured} half-power width of the kernel, so that the methods are compared at equal resolution rather than equal nominal $W$. The variance deficit of the single-taper route is roughly constant across bandwidths; it shrinks as $N$ grows, because the extra broadening a single taper imposes scales with $1/N$ while $W$ does not \cite{riedel1994}.
+
+\begin{table}[t]
+\centering
+\caption{Exact equivalent degrees of freedom $\nu$ and kernel properties at the same design bandwidth ($N=256$, $W=4/N$, so $2NW=8$ and $K=7$). Half-power width in units of $1/N$; leakage is the fraction of kernel mass beyond $|f|>2W$; side lobe is the kernel's peak beyond $1.5\times$ the half-power half-width, in dB relative to its maximum. Computed as in Appendix~\ref{app:quadratic}.}
+\label{tab:dof}
+\begin{tabular}{lcccc}
+\toprule
+Estimator & $\nu$ & half-power width & leakage & peak side lobe\\
+\midrule
+Ideal box (reference) & --- & 8.06 & 0 & ---\\
+Multitaper, $K=2NW-1=7$, equal weights & 14.0 & 7.44 & 0.0022 & $-22$~dB\\
+Multitaper, all $N$ tapers, weights $\lambda_k$ & 17.2 & 8.06 & 0.0138 & $-17$~dB\\
+Untapered periodogram, then box & 17.2 & 8.06 & 0.0138 & $-17$~dB\\
+Hann periodogram, then box & 8.9 & 8.06 & $<10^{-4}$ & $-36$~dB\\
+Bohman periodogram, then box & 7.3 & 8.06 & $<10^{-4}$ & $-31$~dB\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig3_tradeoff.png}
+\caption{\textbf{Variance, leakage and side-lobe level versus measured resolution} for $N=256$. Each method's own bandwidth parameter is swept and the three quantities are plotted against the resulting half-power width of its kernel, so that methods are compared at equal resolution. Multitaper with $K=2NW-1$ and with $K=2NW-2$ Slepian tapers; multitaper with Riedel--Sidorenko sine tapers; untapered, Hann and Bohman periodograms followed by a box; a Hann periodogram followed by a Gaussian; and Welch's method with 50\% overlap. Left: equivalent degrees of freedom. Center: kernel mass beyond twice the half-power half-width. Right: peak side lobe.}
+\label{fig:tradeoff}
+\end{figure}
+
+\subsection{The last Slepian taper leaks}
+Fig.~\ref{fig:ar4} carries a second lesson. The equal-weight estimate with the customary $K=2NW-1$ tapers floors 10~dB above the truth at high frequencies. The culprit is the last taper: for $NW=4$ its concentration is $\lambda_6=0.94$, so 6\% of its energy is outside the band, and its side lobe sets the multitaper kernel's skirt at $-22$~dB (Fig.~\ref{fig:kernels}, Table~\ref{tab:dof}), well above the $-36$~dB of a Hann taper. On short records the effect is severe. For $N=128$ and $NW=3$ the median error against the true AR(4) spectrum is about 12~dB with $K=5$ tapers, 6~dB with $K=4$, and 2~dB for the Hann-tapered, box-smoothed periodogram. Thomson's adaptive weighting \cite{thomson1982} was designed to fix exactly this and does; recent nonasymptotic analysis recommends $K=2NW-O(\log NW)$ rather than $2NW-1$ for the same reason \cite{karnik2022}. The lesson is not that multitaper estimation is flawed but that the tapered, smoothed periodogram is not a poor cousin: with default settings on a high-dynamic-range spectrum it can be the better estimate, and it is the easier one to reason about.
+
+\subsection{And a hybrid}
+Nothing prevents smoothing a multitaper estimate. Riedel, Sidorenko and Thomson compared multitaper, smoothed periodogram and ``a few tapers, then smooth'' on plasma-fluctuation data and found the hybrid best, with an optimized smoothed tapered periodogram about 24\% worse in RMSE on 300-point segments and the pure methods ``virtually identical'' on long ones \cite{riedel1994}. In the kernel picture the hybrid is obvious: four or five Slepian tapers supply a leak-free, nearly flat kernel of width about $4/N$ using all the data, and the smoothing window then widens it to whatever resolution is wanted.
+
+\section{A recipe}
+\label{sec:recipe}
+
+For a record of $N$ samples and a desired frequency resolution of $2W$ (full width, cycles per sample; divide by the sampling interval for hertz):
+\begin{enumerate}
+\item Multiply the record by a Hann window (or a Bohman window if leakage below $-30$~dB matters more than variance), scaled to unit energy.
+\item Take the squared magnitude of its FFT, zero-padded to at least $4N$ points.
+\item Convolve the result along frequency with a box of half-width $W$ (or a Gaussian of standard deviation $W/2$ for a rounder top; Appendix~\ref{app:quadratic} gives the exact resolution of either).
+\end{enumerate}
+Expect a half-power resolution of about $2W$ plus the taper's own main-lobe width of roughly $2/N$; leakage below $-35$~dB; and $\nu\approx 0.6\times 2\cdot 2NW$ equivalent degrees of freedom, against $\nu\approx 2\cdot 2NW$ for a multitaper estimate of the same bandwidth. Prefer the multitaper estimate, with adaptive weights, when the record is so short that every degree of freedom counts ($2NW\lesssim 6$), or when Thomson's harmonic F-test for line components is wanted. Prefer the recipe when interpretability matters, when the bandwidth should vary with frequency (wider at high frequencies is a common and sensible choice that is awkward to express in tapers), for time--frequency displays where smoothing across both time and frequency is natural, and for speed.
+
+\section{EEG demonstration}
+\label{sec:eeg}
+
+Fig.~\ref{fig:eeg} applies both estimators to seven minutes of scalp EEG sampled at 128~Hz, in 4-second windows with 50\% overlap. The multitaper spectrogram uses $NW=3$, $K=5$; the recipe uses a Hann taper and a box of half-width $0.75$~Hz, the same $W$. The two are indistinguishable by eye. Their pixel-wise difference has a median magnitude of $1.2$~dB and a 95th percentile of $4.4$~dB, which is the size of the estimators' own noise: with $\nu=10$ and $\nu\approx 6$ the standard deviations of the two log-estimates are $1.9$ and $2.5$~dB. [Band-power comparison table against a long-window reference to be added.]
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{fig4_eeg_spectrograms.png}
+\caption{\textbf{Multitaper and smoothed-periodogram spectrograms of EEG.} 208 epochs of 4~s at 128~Hz. Top to bottom: unsmoothed Hann periodogram; multitaper with $NW=3$, $K=5$; Hann periodogram then box of half-width $W=0.75$~Hz; their difference in dB.}
+\label{fig:eeg}
+\end{figure}
+
+\section{Relation to prior work}
+\label{sec:prior}
+
+The identity \eqref{eq:identity} is Thomson's equation (8.3) \cite{thomson1982}, derived by expanding the Dirichlet kernel in prolate spheroidal wave functions and applying ``a uniform smoother of width $2W$.'' The general fact behind it, that any estimator quadratic in the data can be written as a weighted sum of tapered periodograms whose tapers and weights are the eigenvectors and eigenvalues of the quadratic form's matrix, is textbook material \cite{percival1993} and was developed for kernel smoothers by Riedel and Sidorenko \cite{riedel1995}, who also showed that the Epanechnikov-smoothed periodogram decomposes exactly into their minimum-bias tapers, and unified for multivariate estimators by Walden \cite{walden2000}. That the $K$-taper kernel converges to a box was observed by Thomson and proved with a rate by Abreu and Romero \cite{abreu2017}; Karnik, Romberg and Davenport use \eqref{eq:identity} in matrix form as the engine of a fast approximate multitaper algorithm \cite{karnik2022}. The empirical comparison of multitaper against smoothed tapered periodograms was carried out by Riedel, Sidorenko and Thomson on tokamak data \cite{riedel1994}. Bronez's classic comparison \cite{bronez1992} pits multitaper against Welch's method, not against smoothing; Hansson-Sandsten approximates the multitaper estimator by a Welch structure \cite{hansson2012}. What we add is the account itself, aimed at users: the identity as the bridge between the black box and the intuition, exact bookkeeping of what the single-taper route costs and where it wins, and a recipe validated on EEG. Given how little of this has reached the tutorials that neuroscientists read \cite{babadi2014,prerau2017}, we think the account is overdue.
+
+\section{Conclusion}
+The multitaper spectral estimate is a smoothed periodogram: exactly, when all Slepian tapers are used with their eigenvalues as weights, and up to the removal of leakage in the everyday version. Understanding it this way turns its parameters into ones users already have intuitions for (a taper for the skirts, a box for the width) and makes clear what a hand-rolled smoothed spectrum gains and loses relative to it: with a taper it matches the leakage control, at a cost of about a third of the degrees of freedom that shrinks with record length; without a taper it fails. For most EEG work either estimator is fine, and knowing they are the same estimator is what lets one choose on grounds of convenience.
+
+\section*{Data and code availability}
+All figures are generated by the scripts in the accompanying repository (\texttt{specsmooth} Python package; \texttt{demos/make\_figures.py}). The identity \eqref{eq:identity}, the kernel formulas and the degrees-of-freedom formula of Appendix~\ref{app:quadratic} are implemented and tested there.
+
+\appendix
+
+\section{Proof of the identity \eqref{eq:identity}}
+\label{app:proof}
+Let $A$ be the $N\times N$ matrix with entries $A_{tt'}=\sin(2\pi W(t-t'))/(\pi(t-t'))$ and $A_{tt}=2W$. The Slepian sequences are its eigenvectors, $A v_k=\lambda_k v_k$, with $\|v_k\|=1$ \cite{slepian1978}, so $A=\sum_{k=0}^{N-1}\lambda_k v_k v_k^{\!\top}$ and $\sum_k\lambda_k=\operatorname{tr}A=2NW$. Write $e_f$ for the vector with entries $e^{-i2\pi f t}$ and $\odot$ for the elementwise product, so $\hat S_k(f)=|v_k^{\!\top}(x\odot e_f)|^2$. Then
+\begin{align}
+\sum_{k=0}^{N-1}\lambda_k\hat S_k(f)
+&=(x\odot e_f)^{\!*}\Bigl(\sum_k\lambda_k v_k v_k^{\!\top}\Bigr)(x\odot e_f)
+=\sum_{t,t'}A_{tt'}\,x_t x_{t'}\,e^{-i2\pi f(t-t')}\\
+&=\sum_{\tau=-(N-1)}^{N-1} h_\tau\,\hat s_\tau\,e^{-i2\pi f\tau},
+\qquad h_\tau=\frac{\sin 2\pi W\tau}{\pi\tau},\quad \hat s_\tau=\sum_t x_t x_{t+\tau}.
+\end{align}
+The second line collects terms by lag $\tau=t-t'$. Now $\hat s_\tau$ is the inverse Fourier transform of $N\hat I(f)$ (the unnormalized periodogram), and $h_\tau$ is the inverse Fourier transform of the indicator of $[-W,W]$. A product of lag sequences transforms to a convolution in frequency, so the last sum equals $\int_{f-W}^{f+W} N\hat I(f')\dd f'$. Dividing by $2NW$ gives \eqref{eq:identity}. Nothing about the data was assumed. $\square$
+
+\section{Kernels and variance of quadratic estimators}
+\label{app:quadratic}
+Every estimator in this paper is a quadratic form $\hat S(f)=(x\odot e_f)^{\!*}Q\,(x\odot e_f)$ with $Q$ Hermitian, positive semidefinite, and independent of $f$ \cite{percival1993,riedel1995}: for a multitaper estimate $Q=\sum_k c_k v_k v_k^{\!\top}$; for a tapered periodogram smoothed with a lag window $g_\tau$ (the inverse transform of the smoothing kernel), $Q_{tt'}=w_t\,g_{t-t'}\,w_{t'}$; for Welch's method, $Q$ is the average over segments of the segment taper placed at each offset. Three consequences are used in the text.
+
+\emph{Kernel.} $\E[\hat S(f)]=\int H(f-f')S(f')\dd f'$ with $H$ the Fourier transform of the lag sequence $q_\tau=\sum_t Q_{t,t+\tau}$. For a tapered, smoothed periodogram this gives $H=|\mathcal{W}|^2 * G$ with $G$ the smoothing kernel; for a multitaper estimate, $H=\sum_k c_k|U_k|^2$. The identity of Appendix~\ref{app:proof} says that $Q=A$ has $H=B_W*F$, the box convolved with Fej\'er's kernel, which is why the two entries in Table~\ref{tab:dof} coincide.
+
+\emph{Degrees of freedom.} For Gaussian white noise of unit variance, $\hat S(f)$ has mean $\operatorname{tr}Q_R$ and variance $2\operatorname{tr}Q_R^2$, where $Q_R$ is the real part of $Q$, so the chi-square equivalent degrees of freedom are $\nu=(\operatorname{tr}Q_R)^2/\operatorname{tr}(Q_R^2)$. For $K$ orthonormal tapers with equal weights this gives $\nu=2K$ exactly. The values in Table~\ref{tab:dof} are computed from this formula and agree with Monte Carlo to within sampling error.
+
+\emph{Resolution and leakage.} We report resolution as the half-power full width of $H$, and as the smallest separation at which two equal sinusoids produce a 3~dB dip between them. Leakage is the fraction of $H$'s mass outside a stated band, and the peak side lobe is the maximum of $H$ beyond $1.5\times$ the half-power half-width. All are computed from $H$ on a fine grid.
+
+\emph{Grid smoothing.} A practitioner convolves a zero-padded periodogram with a kernel sampled on the same grid. With padding to at least $2N$ points this is exactly the lag-window estimate above, because the periodogram's lag sequence vanishes beyond $|\tau|=N-1$; with a Gaussian kernel and $16N$ points the two agree to $10^{-6}$.
+
+\section{Averaging over a sliding window is smoothing}
+\label{app:welch}
+Welch's method \cite{welch1967} averages periodograms of tapered segments that overlap by a fixed fraction. Let the taper be $w$ and let the segment start slide continuously. Each segment's transform is $x$ transformed and convolved with $\mathcal{W}$ shifted by the segment position; averaging its squared magnitude over all positions, the cross terms between distinct frequencies cancel and one obtains
 \begin{equation}
-S(f) = \sum_{t=-\infty}^{\infty} s_\tau e^{-i2\pi f\tau}
+\hat S_{\mathrm{sw}}(f)=\int |\mathcal{W}(f-f')|^2\,\hat I(f')\dd f' ,
 \end{equation}
-Consequently, $s_\tau$ and $S(f)$ are an FT pair. 
+the periodogram smoothed with the kernel $|\mathcal{W}|^2$ \cite{nuttall1982}. In the limit of full overlap, Welch's method is therefore a Blackman--Tukey lag-window estimate whose lag window is the taper's autocorrelation. With the customary 50\% overlap it is an approximation to this, and Fig.~\ref{fig:tradeoff} places it in the same family. Bronez's finding that multitaper estimation beats Welch's method at equal resolution and leakage \cite{bronez1992} is, in the present picture, the statement of Section~\ref{sec:nearly}: a single sliding taper, like a single fixed one, uses fewer degrees of freedom than $K$ orthogonal tapers.
 
-\subsection{Properties of the PSD}
-
-\subsection{The spectrum of a windowed signals}
-Tapers are often used in estimating the PSD of a signal. Here we will use the SRT to derive an important relationship between the true PSD and the FT of the data taper. Assume that the taper $w_t$ is equal to zero outside of the window $t=1,\ldots,N$.  [change this to real time]
-
-Let $J(f)$ be the FT of the of the windowed signal, $$J(f)=(\Delta)^{1/2}\sum_{t=1}^{N} w_t X_t e^{-i2\pi ft\Delta}.$$ Then we have: 
-\begin{eqnarray*}
-J(f) &=& (\Delta)^{1/2}\sum_{t=1}^{N} w_t X_t e^{-i2\pi ft\Delta} \\
-     &=& (\Delta)^{1/2}\sum_{t=1}^{N} w_t \left( \int_{-F_s/2}^{F_s/2} e^{i2\pi f't \Delta} dZ(f')  \right)e^{-i2\pi ft\Delta} \\ 
-     &=& \int_{-F_s/2}^{F_s/2}(\Delta)^{1/2} \sum_{t=1}^{N} w_t e^{-i2\pi (f-f')t\Delta} dZ(f') \\
-     &=& \frac{1}{\Delta^{1/2}} \int_{-F_s/2}^{F_s/2} W(f-f')dZ(f'),
-\end{eqnarray*}
-where $W(f)=(\Delta)^{1/2}\sum_{t=1}^N w_t e^{-i2\pi ft\Delta}$, and the $W(f)$ forms a FT pair with $w_t$, i.e. $W(f) \leftrightarrow w_t$.
-
-Now define the \textit{direct spectral estimator} $\hat{S}^{(d)} \triangleq |J(f)|^2$. We next show that the expected value of the direct spectral estimator is equal to the true PSD convolved with a frequency-domain window function. To simplify the notation, we omit the limits in the integrals and sums. 
-\begin{eqnarray*}
-E[\hat{S}^{(d)}] &=& E[J(f)J^*(f)] \\
-&=& E(\Delta)\sum_{t}\sum_{t'} w_t w_{t'} X_t X_{t'} e^{-i2\pi f(t-t')\Delta} \\
-&=& E(\Delta)\sum_{t}\sum_{t'} w_t w_{t'} \left( \int dZ(f') e^{i2\pi f't \Delta}   \right) \left( \int dZ(f'') e^{i2\pi f'' t' \Delta}   \right) e^{-i2\pi f(t-t')\Delta} \\
-&=& E\int\int dZ(f')dZ(f'') \left((\Delta)^{1/2}\sum_{t} w_t e^{-i2\pi (f-f')t\Delta} \right)\left((\Delta)^{1/2}\sum_{t'}w_{t'}e^{-i2\pi (f-f'')t'\Delta} \right)^*\\
-&=& E\int\int dZ(f')dZ(f'') W(f-f')W^*(f-f'')\\
-&=& \int\int E[dZ(f')dZ(f'')] W(f-f')W^*(f-f'')\\
-&=& \int\int df'df'' \delta(f'-f'')S(f') W(f-f')W^*(f-f'')\\
-&=& \int df' |W(f-f')|^2 S(f') \\
-&=& |W(f)|^2*S(f)
-\end{eqnarray*}
-
-This result shows that windowing a signal with a window function $w_t \leftrightarrow W(f)$ produces a spectral estimate that is smoothed and distorted relative to the true PSD, where the smoothing kernel is $H(f)=|W(f)|^2$. The shape of this smoothing kernel will determine the nature and degree of the distortion. We will see that choosing different shapes for the smoothing kernel effectively trades off three different featuers of spectral estimates: the variance, resolution, and bias. 
-
-results for LTI systems
-
-results for windowing
+\begin{thebibliography}{99}
+\bibitem{thomson1982} D.~J. Thomson, ``Spectrum estimation and harmonic analysis,'' \emph{Proc. IEEE}, vol.~70, no.~9, pp. 1055--1096, 1982. See Sec.~VIII, eq.~(8.3).
+\bibitem{slepian1978} D.~Slepian, ``Prolate spheroidal wave functions, Fourier analysis, and uncertainty. V: The discrete case,'' \emph{Bell Syst. Tech. J.}, vol.~57, pp. 1371--1430, 1978.
+\bibitem{babadi2014} B.~Babadi and E.~N. Brown, ``A review of multitaper spectral analysis,'' \emph{IEEE Trans. Biomed. Eng.}, vol.~61, no.~5, pp. 1555--1564, 2014.
+\bibitem{prerau2017} M.~J. Prerau, R.~E. Brown, M.~T. Bianchi, J.~M. Ellenbogen, and P.~L. Purdon, ``Sleep neurophysiological dynamics through the lens of multitaper spectral analysis,'' \emph{Physiology}, vol.~32, no.~1, pp. 60--92, 2017.
+\bibitem{percival1993} D.~B. Percival and A.~T. Walden, \emph{Spectral Analysis for Physical Applications: Multitaper and Conventional Univariate Techniques}. Cambridge Univ. Press, 1993 (2nd ed., \emph{Spectral Analysis for Univariate Time Series}, 2020).
+\bibitem{daniell1946} P.~J. Daniell, discussion of ``On the theoretical specification and sampling properties of autocorrelated time-series,'' \emph{J. Roy. Statist. Soc. Suppl.}, vol.~8, pp. 88--90, 1946.
+\bibitem{riedel1995} K.~S. Riedel and A.~Sidorenko, ``Minimum bias multiple taper spectral estimation,'' \emph{IEEE Trans. Signal Process.}, vol.~43, no.~1, pp. 188--195, 1995.
+\bibitem{riedel1994} K.~S. Riedel, A.~Sidorenko, and D.~J. Thomson, ``Spectral estimation of plasma fluctuations. I. Comparison of methods,'' \emph{Phys. Plasmas}, vol.~1, no.~3, pp. 485--500, 1994.
+\bibitem{walden2000} A.~T. Walden, ``A unified view of multitaper multivariate spectral estimation,'' \emph{Biometrika}, vol.~87, no.~4, pp. 767--788, 2000.
+\bibitem{abreu2017} L.~D. Abreu and J.~L. Romero, ``MSE estimates for multitaper spectral estimation and off-grid compressive sensing,'' \emph{IEEE Trans. Inf. Theory}, vol.~63, no.~12, pp. 7770--7776, 2017.
+\bibitem{karnik2022} S.~Karnik, J.~Romberg, and M.~A. Davenport, ``Thomson's multitaper method revisited,'' \emph{IEEE Trans. Inf. Theory}, vol.~68, no.~7, pp. 4864--4891, 2022.
+\bibitem{bronez1992} T.~P. Bronez, ``On the performance advantage of multitaper spectral analysis,'' \emph{IEEE Trans. Signal Process.}, vol.~40, no.~12, pp. 2941--2946, 1992.
+\bibitem{hansson2012} M.~Hansson-Sandsten, ``A Welch method approximation of the Thomson multitaper spectrum estimator,'' in \emph{Proc. EUSIPCO}, Bucharest, 2012, pp. 440--444.
+\bibitem{welch1967} P.~D. Welch, ``The use of fast Fourier transform for the estimation of power spectra: A method based on time averaging over short, modified periodograms,'' \emph{IEEE Trans. Audio Electroacoust.}, vol.~15, no.~2, pp. 70--73, 1967.
+\bibitem{nuttall1982} A.~H. Nuttall and G.~C. Carter, ``Spectral estimation using combined time and lag weighting,'' \emph{Proc. IEEE}, vol.~70, no.~9, pp. 1115--1125, 1982.
+\end{thebibliography}
 
 \end{document}
