@@ -1,0 +1,10 @@
+# third-party PDFs and other copyrighted reference material live here locally but are not committed
+references/
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# MATLAB autosaves, macOS
+*.asv
+.DS_Store

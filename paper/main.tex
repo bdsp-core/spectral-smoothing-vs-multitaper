@@ -1,0 +1,130 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{Spectral Estimation Review Paper}
+\author{Siddharth Biswal, M. Brandon Westover}
+\date{May 2015}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+\section{The convolution theorem}
+Derivation of the fact that the spectrum of two signals multiplied together is  equal to the convolution of the spectra of those two signals. Show standard examples of various widths to illustrate that wide in time domain means narrow in frequency domain. Show gaussian, sinc, square wave. 
+
+\section{Spectral leakage}
+For this discussion we assume that the signal is bandlimited and that the sampling rate is sufficiently high any aliasing artifacts are negligible. In fact, we will assume that our signals are continuous. This will allow us to focus solely on artifacts that arise as a consequence of signal \textit{length}. 
+
+Spectral artifacts that arise as a consequence of having only a short segment of a signal to work with are known as \textit{spectral leakage} artifacts. Leakage can be best understood by viewing a short segment of a signal as arising from multiplying a long (infinite) segment by a `truncation window', that is, by a rectangular window equal to 1 over the legnth of the signal segment that we have available, and equal to 0 outside of this range (Figure XXX). Recall from the previous section that the spectrum of a square window $w(t)=\mathrm{rect}(t/T)$ is a sinc function, $W(f)=\mathrm{sinc}(Tf)$. As explained in the previous section, the convolution theorem tells us that `multiplication in the time domain is convolution in the frequency domain'. Therefore, the spectrum of a `truncated' signal is the actual spectrum of the (untruncated) signal, distorted by convolution with the sinc function. 
+
+As shown in Figure XX, the convolution arising from truncation affects the original `true' spectrum in two ways. First, it smooths out or smears the original spectrum, and it adds decaying oscillations, or `ripples'. The smearing component is because the width of the central lobe of the sinc function acts to replace each point in the true spectrum with a weighted average of the neighboring values. The ripples are due to the decaying sidelobes of the sinc function. 
+
+Spectral leakage artifacts are not very noticeable when the underlying spectrum of the signal is relatively smooth and lacks any narrow peaks. If the true spectrum contains prominent sharp peaks or sharp `jumps', then leakage can be substantial. [example -- cosine]. In the case of peaks, leakage smears out each peak (by an amount proportoinal to the width of the main lobe), and adds a ripple effect which spreads out both sides of the true peak into areas where no spectral energy actually exists. This effect is the origin of term `leakage'. In the case of signals whose specra have sharp discontinuities (Figure XX), leakage produces an overshoot on either side of the discontinuity, followed by gradually diminishing flanking ripples. 
+
+Two remedies exist for reducing the effects of spectral leakage. First, one can increase the length of a sianal segment. This effectively creates a wider truncation window, whose corresponding spectrum will have a narrower sinc function. Because the resulting function more closely resembles an `impulse', convolving it with the true signal spectrum produces less smearing and less ripple artifact. Second, one can truncate the signal more softly than is done by a rectangular window, by multiplying the signal by an appropriate \textit{tapering function}, or simply \textit{taper}. 
+
+Numeerous tapering functions have been proposed, with various associated pros and cons. All are subject to a fundamental tradeoff between the amount of ripple and the amount of smearing that they induce. In general, tapers that have narrower main lobes will necessarily have larger side lobes, and will thus produce more smearing but larger ripple artifact. By contrast, tapers whose spectra have smaller side lobes will have larger main lobes, and will consequently produce less ripple but more smearing. 
+
+Figure: show longer signal segments --> less leakage.
+
+Figure plan: show series of signals and spectra with progressively larger truncation windows (see fig 6.1,2) -- gaussian, cosine, mixed frequencies, sinc function
+
+Show taper tradeoffs -- vary the size of the tapers. 
+
+
+
+\subsection{Fourier transform of a discrete time signal}
+Suppose that the continuous time $L^2(-\infty,\infty)$ signal $g(t)$ is sampled at equally spaced time points with the time between samples equal to  $\Delta$. This defines a discrete time sequence $$g_t\triangleq (t\Delta), \mathrm{ } t=\ldots,-2,-1,0,1,2,\ldots$$ The Fourier transform of this sequence is defined to be
+\begin{equation}
+    G(f)\triangleq \Delta \sum_{-\infty}^{\infty}g_t e^{-2\pi ft\Delta}
+\end{equation}
+
+Suppose that $G(f)$ is in $L^2[-F_s/2,F_s/2]$, where $Fs = 1/\Delta$. $F_s/2$ is the Nyquist frequency. In this case the FT pair is: 
+\begin{equation}
+    G(f)=\sum_{t=-\infty}^{\infty}g_t e^{i2 \pi ft\Delta}, \text{      } g_t = \Delta \int_{-F_s/2}^{F_s/2} G(f)e^{-i 2\pi ft\Delta}df
+\end{equation}
+
+\section{The Spectral Representation Theorem}
+
+Some quotes explaining the meaning (informally) of the SRT. These all implicitly rely on the notion of convergence of a sequence of stochastic processes. 
+
+Cramer and Leadbetter (1967), p. 129: “the spectral representation (1) shows how the process is additively built up by elementary and mutually orthogonal harmonic oscillations”
+
+Anderson (1971), p. 398: “any stationary (wide sense) stochastic process can be considered as a weighted sum or integral of trigonometric functions of time with the weights being random variables.”
+
+Priestley (1981), p. 245: “any stationary process can be represented as (the limit of) the
+sum of sine and cosine functions with random coefficients”. 
+
+\subsection{Spectral decomposition of a random signal}
+A spectral decomposition is a representation of a random signal by a series or integral with respect to some special system of functions, such that the coefficients in this expansion are pairwise uncorrelated random variables. 
+
+The existence of a spectral decomposition for a random signal follows from the Wiener–Khinchin theorem on the integral representation of the correlation function for stationary random signals. This shows that any stationary random signal can be regarded as the superposition of mutually uncorrelated harmonic oscillations of various frequencies and with random phases and amplitudes.
+
+Let $X_t$ be a s.o.s. random process on the finite interval $(0,T)$. The spectral representation theorem says that we can represent $X_t$ in terms of an \textit{orthogonal process}
+\begin{equation}
+    X_t =\Delta \int_{-F_s/2}^{F_s/2} e^{i2\pi ft\Delta} dZ(f)
+\end{equation}
+The properties of $Z(f)$ and $dZ(f)$ are as follows.  First, define
+\begin{eqnarray}
+    dZ(f) & \triangleq & Z(f+df)-Z(f) \\
+    dS^{(I)}(f) &\triangleq& E[|dZ(f)|^2]
+\end{eqnarray}
+where $df$ is an infinitesimal frequency increment $df$, and $dS^{(I)}(f)$ is called the  \textit{integrated spectrum of} $X_t$. For all values of $f\leq 1/2$, $Z(f)$ satisfies
+\begin{eqnarray}
+E[dZ(f)]&=&0 \\
+\mathrm{cov}[dZ(f'),dZ(f)]&=&E[dZ^*(f'),dZ(f)]=\Delta(f'-f)dS^{(I)}(f) \label{eqn:oip}
+\end{eqnarray}
+If the integrated spectrum $S^{(I)}(f)$ is smooth (differentiable everywhere), with derivative equal to $S(f)$, then we have $$E[|dZ(f)|^2] = dS^{(I)}(f) = S(f)df.$$ The function $S(f)$ is called the power spectral density function (PSD). From here on we will assume that $S(f)$ exists. 
+
+Because of property (\ref{eqn:oip}), we say that $Z(f)$ has \textit{orthognonal increments}. This property allows us to derive a relationship between the autocovariance sequence $s_\tau$ and the integrated spectrum, $S^{(I)}(f)$: 
+\begin{eqnarray}
+    s_\tau &=& E[X_t X_{t+\tau}] \\
+    &=& (\Delta)^2 E\int_{-F_s/2}^{F_s/2} e^{i2\pi f't\Delta}dZ^*(f')\int_{-1/2}^{1/2}e^{i2\pi f(t+\tau)\Delta} dZ(f) \\
+    &=& (\Delta)^2 \int_{-F_s/2}^{F_s/2}\int_{-F_s/2}^{F_s/2}e^{i2\pi(f-f')t\Delta}e^{i2\pi f\tau\Delta} E[dZ^*(f)dZ(f)] \\
+    &=& (\Delta)^2\int_{-F_s/2}^{F_s/2}\int_{-F_s/2}^{F_s/2}e^{i2\pi(f-f')t\Delta}e^{i2\pi f\tau\Delta}S(f)df \\
+    &=& (\Delta)^2 \int_{-F_s/2}^{F_s/2}e^{i2\pi f\tau\Delta} S(f)df \\
+\end{eqnarray}
+This result shows that the PSD defines the autocovariance sequecne (ACS) for a stationary random process. In addition, if we assume that $S(f)$ is square integrable, then from standard Fourier theory we have that $S(f)$ is the Fourier transform of $s_\tau$, 
+\begin{equation}
+S(f) = \sum_{t=-\infty}^{\infty} s_\tau e^{-i2\pi f\tau}
+\end{equation}
+Consequently, $s_\tau$ and $S(f)$ are an FT pair. 
+
+\subsection{Properties of the PSD}
+
+\subsection{The spectrum of a windowed signals}
+Tapers are often used in estimating the PSD of a signal. Here we will use the SRT to derive an important relationship between the true PSD and the FT of the data taper. Assume that the taper $w_t$ is equal to zero outside of the window $t=1,\ldots,N$.  [change this to real time]
+
+Let $J(f)$ be the FT of the of the windowed signal, $$J(f)=(\Delta)^{1/2}\sum_{t=1}^{N} w_t X_t e^{-i2\pi ft\Delta}.$$ Then we have: 
+\begin{eqnarray*}
+J(f) &=& (\Delta)^{1/2}\sum_{t=1}^{N} w_t X_t e^{-i2\pi ft\Delta} \\
+     &=& (\Delta)^{1/2}\sum_{t=1}^{N} w_t \left( \int_{-F_s/2}^{F_s/2} e^{i2\pi f't \Delta} dZ(f')  \right)e^{-i2\pi ft\Delta} \\ 
+     &=& \int_{-F_s/2}^{F_s/2}(\Delta)^{1/2} \sum_{t=1}^{N} w_t e^{-i2\pi (f-f')t\Delta} dZ(f') \\
+     &=& \frac{1}{\Delta^{1/2}} \int_{-F_s/2}^{F_s/2} W(f-f')dZ(f'),
+\end{eqnarray*}
+where $W(f)=(\Delta)^{1/2}\sum_{t=1}^N w_t e^{-i2\pi ft\Delta}$, and the $W(f)$ forms a FT pair with $w_t$, i.e. $W(f) \leftrightarrow w_t$.
+
+Now define the \textit{direct spectral estimator} $\hat{S}^{(d)} \triangleq |J(f)|^2$. We next show that the expected value of the direct spectral estimator is equal to the true PSD convolved with a frequency-domain window function. To simplify the notation, we omit the limits in the integrals and sums. 
+\begin{eqnarray*}
+E[\hat{S}^{(d)}] &=& E[J(f)J^*(f)] \\
+&=& E(\Delta)\sum_{t}\sum_{t'} w_t w_{t'} X_t X_{t'} e^{-i2\pi f(t-t')\Delta} \\
+&=& E(\Delta)\sum_{t}\sum_{t'} w_t w_{t'} \left( \int dZ(f') e^{i2\pi f't \Delta}   \right) \left( \int dZ(f'') e^{i2\pi f'' t' \Delta}   \right) e^{-i2\pi f(t-t')\Delta} \\
+&=& E\int\int dZ(f')dZ(f'') \left((\Delta)^{1/2}\sum_{t} w_t e^{-i2\pi (f-f')t\Delta} \right)\left((\Delta)^{1/2}\sum_{t'}w_{t'}e^{-i2\pi (f-f'')t'\Delta} \right)^*\\
+&=& E\int\int dZ(f')dZ(f'') W(f-f')W^*(f-f'')\\
+&=& \int\int E[dZ(f')dZ(f'')] W(f-f')W^*(f-f'')\\
+&=& \int\int df'df'' \delta(f'-f'')S(f') W(f-f')W^*(f-f'')\\
+&=& \int df' |W(f-f')|^2 S(f') \\
+&=& |W(f)|^2*S(f)
+\end{eqnarray*}
+
+This result shows that windowing a signal with a window function $w_t \leftrightarrow W(f)$ produces a spectral estimate that is smoothed and distorted relative to the true PSD, where the smoothing kernel is $H(f)=|W(f)|^2$. The shape of this smoothing kernel will determine the nature and degree of the distortion. We will see that choosing different shapes for the smoothing kernel effectively trades off three different featuers of spectral estimates: the variance, resolution, and bias. 
+
+results for LTI systems
+
+results for windowing
+
+\end{document}
