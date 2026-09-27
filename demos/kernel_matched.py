@@ -1,11 +1,13 @@
 """Can one taper followed by a special smoothing kernel reproduce the K-taper multitaper estimate?
 
 The lag window g_tau = q_tau / r_w(tau) (q: lag sums of the multitaper matrix, r_w: autocorrelation of the taper) gives the
-smoothed tapered periodogram exactly the multitaper kernel, hence the same expected value for every spectrum. The two are
+smoothed tapered periodogram the multitaper kernel (exactly when r_w has no zeros, as without a taper), hence the same
+expected value for every spectrum. The two are
 still different estimators. This script reports, for N = 256, NW = 4, K = 7:
   the kernel mismatch, the distance between the matrices, the most negative eigen-weight, nu for white noise, and, on
   1000 simulated records of three processes, the RMS dB difference from the multitaper estimate of the same record,
-  the RMS dB error of each, and the share of estimates that are negative.
+  the RMS dB error of each, and the share of estimates that are negative. The two RMS dB figures are computed over the
+  positive estimates only, since a negative estimate has no value in decibels.
 It also prints the kernel properties of recipe (b'), for Table II.
 Run: python demos/kernel_matched.py
 """
