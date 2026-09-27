@@ -104,3 +104,16 @@ def test_nu_of_recipe_b_prime_splits_between_taper_and_kernel():
         nu_tuk_box = nu(method="lagwindow", h=hb, taper=tuk)
         nu_tuk_par = nu(method="lagwindow", h=hp, taper=tuk)
         assert (round(nu_hann_box, 1), round(nu_mt, 1), round(nu_tuk_box, 1), round(nu_tuk_par, 1)) == (8.9, 14.0, 14.8, 16.7)
+
+
+def test_recipe_b_prime_skirts_depend_on_the_time_bandwidth_product():
+    """Recipe (b'): the peak of the kernel beyond 3W is -25, -31 and -38 dB for 2NW = 4, 6 and 8, independent of N, and the
+    Hann-then-box kernel is at least 25 dB lower at each setting (Section IV, recipe (b'))."""
+    for N in (256, 1024):
+        nfft = 64 * N; f = np.abs(ss.signed_freq(nfft))
+        for NW, level in ((2, -25), (3, -31), (4, -38)):
+            W = NW / N
+            Hb = ss.kernel_smoothed(ss.unit_taper("tukey", N, alpha=0.25), ss.parabolic_lag_window(N, np.sqrt(2) * W), nfft)
+            Hh = ss.kernel_smoothed(ss.unit_taper("hann", N), ss.box_lag_window(N, W), nfft)
+            db = lambda H: 10 * np.log10(H[f > 3 * W].max() / H.max())
+            assert level - 1 < db(Hb) < level and db(Hh) < db(Hb) - 25
