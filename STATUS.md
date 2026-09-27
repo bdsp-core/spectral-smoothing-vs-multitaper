@@ -248,7 +248,10 @@ Done (`demos/make_figures.py`, `figures/`):
   five spindles; windows of 1, 2 and 4 s, each by multitaper and by recipe (b'); a white box in each panel shows the
   resolution. The recording is a de-identified BDSP polysomnogram kept outside the repository (found by pattern in
   `~/GithubRepos/sleep-yoda/dev/standardization/output/`; no identifier appears in the code, figure or text).
-  The seizure figures now state resolution in seconds and hertz in the panel titles. Figure 9 was kept.
+  The seizure figures now state resolution in seconds and hertz in the panel titles. The two-seizure figure was
+  dropped from the paper on 2026-09-27 (M.B.W.'s decision); its clip stays in Table III as "second clip", and
+  `figures/fig11_eeg_two_seizures.png` is still generated. The sleep figure is now Fig. 9. Length: left for later, since
+  the authors will revise the text heavily before cutting.
 - **Combined with E. Keldsen's revisions (2026-09-27):** merged on main with manual resolution of five conflicts in
   `paper/main.tex` and one in the tests; every one of his edits was kept (hypotheses for the parabola, white-noise
   statement of the least-variance result, exactness conditions for the matched kernel, Table I rounding, nu = 14.8

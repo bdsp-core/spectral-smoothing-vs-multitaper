@@ -67,7 +67,7 @@ def main(cases=("A", "C")):
         for k, (b, lo, hi) in enumerate(BANDS):
             chg = {n: out[n][b][ictal].mean() - out[n][b][pre].mean() for n in names}
             dev = {n: np.median(np.abs(out[n][b] - out["multitaper"][b])) for n in names if n != "multitaper"}
-            label = f"Fig.~\\ref{{fig:eeg}} ({chan.title()})" if case == "A" else f"Fig.~\\ref{{fig:eeg2}} ({chan.title()})"
+            label = f"Fig.~\\ref{{fig:eeg}} ({chan.title()})" if case == "A" else f"second clip ({chan.title()})"
             lines.append((label if k == 0 else "") + f" & {b} ({lo}--{hi} Hz) & " + " & ".join(f"{chg[n]:+.1f}" for n in names) + " & " + " & ".join(f"{dev[n]:.2f}" for n in names if n != "multitaper") + r"\\")
         if case != cases[-1]:
             lines.append(r"\midrule")
