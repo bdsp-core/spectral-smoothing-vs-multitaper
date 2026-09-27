@@ -117,3 +117,20 @@ def test_recipe_b_prime_skirts_depend_on_the_time_bandwidth_product():
             Hh = ss.kernel_smoothed(ss.unit_taper("hann", N), ss.box_lag_window(N, W), nfft)
             db = lambda H: 10 * np.log10(H[f > 3 * W].max() / H.max())
             assert level - 1 < db(Hb) < level and db(Hh) < db(Hb) - 25
+
+
+def test_parabola_versus_box_at_equal_half_power_width():
+    """At the same half-power width w the parabola (half-width w / sqrt 2) has second moment w^2/10 against w^2/12 for the box
+    (20% more leading bias) and int G^2 = 3 sqrt(2) / (5 w) against 1 / w (15% less variance), so it is not optimal at a fixed width.
+    Its asymptotic optimality holds with each kernel at its own best width: the classical efficiency constant
+    (mu2^(1/2) int G^2)^(4/5) is smallest for the parabola, and the box and Gaussian RMS errors are 3% and 2% larger."""
+    w = 1.0; u = np.linspace(-3, 3, 600001); du = u[1] - u[0]
+    b = w / np.sqrt(2); par = np.where(np.abs(u) <= b, 0.75 / b * (1 - (u / b) ** 2), 0.0)
+    box = np.where(np.abs(u) <= w / 2, 1 / w, 0.0)
+    sg = w / (2 * np.sqrt(2 * np.log(2))); gau = np.exp(-0.5 * (u / sg) ** 2) / (sg * np.sqrt(2 * np.pi))
+    mom = lambda G: (np.sum(u ** 2 * G) * du, np.sum(G ** 2) * du)
+    (m_p, r_p), (m_b, r_b), (m_g, r_g) = mom(par), mom(box), mom(gau)
+    assert abs(m_p / m_b - 1.2) < 1e-3 and abs(r_p / r_b - 3 * np.sqrt(2) / 5) < 1e-3
+    eff = lambda m, r: (np.sqrt(m) * r) ** 0.8                                  # minimal AMSE is proportional to this
+    rms = lambda m, r: np.sqrt(eff(m, r) / eff(m_p, r_p))
+    assert abs(rms(m_b, r_b) - 1.0297) < 1e-3 and abs(rms(m_g, r_g) - 1.0202) < 1e-3

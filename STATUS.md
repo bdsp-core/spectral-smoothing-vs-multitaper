@@ -200,7 +200,8 @@ Done (`demos/make_figures.py`, `figures/`):
   development, preparation of the figures and drafting of the manuscript". IEEE policy asks that the AI system be
   named and the sections identified; the statement names neither.
 
-- **Optimal kernel (2026-09-27, Section II-B.5):** the smoothing kernel with the least mean square error is derived, not
+- **Optimal kernel (2026-09-27, Section II-B.5):** the smoothing kernel with the least asymptotic mean square error among non-negative kernels
+  (each at its best width) is derived, not
   chosen: the parabola (Priestley 1962; Epanechnikov 1969), one parameter b, half-power width sqrt(2) b,
   nu = (10/3) N b / c_w, best half-width b_opt = (15 c_w / N)^(1/5) |S / S''|^(2/5). Box and Gaussian are 3% and 2% worse
   in RMS error at their best widths. For the 1.4 Hz alpha peak in a 2-s record the formula gives a half-power width of
