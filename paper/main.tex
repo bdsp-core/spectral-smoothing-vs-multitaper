@@ -127,7 +127,7 @@ which Priestley derived for spectral estimation \cite{priestley1962} and Epanech
 b_{\mathrm{opt}}=\Bigl(\frac{15\,c_w}{N}\Bigr)^{1/5}\,\Bigl|\frac{S(f)}{S''(f)}\Bigr|^{2/5}.
 \label{eq:bopt}
 \end{equation}
-It depends on the curvature of the spectrum, which changes from one frequency to the next and is not known in advance, and only weakly on the length of the record. For the alpha peak of the EEG-like spectrum of Section~\ref{sec:simulations}, which is 1.4~Hz wide, \eqref{eq:bopt} gives a half-power width of 1.5~Hz in a 2-second record. The width that minimizes the exact mean square error is 1.9~Hz, because the peak is too narrow for the quadratic approximation. Both agree with the rule of setting the width of the kernel to about the width of the narrowest feature.
+It depends on the curvature of the spectrum, which changes from one frequency to the next and is not known in advance, and only weakly on the length of the record. For the alpha peak of the EEG-like spectrum of Section~\ref{sec:simulations}, which is 1.4~Hz wide, \eqref{eq:bopt} gives a half-power width of 1.5~Hz in a 2-second record. The width that minimizes the exact mean square error is 1.9~Hz, because the peak is too narrow for the quadratic approximation. Both agree with the rule of setting the width of the kernel to about the width of the narrowest feature. Appendix~\ref{app:variational} derives \eqref{eq:parabola} and \eqref{eq:bopt} by the calculus of variations.
 
 \begin{figure*}[!t]
 \centering
@@ -228,6 +228,19 @@ It can be computed from one Fourier transform of the untapered record. It smooth
 \end{equation}
 The two orders differ because squaring discards the phase of $X$. The square in \eqref{eq:before} expands into a double integral over products $X(f')X^{*}(f'')$ of the transform at pairs of frequencies, and \eqref{eq:after} keeps only the terms with $f'=f''$. For a stationary process the products at different frequencies are close to zero on average and are not zero in any one record. This is why the two estimators can have the same expected value, and why their estimates of one record differ.
 
+The two parts can be written out. Let $X_j=X(f_j)$ be the transform at the Fourier frequencies $f_j=j/N$, and $\hat I_j=|X_j|^2/N$ the periodogram there. Then $\int V_k(f-f')X(f')\dd f'=\frac1N\sum_jV_k(f-f_j)X_j$, and expanding the square in \eqref{eq:before} gives
+\begin{multline}
+\hat S_{\mathrm{mt}}(f)=\frac1N\sum_{j}H_K(f-f_j)\,\hat I_j\\
++\frac1{N^2}\sum_{j\neq l}B_K(f-f_j,f-f_l)\,X_jX_l^{*},
+\label{eq:split}
+\end{multline}
+with $B_K(a,b)=\frac1K\sum_{k<K}V_k(a)V_k^{*}(b)$ and $H_K(a)=B_K(a,a)=\frac1K\sum_{k<K}|V_k(a)|^2$. The first term is the periodogram smoothed with $H_K$, the box with rounded shoulders of Fig.~\ref{fig:slepian}c, which is built from the $K$ tapers. The second is a cross term between different frequencies. For white noise the cross term has zero mean and is uncorrelated with the first term, so the variances of the two terms add. At a Fourier frequency the cross term carries the fraction
+\begin{equation}
+d^2=1-\frac{K}{N^2}\sum_jH_K(f_j)^2
+\label{eq:share}
+\end{equation}
+of the variance of the multitaper estimate. The first term alone therefore has $\nu=2K/(1-d^2)$, and its correlation with the multitaper estimate is $(1-d^2)^{1/2}$. For $NW=4$ and $K=7$ these are $d^2=0.08$, $\nu=15.2$ and $0.96$. For $NW=2$ and $K=3$ they are $0.12$, $6.9$ and $0.94$. For a coloured spectrum the mean of the cross term is not zero. It is negative where the spectrum is low, because the cross term subtracts the power that the first term admits through the side lobes of the Fej\'er kernel. On the AR(4) process of Section~\ref{sec:simulations} the first term alone is about 20~dB too high in that region. The tapers act through the cross term (\texttt{demos/frequency\_domain\_multitaper.py}).
+
 In terms of the matrix $Q$, an estimator has the form \eqref{eq:after} exactly when $Q$ is constant along each of its diagonals, that is, when $Q$ is a Toeplitz matrix. The matrix $A$ of Thomson's identity is of this kind, which is why the estimate with all $N$ tapers is a smoothed periodogram. The matrix of the $K$-taper estimate is not. The Toeplitz matrix closest to it is obtained by averaging each of its diagonals. It lies at a relative distance of $0.20$ for $NW=4$ and $K=7$, at any $N$, and at $0.27$ for the $NW=2$, $K=3$ of our EEG analysis.
 
 For sine tapers \cite{riedel1995} the convolution in \eqref{eq:before} has only two terms, and the estimate is
@@ -247,6 +260,8 @@ therefore gives the smoothed periodogram exactly the kernel of the $K$-taper est
 They do not have the same variance. For white noise the variance of a quadratic estimator is proportional to $\sum_{t,t'}Q_{tt'}^2$. By the Cauchy--Schwarz inequality the sum of squares along the diagonal at lag $\tau$ is at least $q_\tau^2/(N-|\tau|)$, with equality when $Q$ is constant along that diagonal. Among all estimators with a given kernel, the smoothed periodogram without a taper therefore has the smallest variance. For $N=256$ and $NW=4$, with the kernel of the $K$-taper estimate, it has $\nu=14.6$ for $K=7$ and $\nu=10.9$ for $K=4$. The multitaper estimates have $\nu=14$ and $\nu=8$. The matched kernel has negative lobes, however, so a few of the weights of this estimator are negative, and it has no protection against leakage.
 
 The two are therefore different estimators, and their estimates of the same record differ. For $N=256$, $NW=4$ and $K=7$, the kernel-matched periodogram without a taper lies at a relative distance of $0.20$ from the multitaper matrix. The closest pair of taper and lag window, found by alternating least squares, lies at $0.15$, and its taper is nearly rectangular. On 1000 simulated records of the EEG-like spectrum of Section~\ref{sec:simulations}, the estimates of this pair differ from the multitaper estimates of the same records by $0.3$~dB (root mean square) and the kernel-matched estimates by $0.6$~dB. The error of each estimator is $2.0$~dB. On the AR(4) process, which spans 65~dB, the differences are $1.1$ and $4.0$~dB, and a third of the kernel-matched estimates are negative. Its lag window cancels the leakage of the untapered periodogram on average and not in each record. Hansson-Sandsten posed the same question for Welch's method \cite{hansson2012}, and our search over segment windows came no closer than $0.27$ (\texttt{demos/fit\_single\_window.py}, \texttt{demos/kernel\_matched.py}). A single window can therefore reproduce the multitaper estimate closely when the dynamic range is modest, and cannot when it is large. In that case the other routes must taper before they smooth or average.
+
+The taper can be built from the Slepian tapers as well. The diagonal of the multitaper matrix is $\frac1K\sum_kv_k(t)^2$, so the taper $w_t=\bigl(\frac1K\sum_kv_k(t)^2\bigr)^{1/2}$ with the lag window \eqref{eq:matched} reproduces the diagonal and the kernel together. For $N=256$, $NW=4$ and $K=7$ this estimator lies at $0.16$ from the multitaper matrix. Its estimates differ from the multitaper estimates of the same records by $0.3$~dB on the EEG-like spectrum and by $0.8$~dB on the AR(4) process. None of them is negative, and its error equals that of the multitaper estimate on both processes (\texttt{demos/rounded\_kernel.py}).
 
 
 \subsection{Simulations}
@@ -353,6 +368,8 @@ The best single taper was a cosine taper of 10\% or 25\% in every case. The Hann
 The kernel of \eqref{eq:matched} was tuned in the same way, over the taper and over the multitaper estimate to which it is matched. Matched to the best multitaper estimate, it reproduces the error of that estimate: 1.96 and 1.40~dB on the EEG-like spectrum, against 1.97 and 1.40~dB. Its own best settings are matched to multitaper estimates with a large time--bandwidth product and few tapers, whose kernels are bell-shaped, and they come within 6\% of the parabola. On the AR(4) process it requires a taper. Without one, more than a tenth of its estimates are negative at every setting. A kernel matched to the multitaper estimate is therefore the right choice for reproducing that estimate, and not for improving on it. The parabola \eqref{eq:parabola} is at least as accurate, has one parameter, and cannot give a negative estimate.
 
 The lower rows of the table give the estimators at the bandwidth used in the figures. At that bandwidth recipe (b$'$) has a smaller error than the adaptively weighted multitaper estimate in all four cases.
+
+The settings above use one width at all frequencies. The best width \eqref{eq:bopt} varies with the curvature of the spectrum, so we also chose the width separately at each frequency, on one set of records, and scored the choice on a second set. With a 25\% cosine taper and a parabola the error falls from 2.42, 1.41, 1.94 and 1.41~dB in the four cases to 1.69, 1.01, 1.39 and 1.00~dB, a gain of 28 to 30\%. The multitaper estimate with equal weights falls to 1.77, 1.15, 1.42 and 1.08~dB, and with adaptive weights to 1.87, 1.26, 1.47 and 1.17~dB. The gain from choosing the width well is several times the difference between the routes. The choice uses the true spectrum, so these values are bounds and not the results of a procedure. A width that varies with frequency is simple to apply to a periodogram. A multitaper estimate requires a different set of tapers for every width (\texttt{demos/local\_width.py}).
 
 \begin{table*}[!t]
 \caption{Error of Each Family at Its Best Setting}
@@ -525,6 +542,19 @@ because the bracket is $2\pi\delta(\omega'-\omega'')$. The sum of the periodogra
 \subsection{Discrete Time and a Finite Record}
 In discrete time the shift is an integer, and the sum over all shifts gives the result exactly, with no limit required. Let $w$ have length $L$ and $u_s$ be the length-$N$ vector holding $w$ at offset $s$, with the parts of $w$ outside the record discarded. Averaging over offsets gives $Q_{tt'}=\sum_sw[t-s]w[t'-s]$. If the offsets run over every integer for which the window touches the record, $s=-(L-1),\dots,N-1$, the sum equals the autocorrelation $r_w(t-t')$ for every pair inside the record, so $Q$ is Toeplitz and the estimator is the lag-window estimate of the untapered periodogram with lag window $r_w$ and kernel $|\mathcal{W}(f)|^2$. This is exact for a finite record; with a larger step or without overhang it holds approximately in the interior. The equivalence is for the \emph{untapered} periodogram: a tapered periodogram that is then smoothed has $Q_{tt'}=w_tg_{t-t'}w_{t'}$, which is not Toeplitz and is not the average of any single sliding window, though it is a time-and-lag weighting in the sense of \cite{nuttall1982}. For the sinc window, $r_w(\tau)\to2W\,\mathrm{sinc}(2W\tau)$ as $L\to\infty$, the lag sequence of $A$; the relative error in $Q$ falls as $1/L$ because the truncated sinc's autocorrelation differs from the sinc by a term of that order. Hence \eqref{eq:sliding}, and the Slepian sequences are the principal components of the shifted sinc windows.
 
+
+\section{The Kernel of Least Mean Square Error}
+\label{app:variational}
+Let the spectrum be smooth near $f$ with relative curvature $c=|S''(f)/S(f)|$, and let $G$ be a non-negative kernel of unit area that is much wider than $1/N$. To leading order the relative mean square error of the smoothed periodogram is
+\begin{equation}
+J[G]=\frac{c^2}{4}\Bigl(\int u^2G\dd u\Bigr)^2+\frac{c_w}{N}\int G^2\dd u .
+\label{eq:functional}
+\end{equation}
+The first term is the squared bias and the second is the variance. We minimize $J$ subject to $\int G\dd u=1$ and $G\ge0$. With a multiplier $\lambda$ for the first constraint, the first variation vanishes wherever $G>0$ if
+\begin{equation}
+\frac{c^2}{2}\,\mu_2\,u^2+\frac{2c_w}{N}\,G(u)-\lambda=0,\qquad\mu_2=\int u^2G\dd u .
+\end{equation}
+The minimizer is therefore a parabola, $G(u)=A(b^2-u^2)$ for $|u|\le b$ and zero elsewhere, with $A=Nc^2\mu_2/(4c_w)$. Unit area requires $A=3/(4b^3)$, and the parabola has $\mu_2=b^2/5$. Together these give $b^5=15c_w/(Nc^2)$, which is \eqref{eq:bopt}. Both terms of $J$ are convex in $G$, so the stationary point is the minimum. One calculation gives the shape and the width. The shape does not depend on the spectrum, and the width depends on it only through the curvature $c$.
 
 \section*{Acknowledgment}
 AI tools were used to assist with software development, preparation of the figures and drafting of the manuscript. The authors reviewed and revised all content and take responsibility for it.

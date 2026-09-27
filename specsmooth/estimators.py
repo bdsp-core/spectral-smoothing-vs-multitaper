@@ -62,6 +62,20 @@ def multitaper_sine_from_fft(x, K, oversample=2):
     return S / (2 * K * (N + 1)), f
 
 
+def multitaper_split(x, tapers):
+    """The multitaper estimate at the Fourier frequencies j/N, split into the periodogram smoothed with the kernel
+    H_K = (1/K) sum_k |V_k|^2 and the cross term between different frequencies:
+        S(f_m) = (1/N) sum_j H_K(f_m - f_j) I_j  +  (1/N^2) sum_{j != l} B_K(f_m - f_j, f_m - f_l) X_j conj(X_l).
+    Returns (smoothed, cross, grid); smoothed + cross is the multitaper estimate. For white noise the cross term has zero mean,
+    is uncorrelated with the smoothed term, and carries the share 1 - (K/N^2) sum_j H_K(j/N)^2 of the variance."""
+    x = np.asarray(x, float); N = len(x); V = np.asarray(tapers, float); K = V.shape[1]
+    S = (np.abs(np.fft.fft(V * x[:, None], axis=0)) ** 2).mean(axis=1)
+    HK = (np.abs(np.fft.fft(V, axis=0)) ** 2).mean(axis=1)
+    I = np.abs(np.fft.fft(x)) ** 2 / N
+    smoothed = np.real(np.fft.ifft(np.fft.fft(HK) * np.fft.fft(I))) / N          # circular convolution of the periodogram with H_K
+    return smoothed, S - smoothed, _fgrid(N)
+
+
 def toeplitz_part(Q):
     """The Toeplitz matrix closest to Q in the Frobenius norm: each diagonal replaced by its mean. A quadratic estimator is a
     smoothed periodogram exactly when its matrix is Toeplitz, so this is the smoothed periodogram closest to the estimator."""

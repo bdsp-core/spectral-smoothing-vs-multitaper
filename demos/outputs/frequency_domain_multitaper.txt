@@ -1,0 +1,16 @@
+N=256 NW=4 K=7: max |time-domain - frequency-domain multitaper| = 8.9e-16; weights of the smoothing kernel sum to 1.000000; bins with more than 1% of the peak weight: 9
+   white noise, 4000 records, f = 1/4: mean of cross term +0.0023 (estimate mean 1.000); var(cross)/var(multitaper) = 0.0785, derived 1 - (K/N^2) sum_j H_K(j/N)^2 = 0.0761; correlation 0.9599, derived sqrt(1 - d^2) = 0.9612; nu: multitaper 13.9, smoothed 15.1, derived 2K/(1-d^2) = 15.2
+   EEG-like : RMS dB difference between the two 0.74; RMS dB error: multitaper 1.96, smoothed periodogram 1.90; mean cross term / true spectrum where the spectrum is low: -0.07
+   AR(4)    : RMS dB difference between the two 5.67; RMS dB error: multitaper 8.48, smoothed periodogram 13.52; mean cross term / true spectrum where the spectrum is low: -128.16
+N=256 NW=4 K=5: max |time-domain - frequency-domain multitaper| = 1.1e-15; weights of the smoothing kernel sum to 1.000000; bins with more than 1% of the peak weight: 7
+   white noise, 4000 records, f = 1/4: mean of cross term +0.0012 (estimate mean 0.997); var(cross)/var(multitaper) = 0.2370, derived 1 - (K/N^2) sum_j H_K(j/N)^2 = 0.2480; correlation 0.8735, derived sqrt(1 - d^2) = 0.8672; nu: multitaper 9.8, smoothed 12.9, derived 2K/(1-d^2) = 13.3
+   EEG-like : RMS dB difference between the two 1.29; RMS dB error: multitaper 2.25, smoothed periodogram 1.97; mean cross term / true spectrum where the spectrum is low: -0.08
+   AR(4)    : RMS dB difference between the two 12.56; RMS dB error: multitaper 2.71, smoothed periodogram 13.17; mean cross term / true spectrum where the spectrum is low: -146.23
+N=400 NW=2 K=3: max |time-domain - frequency-domain multitaper| = 1.8e-15; weights of the smoothing kernel sum to 1.000000; bins with more than 1% of the peak weight: 5
+   white noise, 4000 records, f = 1/4: mean of cross term +0.0032 (estimate mean 1.008); var(cross)/var(multitaper) = 0.1300, derived 1 - (K/N^2) sum_j H_K(j/N)^2 = 0.1242; correlation 0.9328, derived sqrt(1 - d^2) = 0.9358; nu: multitaper 6.1, smoothed 7.1, derived 2K/(1-d^2) = 6.9
+   EEG-like : RMS dB difference between the two 1.20; RMS dB error: multitaper 2.84, smoothed periodogram 2.52; mean cross term / true spectrum where the spectrum is low: -0.04
+   AR(4)    : RMS dB difference between the two 6.01; RMS dB error: multitaper 6.73, smoothed periodogram 11.84; mean cross term / true spectrum where the spectrum is low: -79.68
+N=1024 NW=8 K=15: max |time-domain - frequency-domain multitaper| = 1.1e-15; weights of the smoothing kernel sum to 1.000000; bins with more than 1% of the peak weight: 17
+   white noise, 4000 records, f = 1/4: mean of cross term +0.0004 (estimate mean 0.996); var(cross)/var(multitaper) = 0.0464, derived 1 - (K/N^2) sum_j H_K(j/N)^2 = 0.0453; correlation 0.9765, derived sqrt(1 - d^2) = 0.9771; nu: multitaper 30.0, smoothed 31.4, derived 2K/(1-d^2) = 31.4
+   EEG-like : RMS dB difference between the two 0.31; RMS dB error: multitaper 1.26, smoothed periodogram 1.24; mean cross term / true spectrum where the spectrum is low: -0.02
+   AR(4)    : RMS dB difference between the two 4.49; RMS dB error: multitaper 5.42, smoothed periodogram 9.48; mean cross term / true spectrum where the spectrum is low: -30.77

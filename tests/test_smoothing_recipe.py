@@ -76,3 +76,46 @@ def test_smoothed_periodogram_needs_a_toeplitz_matrix():
     A = ss.sinc_toeplitz(N, NW / N)                                   # the all-taper, eigenvalue-weighted matrix is Toeplitz already
     assert np.abs(A - ss.toeplitz_part(A)).max() < 1e-12
     assert 0.1 < d / np.linalg.norm(Q) < 0.3
+
+
+def test_multitaper_is_a_smoothed_periodogram_plus_a_cross_term():
+    """S_mt = (periodogram smoothed with H_K) + cross term; for white noise the cross term has zero mean, is uncorrelated with the
+    smoothed term, and carries the share d^2 = 1 - (K/N^2) sum_j H_K(j/N)^2 of the variance."""
+    N, NW, K = 128, 4, 7; V, _ = ss.dpss(N, NW, K); j = np.arange(N)
+    rng = np.random.default_rng(4); x = rng.standard_normal(N)
+    sm, cr, _ = ss.multitaper_split(x, V)
+    assert np.abs(sm + cr - ss.multitaper(x, V, N)[0]).max() < 1e-12
+    HK = (np.abs(np.fft.fft(V, axis=0)) ** 2).mean(axis=1); I = np.abs(np.fft.fft(x)) ** 2 / N
+    direct = np.array([(HK[(m - j) % N] * I).sum() / N for m in range(N)])       # the smoothed term, written as a plain sum
+    assert np.abs(sm - direct).max() < 1e-12 and abs(HK.sum() / N - 1) < 1e-12
+    d2 = 1 - K * (HK ** 2).sum() / N ** 2
+    X = rng.standard_normal((6000, N)); m0 = N // 4
+    parts = np.array([[a[m0], b[m0]] for a, b, _ in (ss.multitaper_split(r, V) for r in X)])
+    tot = parts.sum(axis=1)
+    assert abs(parts[:, 1].mean()) < 0.02                                           # zero mean
+    assert abs(np.corrcoef(parts[:, 0], parts[:, 1])[0, 1]) < 0.05                  # uncorrelated
+    assert abs(parts[:, 1].var() / tot.var() - d2) < 0.02                           # share of the variance
+    assert abs(np.corrcoef(parts[:, 0], tot)[0, 1] - np.sqrt(1 - d2)) < 0.01
+
+
+def test_parabola_is_the_stationary_point_of_the_mean_square_error():
+    """Appendix D: minimizing (c^2/4) mu2^2 + (kappa/N) int G^2 over non-negative unit-area kernels gives the parabola of
+    half-width b = (15 kappa / (N c^2))^(1/5). Check on a grid that no non-negative perturbation of it lowers the functional."""
+    N, kappa, c = 400.0, 1.15, 30.0
+    b = (15 * kappa / (N * c ** 2)) ** 0.2
+    u = np.linspace(-2.5 * b, 2.5 * b, 4001); du = u[1] - u[0]
+    J = lambda G: (c ** 2 / 4) * (np.sum(u ** 2 * G) * du) ** 2 + (kappa / N) * np.sum(G ** 2) * du
+    par = np.where(np.abs(u) <= b, 0.75 / b * (1 - (u / b) ** 2), 0.0)
+    J0 = J(par)
+    rng = np.random.default_rng(5)
+    shapes = [np.where(np.abs(u) <= w, 0.5 / w, 0.0) for w in (0.6 * b, 0.8 * b, b)] + \
+             [np.exp(-0.5 * (u / s) ** 2) / (s * np.sqrt(2 * np.pi)) for s in (0.3 * b, 0.45 * b, 0.6 * b)] + \
+             [np.where(np.abs(u) <= w, 0.75 / w * (1 - (u / w) ** 2), 0.0) for w in (0.8 * b, 0.9 * b, 1.1 * b, 1.25 * b)]
+    for G in shapes:
+        G = G / (G.sum() * du)
+        assert J(G) > J0
+        for eps in (0.05, 0.3):                                                     # convexity along the segment
+            assert J((1 - eps) * par + eps * G) > J0 - 1e-15
+    for _ in range(20):
+        G = np.maximum(par + 0.05 * par.max() * np.convolve(rng.standard_normal(len(u)), np.ones(41) / 41, "same"), 0)
+        assert J(G / (G.sum() * du)) > J0

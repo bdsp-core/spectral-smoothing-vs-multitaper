@@ -222,6 +222,23 @@ Done (`demos/make_figures.py`, `figures/`):
   Matched to the best multitaper estimate it reproduces that estimate's error (1.96 vs 1.97; 1.40 vs 1.40). It is never
   ahead of the parabola, and without a taper it fails on the AR(4) process (over 10% negative estimates at every setting).
 
+- **Multitaper in the frequency domain (2026-09-27, Section II-D.5, eqs. split and share):** one FFT, then each taper acts as a
+  filter on the complex FFT, then square and average. Expanding the square: multitaper = (periodogram smoothed with
+  H_K = (1/K) sum |V_k|^2, the box with rounded shoulders) + (cross term between different frequencies). For white noise
+  the cross term has zero mean, is uncorrelated with the first term, and carries d^2 = 1 - (K/N^2) sum_j H_K(j/N)^2 of the
+  variance (0.08 for NW = 4, K = 7; 0.12 for NW = 2, K = 3). For coloured spectra its mean is negative where the spectrum
+  is low: it removes the leakage. Code `ss.multitaper_split`; scripts `demos/frequency_domain_multitaper.py`,
+  `demos/rounded_kernel.py` (includes the taper built as the root mean square of the K tapers).
+- **Variational derivation (2026-09-27, Appendix D):** minimizing squared bias plus variance over non-negative unit-area
+  kernels gives the parabola and its width b = (15 c_w / (N c^2))^(1/5) in one calculation; test in
+  `tests/test_smoothing_recipe.py`.
+- **Width chosen at each frequency (2026-09-27, Section III-B, `demos/local_width.py`):** with an oracle choice, scored
+  on independent records, the cosine-tapered parabola goes from 2.42 / 1.41 / 1.94 / 1.41 dB to 1.69 / 1.01 / 1.39 /
+  1.00 dB (28-30% better); multitaper gains 17-37%. The width matters several times more than the route. A data-driven
+  local width (plug-in on the curvature) has not been implemented.
+- **Not yet combined with GitHub (2026-09-27):** local main holds commits that are not on GitHub, and GitHub holds seven
+  commits by E. Keldsen that are not local. Both edit `paper/main.tex`; a rebase with manual conflict resolution is needed.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same

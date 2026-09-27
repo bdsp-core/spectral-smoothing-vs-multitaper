@@ -18,6 +18,9 @@ figures and demos the paper needs, and the plan.
 | `demos/everyday_comparison.py` | Table I: the estimators at one bandwidth over 300 records of the AR(4) process |
 | `demos/tuned_comparison.py` | Table III: every family tuned to its best setting, on the AR(4) process and an EEG-like spectrum |
 | `demos/taper_and_kernel.py` | which single taper and smoothing kernel work best (the basis of recipe b') |
+| `demos/frequency_domain_multitaper.py` | multitaper from one FFT, and its split into a smoothed periodogram plus a cross term |
+| `demos/rounded_kernel.py` | smoothing with the rounded-corner kernel built from the K tapers, with and without a taper built from them |
+| `demos/local_width.py` | how much a width chosen separately at each frequency would gain |
 | `demos/kernel_matched.py` | one taper plus a smoothing kernel matched to the multitaper kernel: same bias, different estimates |
 | `demos/band_power_table.py` | Table IV: band powers on the two seizure clips |
 | `demos/fit_single_window.py` | least-squares search for the single window closest to the multitaper estimator |
