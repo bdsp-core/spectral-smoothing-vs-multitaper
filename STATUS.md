@@ -182,8 +182,8 @@ Done (`demos/make_figures.py`, `figures/`):
   parameters and scores the best setting on 1000 simulated records (output in `demos/outputs/tuned_comparison.txt`).
   RMS dB error over the band, best setting of each family: AR(4) N=256: one taper then smooth 2.42, Welch 2.48, Slepian
   multitaper 2.67 (equal weights) and 2.89 (adaptive); AR(4) N=1024: 1.37, 1.39, 1.46, 1.52; EEG-like N=400: 1.89, 1.90,
-  1.97, 2.00; EEG-like N=1024: 1.36, 1.36, 1.40, 1.41. The routes tie to within 2-8% once each is tuned, and the smoothed
-  periodogram is never behind. The best single taper is a light Tukey taper (10-25%) with a parabolic kernel, not Hann
+  1.97, 2.00; EEG-like N=1024: 1.36, 1.36, 1.40, 1.41. Once each is tuned, equal-weight Slepian multitaper is 3-10% behind the best
+  smoothed periodogram and adaptive multitaper 4-19% behind; the smoothed periodogram is never behind. The best single taper is a light Tukey taper (10-25%) with a parabolic kernel, not Hann
   with a box; at the paper's fixed W = 4/N, Hann-then-box trails multitaper on the EEG-like spectrum (2.2 vs 1.8 dB).
 
 Still needed:
