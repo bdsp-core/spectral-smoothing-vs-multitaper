@@ -1,0 +1,4 @@
+EEG-like spectrum at 10 Hz: S = 68.267, S'' = -166.26 per Hz^2; N = 400, N Delta = 2 s
+  no taper          C_h = 1.000: formula b_opt = 1.048 Hz, half-power width 1.48 Hz; exact optimum of the half-power width: relative MSE 1.887 Hz, dB MSE 1.652 Hz
+  25% cosine taper  C_h = 1.152: formula b_opt = 1.078 Hz, half-power width 1.52 Hz; exact optimum of the half-power width: relative MSE 2.017 Hz, dB MSE 1.737 Hz
+Asymptotic RMS error at the best width, relative to the parabola: box 1.0297, Gaussian 1.0202
