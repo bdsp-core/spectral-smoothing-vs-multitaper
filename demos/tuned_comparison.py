@@ -13,6 +13,8 @@ family is reported. The search has two stages.
 2. Monte Carlo scoring. The shortlisted settings are scored on M simulated records (the same records for every family),
    as the RMS over records and frequencies of 10 log10(S_hat / S). The adaptively weighted multitaper estimate is not
    quadratic, so all of its settings are scored this way.
+Multitaper estimates with Slepian tapers are searched over NW from 1 to 12 in steps of 0.5 (from 1.5 with adaptive weights)
+and every K from 1 to 2NW, with equal and with adaptive weights alike.
 
 Two processes: the AR(4) process of the paper (65 dB range, two narrow peaks) and an EEG-like spectrum sampled at
 200 Hz (a 1/f^2 background with a knee at 3 Hz, an alpha peak at 10 Hz that is 1.4 Hz wide, and a noise floor; 30 dB range).
@@ -122,7 +124,7 @@ def run(N, proc="ar4", M=1000, seed=5, shortlist=5):
         fams.setdefault(fam, []).append((screen(*moments(V, c, T, freqs), S), label, V, c))
 
     widths = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20]
-    for NW in [1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10, 12]:
+    for NW in np.arange(1, 12.01, 0.5):
         V, lam = ss.dpss(N, NW, int(2 * NW))
         for K in range(1, int(2 * NW) + 1):
             add("Multitaper, Slepian tapers, equal weights", f"NW={NW:g}, K={K}", V[:, :K], np.full(K, 1 / K))
@@ -170,8 +172,8 @@ def run(N, proc="ar4", M=1000, seed=5, shortlist=5):
         best = min(((mc_score(mc_estimates(V, c, X, nfft, idx), S, masks)[0], label, V, c) for _, label, V, c in sorted(cand, key=lambda q: q[0])[:shortlist]), key=lambda q: q[0])
         report(fam + ": " + best[1], best[2], best[3])
     ad = []
-    for NW in (1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10):
-        for K in (int(2 * NW) - 2, int(2 * NW) - 1, int(2 * NW)):
+    for NW in np.arange(1.5, 12.01, 0.5):
+        for K in range(1, int(2 * NW) + 1):
             V, lam = ss.dpss(N, NW, K)
             Sh = np.array([ss.multitaper_adaptive(x, V, lam, nfft)[0][idx] for x in X[:M // 2]])
             ad.append((mc_score(Sh, S, masks), f"Multitaper, Slepian tapers, adaptive weights ({M // 2} records): NW={NW:g}, K={K}", f"{'-':>6s} {'-':>6s}"))

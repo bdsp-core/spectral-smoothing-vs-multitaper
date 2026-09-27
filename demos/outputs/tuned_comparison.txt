@@ -5,8 +5,8 @@ One taper, then smooth: Tukey 0.25, parabola of half-width 3.5/N                
 A few Slepian tapers, then smooth: 3 tapers of NW=3, box of half-width 2/N                           2.46   3.98   2.04   0.902    8.9    4.1
 Multitaper, sine tapers, equal weights: K=5                                                          2.47   3.88   2.13   0.890   10.0    5.4
 Welch, Hann segments: segments of 84, 7/8 overlap, 18 segments                                       2.48   4.09   2.05   0.903    9.7    4.4
-Multitaper, Slepian tapers, equal weights: NW=5, K=6                                                 2.67   4.90   1.88   1.393   12.0    7.4
-Multitaper, Slepian tapers, adaptive weights (500 records): NW=4, K=6                                2.89   4.53   2.76   1.172      -      -
+Multitaper, Slepian tapers, equal weights: NW=4.5, K=5                                               2.61   4.44   2.07   1.108   10.0    6.4
+Multitaper, Slepian tapers, adaptive weights (500 records): NW=5, K=5                                2.69   4.59   2.15   1.209      -      -
 No taper, then smooth: no taper, parabola of half-width 1.5/N                                       13.98   3.05  19.90 144.817    5.7    2.1
   untuned, for reference:
 Paper setting: multitaper, NW=4, K=7, equal weights                                                  8.67   4.83  12.44  25.165   14.0    7.4
@@ -14,16 +14,16 @@ Paper setting: multitaper, NW=4, K=6, equal weights                             
 Paper setting: Hann, then box of half-width 4/N                                                      2.98   5.27   2.15   1.678    8.9    8.1
 Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        2.87   5.17   1.57   1.796   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               2.99   4.84   2.76   1.344      -      -
-[36 s]
+[88 s]
 
 AR(4) process, N = 1024; 1000 records; RMS dB error at 201 frequencies (band / peaks / low spectrum); relative RMS error; nu and half-power width (1/N) for white noise
 family: best setting                                                                                 band  peaks    low  relRMS     nu  width
 One taper, then smooth: Tukey 0.1, parabola of half-width 8/N                                        1.37   1.97   1.24   0.348   25.7   11.4
 Welch, Hann segments: segments of 128, 7/8 overlap, 57 segments                                      1.39   2.36   1.13   0.386   30.5   11.6
 Multitaper, sine tapers, equal weights: K=14                                                         1.41   2.24   1.19   0.384   28.0   14.4
-Multitaper, Slepian tapers, equal weights: NW=8, K=12                                                1.46   2.16   1.29   0.386   24.0   13.6
+Multitaper, Slepian tapers, equal weights: NW=8.5, K=13                                              1.45   2.27   1.24   0.396   26.0   14.9
+Multitaper, Slepian tapers, adaptive weights (500 records): NW=9, K=13                               1.48   2.32   1.29   0.406      -      -
 A few Slepian tapers, then smooth: 3 tapers of NW=3, box of half-width 7/N                           1.49   2.29   1.26   0.406   22.8   14.1
-Multitaper, Slepian tapers, adaptive weights (500 records): NW=8, K=14                               1.52   2.28   1.41   0.407      -      -
 No taper, then smooth: no taper, parabola of half-width 6/N                                          9.71   1.74  14.26  33.054   20.7    8.6
   untuned, for reference:
 Paper setting: multitaper, NW=4, K=7, equal weights                                                  5.10   1.87   7.53   6.131   14.0    7.4
@@ -31,7 +31,7 @@ Paper setting: multitaper, NW=4, K=6, equal weights                             
 Paper setting: Hann, then box of half-width 4/N                                                      2.18   2.30   2.17   0.497    8.9    8.1
 Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        1.59   1.78   1.55   0.370   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               2.39   1.87   2.80   0.492      -      -
-[193 s]
+[409 s]
 
 EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 400; 1000 records; RMS dB error at 156 frequencies (band / peaks / low spectrum); relative RMS error; nu and half-power width (1/N) for white noise
 family: best setting                                                                                 band  peaks    low  relRMS     nu  width
@@ -39,7 +39,7 @@ No taper, then smooth: no taper, parabola of half-width 5/N                     
 A few Slepian tapers, then smooth: 5 tapers of NW=3, box of half-width 3.5/N                         1.87   3.27   1.49   0.543   17.7    7.1
 One taper, then smooth: Tukey 0.1, parabola of half-width 6/N                                        1.89   3.41   1.43   0.571   19.4    8.6
 Welch, Hann segments: segments of 80, 7/8 overlap, 33 segments                                       1.90   3.33   1.48   0.557   18.0    7.4
-Multitaper, Slepian tapers, equal weights: NW=4, K=8                                                 1.97   3.45   1.60   0.593   16.0    7.9
+Multitaper, Slepian tapers, equal weights: NW=4.5, K=9                                               1.96   3.57   1.50   0.621   18.0    8.9
 Multitaper, sine tapers, equal weights: K=9                                                          1.99   3.61   1.51   0.631   18.0    9.4
 Multitaper, Slepian tapers, adaptive weights (500 records): NW=5, K=9                                2.00   3.61   1.53   0.636      -      -
   untuned, for reference:
@@ -48,7 +48,7 @@ Paper setting: multitaper, NW=4, K=6, equal weights                             
 Paper setting: Hann, then box of half-width 4/N                                                      2.45   3.77   2.17   0.712    8.9    8.1
 Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        1.95   3.41   1.55   0.573   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               2.05   3.36   1.76   0.585      -      -
-[57 s]
+[109 s]
 
 EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 1024; 1000 records; RMS dB error at 200 frequencies (band / peaks / low spectrum); relative RMS error; nu and half-power width (1/N) for white noise
 family: best setting                                                                                 band  peaks    low  relRMS     nu  width
@@ -56,7 +56,7 @@ No taper, then smooth: no taper, parabola of half-width 10/N                    
 Welch, Hann segments: segments of 128, 7/8 overlap, 57 segments                                      1.36   2.45   1.11   0.362   30.5   11.6
 One taper, then smooth: Tukey 0.1, parabola of half-width 10/N                                       1.36   2.54   1.10   0.370   32.0   14.1
 A few Slepian tapers, then smooth: 5 tapers of NW=3, box of half-width 7/N                           1.37   2.50   1.12   0.368   30.2   14.1
-Multitaper, Slepian tapers, equal weights: NW=7, K=14                                                1.40   2.46   1.19   0.374   28.0   13.9
+Multitaper, Slepian tapers, equal weights: NW=7.5, K=15                                              1.40   2.59   1.14   0.385   30.0   14.9
 Multitaper, Slepian tapers, adaptive weights (500 records): NW=8, K=15                               1.41   2.63   1.14   0.388      -      -
 Multitaper, sine tapers, equal weights: K=15                                                         1.41   2.64   1.14   0.390   30.0   15.4
   untuned, for reference:
@@ -65,4 +65,4 @@ Paper setting: multitaper, NW=4, K=6, equal weights                             
 Paper setting: Hann, then box of half-width 4/N                                                      2.18   2.34   2.15   0.492    8.9    8.1
 Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        1.60   1.93   1.54   0.370   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               1.78   1.98   1.76   0.396      -      -
-[186 s]
+[338 s]

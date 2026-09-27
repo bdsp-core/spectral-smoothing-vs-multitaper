@@ -117,8 +117,9 @@ smoothed periodogram loses is efficiency (nu 8.9 against 14 at the same design b
 box recover nu 13.3. The paper does not claim that Thomson misunderstood: he derived the identity.
 
 In the manuscript since 2026-09-27 (Section III-B, Table III; `demos/tuned_comparison.py`): when every family is tuned to its best setting, the
-routes come within 3-10% of one another in RMS dB error on the AR(4) process and on an EEG-like spectrum (adaptive
-multitaper is 4-19% behind the best), and a tapered, smoothed periodogram is never behind multitaper. The efficiency advantage stated in the paper holds at a fixed design bandwidth
+routes come within 3-8% of one another in RMS dB error on the AR(4) process and on an EEG-like spectrum (adaptive
+multitaper is 4-11% behind the best; 4-19% before its grid was widened to every number of tapers), and a tapered, smoothed
+periodogram is never behind multitaper. The efficiency advantage stated in the paper holds at a fixed design bandwidth
 with a Hann taper; it disappears with a lighter taper and a parabolic kernel. Both changes were made on 2026-09-27: the table is in, and recipe (b') is a 25% cosine (Tukey) taper with a parabolic
 kernel. The figures were switched to recipe (b') on the same day (M.B.W.'s decision); Hann-then-box remains in the tables.
 
