@@ -108,6 +108,14 @@ say so); exact ν/leakage/resolution accounting per route; the observation that 
 default equal-weight MT on high-dynamic-range spectra; the bandwidth rule with the bias–variance
 figure; the three-route recipe; the EEG validation.
 
+## Position on "smoothing is obsolete" (added 2026-09-26)
+
+Thomson and Chave (1991) call periodograms and smoothed periodograms "hopelessly obsolete". The paper's answer, in
+Relation to Prior Work: true without a taper (that estimate is the all-taper multitaper estimate, 13.7 dB error where
+the spectrum is low); not true with a taper (Hann then box: 1.5 dB, adaptive multitaper: 1.7 dB). What the single-taper
+smoothed periodogram loses is efficiency (nu 8.9 against 14 at the same design bandwidth); two Slepian tapers then a
+box recover nu 13.3. The paper does not claim that Thomson misunderstood: he derived the identity.
+
 ## Weak points and decisions for you
 
 1. **Title.** "Three Equivalent Routes to Estimating Power Spectra: Averaging, Multitaper, and Smoothing" (chosen by

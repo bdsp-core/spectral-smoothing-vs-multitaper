@@ -68,7 +68,8 @@ are mathematically similar. The chapter says so at the start of its Sec. 2.3.
 ## For the authors to note
 
 Thomson and Chave (1991, Sec. 2.3) call periodograms and smoothed periodograms "hopelessly obsolete". The manuscript
-recommends a tapered and smoothed periodogram as one of three adequate routes. A reviewer who knows that chapter may raise it.
+recommends a tapered and smoothed periodogram as one of three adequate routes. Relation to Prior Work now answers this in
+the paragraph "The view that smoothing is obsolete": the remark holds for the untapered periodogram and not for a tapered one.
 
 Not checked against the source text, because no copy was available: Kay 1988, Blackman and Tukey 1958, Daniell 1946,
 Bartlett 1948, Welch 1967, Satterthwaite 1946, Mitra and Pesaran 1999, Bokil et al. 2010, Harris 1978 (abstract only).
