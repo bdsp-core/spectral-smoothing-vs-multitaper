@@ -24,3 +24,4 @@ review/repo_snapshot/
 review/figures/*.png
 review/main_flat.tex
 review/__pycache__/
+*-eps-converted-to.pdf

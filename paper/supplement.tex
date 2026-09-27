@@ -1,0 +1,45 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\graphicspath{{../figures/}}
+\captionsetup{font=small,labelfont=bf}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\title{Supplementary Material\\[4pt]\large Three Equivalent Routes to Spectral Estimation: Averaging, Smoothing, and Multitaper}
+\author{Elijah Keldsen, Wolfgang Ganglberger, and M. Brandon Westover}
+\date{}
+\begin{document}
+\maketitle
+Figure, table and equation numbers without an ``S'' refer to the main text.
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{fig1_kernels.png}
+\caption{\textbf{Kernels at the same design bandwidth} ($N=256$, $W=4/N$; Table~II): (a)~on a linear scale near the main lobe and (b)~in dB relative to the peak. The ideal box; the $K=7$ multitaper kernel ($\nu=14.0$); and the untapered ($\nu=17.2$), Hann ($\nu=8.9$) and Bohman ($\nu=7.3$) periodograms followed by the box. All main lobes have nearly the same width, and the skirts differ by 40~dB.}
+\label{fig:kernels}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=0.8\textwidth]{fig2_ar4_leakage.png}
+\caption{\textbf{Dropping the leakiest taper.} (a)~One realization of the AR(4) process ($N=1024$, $W=4/N$): the periodogram ($\nu=2$, grey); the untapered periodogram smoothed with the box ($\nu=17.2$, green); the equal-weight multitaper estimate with $K=7$ ($\nu=14$, solid blue) and with $K=6$ ($\nu=12$, dashed blue), and the adaptively weighted estimate with $K=7$ (dotted blue); the Hann-tapered periodogram smoothed with the box ($\nu=8.9$, orange); and the true PSD (black). (b)~Each smoothed estimate minus the true PSD: the untapered box floors 20~dB high, $K=7$ floors 10~dB high, dropping the seventh taper halves that, and the adaptive weights and the Hann route track the truth.}
+\label{fig:ar4}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{fig3_tradeoff.png}
+\caption{\textbf{Variance, leakage and side-lobe level versus measured resolution} for $N=256$. All curves are exact kernel and degrees-of-freedom computations, with no sampling variability. Each method's bandwidth parameter is swept and the quantities are plotted against the resulting half-power width, so methods are compared at equal resolution: multitaper with $K=2NW-1$ and $2NW-2$ Slepian tapers and with sine tapers; untapered, Hann and Bohman periodograms followed by a box; a Hann periodogram followed by a Gaussian; Welch's method with 50\% overlap. (a)~Equivalent degrees of freedom $\nu$ (higher means less variance). (b)~Kernel power beyond twice the half-power half-width. (c)~The peak of the kernel beyond $1.5\times$ the half-power half-width. The Gaussian and Welch kernels have no flat top, so for them this quantity is the skirt of the main lobe and not a side lobe. The dotted line marks the $8/N$ width of Table~II.}
+\label{fig:tradeoff}
+\end{figure}
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=\textwidth]{fig6_taper_banks_full.png}
+\caption{\textbf{Fig.~5 in full.} Columns as in Fig.~5; rows: the bank as constructed (a--d), the first four eigen-tapers of $Q$ (e--h; for the sliding sinc they are the Slepian sequences, and for Thomson's estimate, whose weights are equal, the Slepians are one of many orthonormal bases of the span), the eigen-weight ladder (i--l), and the kernel in dB relative to its peak with its half-power width and the fraction of its power beyond $2W$ (m--p; shading $|f|\le W$).}
+\label{fig:banksfull}
+\end{figure}
+
+
+\end{document}

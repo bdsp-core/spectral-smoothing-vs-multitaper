@@ -165,6 +165,12 @@ Done (`demos/make_figures.py`, `figures/`):
   declarative sentences; section headings made plain. Numbers and citations verified unchanged against the backup
   (`review/backups/*_pre_humanize.tex`).
 
+- **TBME format (2026-09-26):** `paper/main.tex` now uses the official TBME template (December 2025; `ieeecolor2.cls`,
+  `generic.sty`): structured abstract (249 words), index terms, IMRaD sections (Methods II, Results III, Discussion IV),
+  figure*/table* floats, references renumbered in order of first citation, appendices A–C, AI-use statement in the
+  Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 14 pages; TBME's standard is 8 and the maximum 12
+  (with the Editor-in-Chief's permission; overlength charges apply beyond 8). `paper/main_onecolumn.tex` is draft v6 frozen.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same

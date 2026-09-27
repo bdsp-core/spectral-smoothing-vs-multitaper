@@ -16,7 +16,7 @@ figures and demos the paper needs, and the plan.
 | `demos/verify_equivalence.py` | numerical proof of the central identity plus the kernel / dof tables quoted in STATUS.md |
 | `demos/make_figures.py` | the paper figures (`figures/fig0..fig5`) |
 | `tests/` | the claims as pytest tests |
-| `paper/` | 2015 draft (`main.tex`, `SpectralEstimationReview.pdf`), Aug-2015 whiteboard photo, notes on leakage and MT |
+| `paper/` | the manuscript in IEEE TBME format (`main.tex`, built with the journal's `ieeecolor2.cls` and `generic.sty`), its supplement (`supplement.tex`), the frozen single-column draft v6 (`main_onecolumn.tex`), the review map (`ARGUMENT.md`), the 2015 draft (`main_2015.tex`) and older notes |
 | `notes/` | the 2001 typed manuscript "Periodogram Averaging with a Sliding Window" (scanned, with annotations) and lecture notes |
 | `legacy_matlab/` | the 2013–2016 MATLAB, unmaintained; `legacy_matlab/README.md` maps each script to the Python that replaced it |
 | `references/` | third-party PDFs (git-ignored; a local copy only) |
