@@ -76,13 +76,14 @@ def fig2_ar4(N=1024, NW=4, nfft=8192, seed=3):
     x = ss.ar_process(ss.AR4, N, rng)
     f = np.arange(nfft // 2) / nfft
     truth = ss.ar_psd(ss.AR4, f)
-    Vk, _ = ss.dpss(N, NW)
+    Vk, lam = ss.dpss(N, NW)
     hb = ss.box_lag_window(N, W)
     hann = ss.unit_taper("hann", N)
     ests = [("periodogram", ss.periodogram(x, nfft)[0], COLOR["periodogram"], LW["thin"], "-"),
             ("untapered periodogram, then box", ss.lag_window_estimate(x, hb, nfft)[0], COLOR["raw_box"], LW["est"], "-"),
             (f"multitaper, K = {2 * NW - 1}", ss.multitaper(x, Vk, nfft)[0], COLOR["multitaper"], LW["est"], "-"),
             (f"multitaper, K = {2 * NW - 2} (last taper dropped)", ss.multitaper(x, Vk[:, :-1], nfft)[0], COLOR["multitaper"], LW["est"], "--"),
+            (f"multitaper, K = {2 * NW - 1}, adaptive weights", ss.multitaper_adaptive(x, Vk, lam, nfft)[0], COLOR["multitaper"], LW["est"], ":"),
             ("Hann periodogram, then box", ss.lag_window_estimate(x, hb, nfft, taper=hann)[0], COLOR["hann_box"], LW["est"], "-")]
     fig, ax = plt.subplots(1, 2, figsize=(W2, 2.7), gridspec_kw={"width_ratios": [1.4, 1]})
     for name, S, c, lw, st in ests:

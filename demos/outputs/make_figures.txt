@@ -1,4 +1,4 @@
-/Users/mwestover/GithubRepos/spectral-smoothing-vs-multitaper/demos/make_figures.py:140: UserWarning: Tight layout not applied. tight_layout cannot make Axes width small enough to accommodate all Axes decorations
+/Users/mwestover/GithubRepos/spectral-smoothing-vs-multitaper/demos/make_figures.py:141: UserWarning: Tight layout not applied. tight_layout cannot make Axes width small enough to accommodate all Axes decorations
   _letters(ax); fig.tight_layout(); _save(fig, "fig3_tradeoff.png")
 fig0: AR(4) peaks at f=0.1101, 0.1396; half-power width 7.0/N; separation 30.2/N
 fig0: nu = [2.0, 2.0, 8.9, 50.0]; bws = [0.8, 1.2, 8.2, 48.2]; RMS dB error whole band / peak region: W=0 6.10/6.08, W=4 2.17/2.31, W=24 3.31/5.90; whole-band minimum at W=8.0/N, peak-region minimum at W=5.0/N

@@ -31,6 +31,43 @@ def multitaper(x, tapers, nfft=None, weights=None):
     return Sk @ w / w.sum(), _fgrid(nfft)
 
 
+def multitaper_adaptive(x, tapers, lam, nfft=None, max_iter=200, tol=1e-5):
+    """Thomson's adaptively weighted multitaper estimate (Thomson 1982, Sec. V; Percival & Walden 1993, Sec. 7.4).
+
+    S(f) = sum_k b_k^2 lam_k S_k(f) / sum_k b_k^2 lam_k,   b_k(f) = S(f) / (lam_k S(f) + (1 - lam_k) sigma^2),
+    iterated from the average of the first two eigenspectra. Where the spectrum is far below the process variance
+    sigma^2 the leaky high-order tapers are down-weighted. Returns (S, grid, nu) with
+    nu(f) = 2 (sum_k b_k^2 lam_k)^2 / sum_k b_k^4 lam_k^2 the equivalent degrees of freedom at each frequency.
+    """
+    x = np.asarray(x, float)
+    N = len(x)
+    nfft = nfft or 4 * N
+    lam = np.asarray(lam, float)[None, :]
+    Sk = np.abs(np.fft.fft(tapers * x[:, None], nfft, axis=0)) ** 2
+    sig2 = np.mean(x ** 2)
+    S = Sk[:, :2].mean(axis=1)
+    for _ in range(max_iter):
+        b = S[:, None] / (lam * S[:, None] + (1 - lam) * sig2)
+        w = b ** 2 * lam
+        Snew = (w * Sk).sum(axis=1) / w.sum(axis=1)
+        done = np.max(np.abs(Snew - S) / S) < tol
+        S = Snew
+        if done:
+            break
+    b = S[:, None] / (lam * S[:, None] + (1 - lam) * sig2)
+    w = b ** 2 * lam
+    nu = 2 * w.sum(axis=1) ** 2 / (w ** 2).sum(axis=1)
+    return S, _fgrid(nfft), nu
+
+
+def hybrid_estimate(x, tapers, h, nfft=None):
+    """'A few tapers, then smooth' (Riedel, Sidorenko & Thomson 1994): the average over tapers of the tapered periodogram
+    smoothed with the lag window h."""
+    x = np.asarray(x, float)
+    nfft = nfft or 4 * len(x)
+    return np.mean([lag_window_estimate(x, h, nfft, taper=tapers[:, k])[0] for k in range(tapers.shape[1])], axis=0), _fgrid(nfft)
+
+
 def acs(y):
     """Unnormalized sample autocovariance r_tau = sum_t y_t y_{t+tau}, tau = -(N-1)..(N-1) (lag 0 at index N-1)."""
     y = np.asarray(y, float)
@@ -129,7 +166,7 @@ def welch_sliding(x, w, nfft=None, step=1, overhang=True):
 def quadratic_matrix(N, f0, method, **p):
     """Hermitian matrix Q with estimate(f0) = x^H Q x, for variance/dof bookkeeping (see metrics.dof_quadratic).
 
-    method: 'multitaper' (tapers=(N,K), weights=None), 'lagwindow' (h=lag window, taper=None),
+    method: 'multitaper' (tapers=(N,K), weights=None), 'lagwindow' (h=lag window, taper=None), 'hybrid' (tapers, h),
             'welch' (seg_len, overlap, taper=None; or step=..., overhang=True for the sliding form of welch_sliding).
     """
     t = np.arange(N)
@@ -146,6 +183,12 @@ def quadratic_matrix(N, f0, method, **p):
         Hm = h[np.abs(tau)] * np.exp(-2j * np.pi * f0 * tau)
         w = np.ones(N) / np.sqrt(N) if p.get("taper") is None else np.asarray(p["taper"], float)
         return (w[:, None] * Hm * w[None, :])
+    if method == "hybrid":
+        V = np.asarray(p["tapers"], float)
+        h = np.asarray(p["h"], float)[:N]
+        tau = t[:, None] - t[None, :]
+        Hm = h[np.abs(tau)] * np.exp(-2j * np.pi * f0 * tau)
+        return sum(V[:, k][:, None] * Hm * V[:, k][None, :] for k in range(V.shape[1])) / V.shape[1]
     if method == "welch":
         w = np.ones(int(p["seg_len"])) / np.sqrt(int(p["seg_len"])) if p.get("taper") is None else np.asarray(p["taper"], float)
         L = len(w)

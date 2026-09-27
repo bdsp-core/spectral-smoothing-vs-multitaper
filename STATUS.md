@@ -145,8 +145,22 @@ Done (`demos/make_figures.py`, `figures/`):
   `demos/fit_single_window.py`; tests for 2N/32N convergence and Monte-Carlo dof; abstract/intro rewritten with
   numbers and a contributions list; Limitations section; data-availability statement. v4 review running.
 
+- **Open issues from the review addressed (2026-09-26, draft v5, no further review runs):** Thomson's adaptive weights
+  (`ss.multitaper_adaptive`) and the few-tapers-then-smooth hybrid (`ss.hybrid_estimate`, `quadratic_matrix('hybrid')`)
+  implemented and tested; `demos/everyday_comparison.py` scores eight estimators over 300 realizations at N = 1024, 256,
+  128 in three regions (whole band / peaks / low spectrum). Findings now in the paper (Table 3): the single realization
+  shown in Fig 6 was unusually leaky (its 11.6 / 4.6 / 1.3 / 0.8 dB are 5.3 / 2.3 / 1.4 / 1.0 dB over the ensemble);
+  adaptive weights bring MT level with Hann + box over the band (1.4 dB) at ν = 6.5 where the spectrum is low; at the
+  peaks MT wins (1.8 vs 2.3 dB); matched-ν Hann + box needs a 13/N kernel vs 7.4/N; two Slepians (NW = 2) + box give
+  ν = 13.3 with a −34 dB side lobe (the Riedel–Sidorenko–Thomson hybrid, best of the smoothing family); Welch has the
+  lowest errors and ν = 17.6 but two-tone resolution 10.8/N vs 9.0/N. Ictal harmonics measured (0.9 Hz wide in 2-s
+  windows, 7.4 Hz apart). Related work rewritten as known / added; paragraphs split; recipes relabelled (a, b, c) =
+  (multitaper, smooth, average). New references were added from memory and need checking (Scholar agents were skipped):
+  Thomson & Chave 1991, Bruns 2004, Wahba 1980, Hurvich 1985, Haley & Anitescu 2017, Harris 1978, Mitra & Pesaran 1999,
+  Bokil et al. 2010, Satterthwaite 1946.
+
 Still needed:
-- **Adaptive-weight multitaper** in Figs 2–3 (implement Thomson's iterative weights in `specsmooth.estimators`).
+- ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same
   half-power bandwidth, report dof and leakage (Fig 3 read at fixed x).
 - **Time-frequency version of Fig 3** on EEG: bias/variance of band powers (delta/theta/alpha/beta)
@@ -171,7 +185,7 @@ as this repo. Outline:
 
 ## 5. To-do, in order
 1. ~~Literature pass on §2c~~ done, see LITERATURE.md: build on Thomson (8.3); add the Riedel-Sidorenko-Thomson 1994 hybrid (few tapers, then smooth) to Fig. 3.
-2. Adaptive-weight MT in `specsmooth`; regenerate Figs 2–3.
+2. ~~Adaptive-weight MT in `specsmooth`~~ done 2026-09-26.
 3. ~~Fig 0~~ done; ~~band-power EEG table~~ done (Table 2, two seizure clips).
 4. ~~Rewrite `paper/main.tex` around the outline in §4~~ done twice: v1 (identity-centred), v2 on 2026-09-26
    (three routes: averaging / smoothing / multitaper are one estimator; Fig 0 bias–variance; Figs 6–7). Still to

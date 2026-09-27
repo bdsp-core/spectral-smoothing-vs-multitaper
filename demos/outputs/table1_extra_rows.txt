@@ -1,0 +1,12 @@
+multitaper, 7 sine tapers, equal weights             nu  14.0  width  7.44  leakage(>2W) 0.0008  peak side lobe  -21.6 dB  two-tone 7.9
+hybrid: 2 Slepians (NW=2), then box W/2              nu   7.6  width  4.06  leakage(>2W) 0.0002  peak side lobe  -10.0 dB  two-tone 5.4
+multitaper K=7 (check)                               nu  14.0  width  7.44  leakage(>2W) 0.0022  peak side lobe  -22.2 dB  two-tone 4.9
+Hann + box (check)                                   nu   8.9  width  8.06  leakage(>2W) 0.0000  peak side lobe  -35.9 dB  two-tone 8.9
+Welch L=64 50% (check)                               nu  13.4  width  5.81  leakage(>2W) 0.0005  peak side lobe   -7.1 dB  two-tone 8.2
+lambda (NW=2): [0.9999 0.9976 0.9594]
+hybrid: 2 Slepians (NW=2), then box W:  nu 13.3  width 8.06  leakage(>2W) 0.00019  peak side lobe -33.9 dB  two-tone 9.4
+nu =  4.8: 95% CI factor 0.384 to 6.344  = -4.2 to +8.0 dB
+nu =  6.0: 95% CI factor 0.415 to 4.849  = -3.8 to +6.9 dB
+nu =  8.9: 95% CI factor 0.472 to 3.362  = -3.3 to +5.3 dB
+nu = 14.0: 95% CI factor 0.536 to 2.487  = -2.7 to +4.0 dB
+nu = 17.6: 95% CI factor 0.568 to 2.210  = -2.5 to +3.4 dB

@@ -1,4 +1,13 @@
-# The paper's presentation and arguments (draft v4, 2026-09-26)
+# The paper's presentation and arguments (draft v5, 2026-09-26)
+
+**v5 (open issues from the review, no further review runs):** adaptive-weight multitaper and the hybrid implemented;
+a new ensemble table (300 realizations, three regions of the spectrum) replaces single-realization numbers, and the
+three facts are restated on it: *warning* (untapered smoothing errs by 13.7 dB where the spectrum is low, Hann by 1.5),
+*price* (ν = 8.9 vs 14.0, 2.3 vs 1.8 dB at the peaks, or a kernel 13/N wide to match ν), *surprise* (default MT errs by
+6.3 dB off-peak; K = 6 gives 2.1, adaptive weights 1.7 at ν = 6.5; level with Hann + box over the band). Welch has the
+lowest errors here and pays in two-tone resolution; two Slepians + box is the best smoother. Related work is now
+"what is known" / "what we add"; §3.4, §4, §5.4 and the EEG section are split into single-purpose paragraphs.
+
 
 **v4 (after one review → revise → review iteration with the bdsp-core agents; reports in `review/reports/`):**
 abstract in two paragraphs with the numbers and earned verbs; introduction gains a News paragraph, a five-item
@@ -117,8 +126,7 @@ figure; the three-route recipe; the EEG validation.
    folk statement (and to v1's Appendix C, now corrected). The paper resolves it via kernel shape
    (no flat top, base 2× the half-power width, broadband leakage like the untapered box) and Bronez's
    matched-leakage comparison. Worth a check that this reading of Bronez is fair.
-5. **Adaptive weights** are not implemented; MT is always equal-weight K = 2NW−1 (and K = 2NW−2 in
-   Figs 2–3). §6.3 says adaptive weights fix the leakage; the comparison would be fairer with them.
+5. ~~Adaptive weights~~ implemented and compared (Table 3, Fig S2). The EEG figures still use equal weights.
 6. ~~Band-power table and second seizure case~~ done (Table 2, Fig 9); data use confirmed by the user.
 7. **Fig 0's N changed** from 256 to 1024 so that W = 4/N is "just right" (at N = 256 the AR(4) peaks
    are only 1.7/N wide, narrower than the Hann main lobe, and W = 4/N merged them). Fig 1/Table 1 remain
