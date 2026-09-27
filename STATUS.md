@@ -169,7 +169,7 @@ Done (`demos/make_figures.py`, `figures/`):
 - **TBME format (2026-09-26):** `paper/main.tex` now uses the official TBME template (December 2025; `ieeecolor2.cls`,
   `generic.sty`): structured abstract (249 words), index terms, IMRaD sections (Methods II, Results III, Discussion IV),
   figure*/table* floats, references renumbered in order of first citation, appendices A–C, AI-use statement in the
-  Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 14 pages; TBME's standard is 8 and the maximum 12
+  Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 15 pages as of the prior-work paragraph on "hopelessly obsolete" (three references spill onto page 15); TBME's standard is 8 and the maximum 12
   (with the Editor-in-Chief's permission; overlength charges apply beyond 8). `paper/main_onecolumn.tex` is draft v6 frozen.
 
 - **Submission details (2026-09-26):** repository link in Data and Code Availability (the repository is public); NIH
