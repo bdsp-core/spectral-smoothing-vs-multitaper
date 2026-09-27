@@ -31,6 +31,46 @@ def multitaper(x, tapers, nfft=None, weights=None):
     return Sk @ w / w.sum(), _fgrid(nfft)
 
 
+def multitaper_from_fft(x, tapers, nfft=None, weights=None):
+    """The multitaper estimate computed in the frequency domain: multiplication in time is convolution in frequency, so each
+    eigencoefficient is the transform X of the untapered record convolved with the transform V_k of the taper,
+    y_k(f) = (1/nfft) sum_m V_k(f - f_m) X(f_m). The convolution acts on the complex transform, before squaring.
+    Direct O(nfft^2) evaluation, meant to show the identity; `multitaper` is the fast route. Returns (S, grid)."""
+    x = np.asarray(x, float); N = len(x); nfft = nfft or 2 * N
+    V = np.asarray(tapers, float); K = V.shape[1]
+    wts = np.ones(K) / K if weights is None else np.asarray(weights, float) / np.sum(weights)
+    X = np.fft.fft(x, nfft); m = np.arange(nfft)
+    S = np.zeros(nfft)
+    for k in range(K):
+        Vk = np.fft.fft(V[:, k], nfft)
+        y = np.array([(Vk[(i - m) % nfft] * X).sum() for i in range(nfft)]) / nfft
+        S += wts[k] * np.abs(y) ** 2
+    return S, _fgrid(nfft)
+
+
+def multitaper_sine_from_fft(x, K, oversample=2):
+    """The sine-taper multitaper estimate (Riedel & Sidorenko 1995) from one FFT of the untapered record:
+    S(f) = 1 / (2K(N+1)) sum_k |X(f - d_k) - X(f + d_k)|^2, d_k = k / (2N+2), with the time origin one sample before the record.
+    The grid has oversample * (2N+2) points, so every shift d_k is a whole number of bins. Returns (S, grid)."""
+    x = np.asarray(x, float); N = len(x); nfft = int(oversample) * (2 * N + 2)
+    f = _fgrid(nfft)
+    X = np.fft.fft(x, nfft) * np.exp(-2j * np.pi * f)             # time origin at t = 1 for the first sample
+    S = np.zeros(nfft)
+    for k in range(1, K + 1):
+        s = k * int(oversample)
+        S += np.abs(np.roll(X, s) - np.roll(X, -s)) ** 2
+    return S / (2 * K * (N + 1)), f
+
+
+def toeplitz_part(Q):
+    """The Toeplitz matrix closest to Q in the Frobenius norm: each diagonal replaced by its mean. A quadratic estimator is a
+    smoothed periodogram exactly when its matrix is Toeplitz, so this is the smoothed periodogram closest to the estimator."""
+    Q = np.real(np.asarray(Q)); N = Q.shape[0]
+    q = np.array([np.trace(Q, offset=k) / (N - k) for k in range(N)])
+    t = np.arange(N)
+    return q[np.abs(t[:, None] - t[None, :])]
+
+
 def multitaper_adaptive(x, tapers, lam, nfft=None, max_iter=200, tol=1e-5):
     """Thomson's adaptively weighted multitaper estimate (Thomson 1982, Sec. V; Percival & Walden 1993, Sec. 7.4).
 

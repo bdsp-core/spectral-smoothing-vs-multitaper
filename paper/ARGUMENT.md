@@ -120,7 +120,7 @@ In the manuscript since 2026-09-27 (Section III-B, Table III; `demos/tuned_compa
 routes come within 3-10% of one another in RMS dB error on the AR(4) process and on an EEG-like spectrum (adaptive
 multitaper is 4-19% behind the best), and a tapered, smoothed periodogram is never behind multitaper. The efficiency advantage stated in the paper holds at a fixed design bandwidth
 with a Hann taper; it disappears with a lighter taper and a parabolic kernel. Both changes were made on 2026-09-27: the table is in, and recipe (b') is a 25% cosine (Tukey) taper with a parabolic
-kernel. Open decision: Figs. 5-9 still show Hann-then-box as the familiar choice; regenerate them with recipe (b') or not.
+kernel. The figures were switched to recipe (b') on the same day (M.B.W.'s decision); Hann-then-box remains in the tables.
 
 ## Which smoothing kernel (added 2026-09-27)
 
@@ -129,6 +129,16 @@ taper's spectral window) reproduces multitaper's bias exactly and its accuracy, 
 when the dynamic range is large, and has two parameters (NW, K). (2) The box is the kernel of the exact identity. (3) The
 parabola is the kernel of least mean square error, derived in Section II-B.5, with one parameter. The paper recommends (3),
 uses (2) in the figures, and reports (1) in Section II-D and Table III as the bridge between smoothing and multitaper.
+
+## The elegant statement (added 2026-09-27, Section II-D.5)
+
+Multiplication in time is convolution in frequency, so tapering then transforming is the same as transforming then
+convolving. Multitaper therefore smooths the complex transform K ways, squares, and averages. A smoothed periodogram squares
+first and smooths afterwards. Squaring discards phase, so the two are equal only when the cross terms between different
+frequencies cancel, which happens exactly when the estimator's matrix is Toeplitz: true for all N tapers with eigenvalue
+weights (Thomson's identity), not true for K tapers. The best a smoothed periodogram can do is the diagonal average of the
+multitaper matrix, which has the same kernel (same bias) and at least as many degrees of freedom, and differs from
+multitaper by 0.20 in matrix norm for NW = 4, K = 7.
 
 ## Weak points and decisions for you
 

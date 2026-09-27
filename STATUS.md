@@ -169,7 +169,7 @@ Done (`demos/make_figures.py`, `figures/`):
 - **TBME format (2026-09-26):** `paper/main.tex` now uses the official TBME template (December 2025; `ieeecolor2.cls`,
   `generic.sty`): structured abstract (249 words), index terms, IMRaD sections (Methods II, Results III, Discussion IV),
   figure*/table* floats, references renumbered in order of first citation, appendices A–C, AI-use statement in the
-  Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 16 pages as of 2026-09-27 (tuned comparison, recipe b', kernel matching); TBME's standard is 8 and the maximum 12
+  Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 17 pages as of 2026-09-27 (tuned comparison, recipe b', kernel matching, optimal kernel, smoothing before or after squaring); TBME's standard is 8 and the maximum 12
   (with the Editor-in-Chief's permission; overlength charges apply beyond 8). `paper/main_onecolumn.tex` is draft v6 frozen.
 
 - **Submission details (2026-09-26):** repository link in Data and Code Availability (the repository is public); NIH
@@ -190,8 +190,18 @@ Done (`demos/make_figures.py`, `figures/`):
   half-power width 2W, in place of Hann then box. At N = 1024, W = 4/N it has nu = 16.7 (Hann then box: 8.9; multitaper
   K = 7: 14.0) and errors 1.1 / 1.7 / 1.1 dB (band, peaks, low spectrum). On the seizure clips its spectrogram differs
   from multitaper's by a median of 0.9 and 0.7 dB (Hann then box: 1.5 and 1.2) and its band powers by 0.1-0.3 dB.
-  The Hann window divides nu by 1.94 after smoothing; the 25% cosine taper by 1.15. Figures 5-9 still show Hann then
-  box; Tables I-IV include the new recipe. Regenerating the figures with the new recipe is an open decision.
+  The Hann window divides nu by 1.94 after smoothing; the 25% cosine taper by 1.15. Tables I-IV include both recipes.
+- **Figures switched to the new recipe (2026-09-27, decided by M.B.W.):** in Figs. 2, 3, 5-9 and S1-S4 the smoothing
+  route is the 25% cosine taper with the parabola (`_recipe` in `demos/make_figures.py`). The Hann-and-box versions of
+  the figures are kept in `review/backups/figures_hann_box/` (not in git). New figure numbers: teaching sweep nu = 16.7 at
+  W = 4/N, whole-band optimum W = 6/N, peak-region optimum W = 4/N; EEG epoch, smoothed vs multitaper median 0.6 dB;
+  seizure clips 0.9 and 0.7 dB; ictal harmonics at 7.7, 15.0, 22.5 Hz, 0.5-0.7 Hz wide on the unsmoothed periodogram.
+- **Smoothing before or after squaring (2026-09-27, Section II-D.5):** multitaper smooths the complex Fourier transform
+  (convolution with each taper's transform) and then squares; a smoothed periodogram squares and then smooths. An
+  estimator is a smoothed periodogram exactly when its matrix Q is Toeplitz. The nearest Toeplitz matrix to the K-taper
+  matrix is its diagonal average, which is the kernel-matched smoother (distance 0.20 for NW = 4, K = 7). Sine-taper
+  multitaper from one FFT: S(f) = sum_k |X(f - d_k) - X(f + d_k)|^2 / (2K(N+1)). Code: `ss.multitaper_from_fft`,
+  `ss.multitaper_sine_from_fft`, `ss.toeplitz_part`; tests in `tests/test_smoothing_recipe.py`.
 - **Kernel matching (2026-09-27, Section II-D):** the lag window g = q / r_w gives one taper plus smoothing exactly the
   multitaper kernel (`ss.matched_lag_window`, `demos/kernel_matched.py`). Same bias for every spectrum; estimates of
   the same record differ by 0.3-0.6 dB on an EEG-like spectrum and by 1-4 dB on the AR(4) process, where a third of

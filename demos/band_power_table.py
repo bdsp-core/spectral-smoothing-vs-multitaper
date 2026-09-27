@@ -1,6 +1,6 @@
 """Band powers of the seizure clip by the everyday estimators (run: python demos/band_power_table.py).
 
-For every 2-s window of the clip and each of delta/theta/alpha/beta, the band power (dB) from the Hann periodogram,
+For every 2-s window of the clip and each of delta/theta/alpha/beta, the band power (dB) from the cosine-tapered periodogram,
 the multitaper estimate, the Hann-then-box estimate, recipe (b') (a 25% Tukey taper, then a parabola of half-power width 2W)
 and Welch's method. Reports (i) the ictal-minus-preictal change per
 band by each estimator and (ii) the per-window disagreement of each estimator with the multitaper estimate.
@@ -30,7 +30,7 @@ def band_powers(case="A", win_s=2.0, step_s=1.0, NW=2):
     ests = {"periodogram": [], "multitaper": [], "Hann+box": [], "Tukey+parabola": [], "Welch": []}
     for s0 in starts:
         sg = x[s0:s0 + N] - x[s0:s0 + N].mean()
-        ests["periodogram"].append(ss.periodogram(sg, nfft, taper=hann)[0][:nfft // 2])
+        ests["periodogram"].append(ss.periodogram(sg, nfft, taper=tuk)[0][:nfft // 2])
         ests["multitaper"].append(ss.multitaper(sg, Vk, nfft)[0][:nfft // 2])
         ests["Hann+box"].append(ss.lag_window_estimate(sg, hb, nfft, taper=hann)[0][:nfft // 2])
         ests["Tukey+parabola"].append(ss.lag_window_estimate(sg, hp, nfft, taper=tuk)[0][:nfft // 2])
