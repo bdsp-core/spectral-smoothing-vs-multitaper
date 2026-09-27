@@ -24,13 +24,13 @@ import taper_and_kernel as tk
 # the best setting of each family, per case, and the Table IV entry it reproduces (band RMS dB error)
 SETTINGS = {
     ("ar4", 256): dict(one=(0.25, "parabola", 3.5), few=(3, 3, 2), welch=84, sine=5, slep=(4.5, 5), adapt=(5, 5),
-                       matched=(0.25, 10, 2), none=1.5),
+                       matched=(0.25, 16, 1), none=1.5),
     ("ar4", 1024): dict(one=(0.1, "parabola", 8), few=(3, 3, 7), welch=128, sine=14, slep=(8.5, 13), adapt=(9, 13),
-                        matched=(0.1, 12, 9), none=6),
+                        matched=(0.1, 112, 1), none=6),
     ("eeg", 400): dict(one=(0.1, "parabola", 6), few=(5, 3, 3.5), welch=80, sine=9, slep=(4.5, 9), adapt=(5, 9),
-                       matched=(0.0, 12, 4), none=5),
+                       matched=(0.0, 64, 1), none=5),
     ("eeg", 1024): dict(one=(0.1, "parabola", 10), few=(5, 3, 7), welch=128, sine=15, slep=(7.5, 15), adapt=(8, 15),
-                        matched=(0.0, 12, 9), none=10),
+                        matched=(0.0, 160, 1), none=10),
 }
 TUNED = ["One taper, then smooth", "A few Slepian tapers, then smooth", "Welch, Hann segments", "Multitaper, sine tapers, equal weights",
          "Multitaper, Slepian tapers, equal weights", "Multitaper, Slepian tapers, adaptive weights",

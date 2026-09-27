@@ -7,7 +7,12 @@ every pair. Prints the half-width and the error over the band, at the peaks and 
 Also prints, for each taper, the factor N sum w^4 / (sum w^2)^2 by which it divides the degrees of freedom after smoothing.
 
 A third kernel is the one matched to a multitaper estimate: the lag window g = q / r_w, which gives the smoothed tapered
-periodogram the kernel of the (NW, K) multitaper estimate (ss.matched_lag_window; exactly for tapers that do not vanish at the ends). It is searched over NW and K.
+periodogram the kernel of the (NW, K) multitaper estimate (ss.matched_lag_window; exactly for tapers that do not vanish at the ends). It is searched over NW
+from 1 to 32 (MATCH_NW) with every K from 1 to 2NW, and over NW from 40 to N/4 (MATCH_NW_WIDE) with K from 1 to 4. At large NW
+the best K is 1: the matched kernel is then the kernel of a single Slepian taper, a smooth bell whose width grows with NW, and
+the grid extends far enough that the best setting over tapers is interior in every case (for single tapers it can sit at
+the edge, e.g. Hann on the EEG-like spectrum at N = 1024). For comparison each taper's best parabola is also found on a
+fine grid of half-widths (FINE_WIDTHS, steps of 0.25/N), as fine in width as the matched kernel's grid at large NW.
 Its weights are not all positive, so some estimates can be negative; the share is reported, the dB error is taken over
 the positive estimates, and a setting is eligible only if fewer than 0.1 percent of its estimates are negative.
 Run: python demos/taper_and_kernel.py
@@ -21,6 +26,9 @@ import specsmooth as ss
 import tuned_comparison as tc
 
 WIDTHS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10, 12, 14, 16]
+MATCH_NW = (1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28, 32)
+MATCH_NW_WIDE = (40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256)   # used up to NW = N/4, with K = 1..4
+FINE_WIDTHS = np.arange(1, 24.01, 0.25)
 
 
 def smooth_est(X, w, h, nfft, idx):
@@ -80,20 +88,23 @@ if __name__ == "__main__":
                 out.append(f"{kn}: {best[1]:>4g}/N  {best[0][0]:5.2f} / {best[0][1]:5.2f} / {best[0][2]:5.2f}")
             print(f"  {tn:14s} " + "     ".join(out))
         print("  kernel matched to a multitaper estimate: best (NW, K) among settings with fewer than 0.1% negative estimates")
-        qs = {(NW, K): multitaper_lag_sums(N, NW, K) for NW in (1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10, 12) for K in range(1, int(2 * NW) + 1)}
+        qs = {(NW, K): multitaper_lag_sums(N, NW, K) for NW in MATCH_NW for K in range(1, int(2 * NW) + 1)}
+        qs.update({(NW, K): multitaper_lag_sums(N, NW, K) for NW in MATCH_NW_WIDE if NW <= N / 4 for K in range(1, 5)})
         mt = {k: tc.mc_score(tc.mc_estimates(ss.dpss(N, k[0], k[1])[0], np.full(k[1], 1 / k[1]), X, nfft, idx), S, masks) for k in qs}
         for tn, w in tapers_for(N).items():
             if tn.startswith("Slepian"):
                 continue
             res = {k: score_any(smooth_est(X, w, matched_window(q, w), nfft, idx), S, masks) for k, q in qs.items()}
+            fine = min((tc.mc_score(smooth_est(X, w, ss.parabolic_lag_window(N, b / N), nfft, idx), S, masks)[0], b) for b in FINE_WIDTHS)
+            fine_txt = f"   [parabola on the fine grid: half-width {fine[1]:g}/N, {fine[0]:.3f}]"
             elig = {k: r for k, r in res.items() if r[1] < 1e-3}
             if not elig:
                 k = min(res, key=lambda k: res[k][1]); r = res[k]
                 print(f"  {tn:14s} no eligible setting among {len(res)}; fewest negative estimates {100 * r[1]:.1f}% at NW={k[0]:g}, K={k[1]}, "
-                      f"where the error over the positive estimates is {r[0][0]:5.2f} / {r[0][1]:5.2f} / {r[0][2]:5.2f}")
+                      f"where the error over the positive estimates is {r[0][0]:5.2f} / {r[0][1]:5.2f} / {r[0][2]:5.2f}" + fine_txt)
                 continue
             k = min(elig, key=lambda k: elig[k][0][0]); r = elig[k]
-            print(f"  {tn:14s} matched to NW={k[0]:g}, K={k[1]:2d}: {r[0][0]:5.2f} / {r[0][1]:5.2f} / {r[0][2]:5.2f}   negative {100 * r[1]:.2f}%   "
-                  f"[the multitaper estimate it is matched to: {mt[k][0]:5.2f} / {mt[k][1]:5.2f} / {mt[k][2]:5.2f}]   eligible settings {len(elig)} of {len(res)}")
+            print(f"  {tn:14s} matched to NW={k[0]:g}, K={k[1]:2d}: {r[0][0]:5.3f} / {r[0][1]:5.2f} / {r[0][2]:5.2f}   negative {100 * r[1]:.2f}%   "
+                  f"[the multitaper estimate it is matched to: {mt[k][0]:5.2f} / {mt[k][1]:5.2f} / {mt[k][2]:5.2f}]   eligible settings {len(elig)} of {len(res)}" + fine_txt)
         kb = min(mt, key=lambda k: mt[k][0])
         print(f"  best multitaper estimate with equal weights in this grid: NW={kb[0]:g}, K={kb[1]}: {mt[kb][0]:5.2f} / {mt[kb][1]:5.2f} / {mt[kb][2]:5.2f}")

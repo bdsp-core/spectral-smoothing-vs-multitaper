@@ -6,7 +6,7 @@ AR(4) process, N = 256: entry on the table's 1000 records (bootstrap SE); 95% in
   Multitaper, sine tapers, equal weights                    2.468 (0.008)    +2.04% [ +1.59,  +2.49]    2.473
   Multitaper, Slepian tapers, equal weights                 2.611 (0.009)    +7.95% [ +7.53,  +8.39]    2.626
   Multitaper, Slepian tapers, adaptive weights              2.695 (0.010)   +11.42% [+10.94, +11.92]    2.710
-  One taper, then kernel matched to a multitaper estimate   2.477 (0.010)    +2.40% [ +2.16,  +2.65]    2.483
+  One taper, then kernel matched to a multitaper estimate   2.425 (0.010)    +0.28% [ +0.07,  +0.50]    2.434
   No taper, then smooth                                    13.981 (0.101)   +477.99% [+469.24, +486.60]   13.983
   order on new records: unchanged
   Recipe (b')                                               2.870 (0.011)    +0.00% [ +0.00,  +0.00]    2.875
@@ -24,7 +24,7 @@ AR(4) process, N = 1024: entry on the table's 1000 records (bootstrap SE); 95% i
   Multitaper, sine tapers, equal weights                    1.406 (0.004)    +2.24% [ +2.07,  +2.42]    1.404
   Multitaper, Slepian tapers, equal weights                 1.449 (0.004)    +5.37% [ +5.15,  +5.59]    1.448
   Multitaper, Slepian tapers, adaptive weights              1.479 (0.004)    +7.56% [ +7.30,  +7.81]    1.478
-  One taper, then kernel matched to a multitaper estimate   1.387 (0.004)    +0.90% [ +0.81,  +0.99]    1.385
+  One taper, then kernel matched to a multitaper estimate   1.363 (0.004)    -0.88% [ -0.97,  -0.80]    1.359
   No taper, then smooth                                     9.707 (0.087)   +605.97% [+592.72, +618.71]    9.784
   order on new records: unchanged
   Recipe (b')                                               1.590 (0.004)    +0.00% [ +0.00,  +0.00]    1.585
@@ -42,7 +42,7 @@ EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 400: entry on the table
   Multitaper, sine tapers, equal weights                    1.990 (0.009)    +5.47% [ +5.27,  +5.67]    1.977
   Multitaper, Slepian tapers, equal weights                 1.962 (0.008)    +3.96% [ +3.60,  +4.30]    1.953
   Multitaper, Slepian tapers, adaptive weights              2.004 (0.009)    +6.20% [ +5.96,  +6.44]    1.991
-  One taper, then kernel matched to a multitaper estimate   1.939 (0.009)    +2.78% [ +2.38,  +3.17]    1.930
+  One taper, then kernel matched to a multitaper estimate   1.838 (0.009)    -2.58% [ -2.96,  -2.21]    1.830
   No taper, then smooth                                     1.840 (0.008)    -2.51% [ -2.91,  -2.10]    1.834
   order on new records: unchanged
   Recipe (b')                                               1.947 (0.009)    +0.00% [ +0.00,  +0.00]    1.935
@@ -60,7 +60,7 @@ EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 1024: entry on the tabl
   Multitaper, sine tapers, equal weights                    1.413 (0.005)    +3.81% [ +3.62,  +3.99]    1.404
   Multitaper, Slepian tapers, equal weights                 1.399 (0.005)    +2.76% [ +2.47,  +3.05]    1.391
   Multitaper, Slepian tapers, adaptive weights              1.418 (0.005)    +4.15% [ +3.97,  +4.33]    1.410
-  One taper, then kernel matched to a multitaper estimate   1.378 (0.006)    +1.24% [ +0.95,  +1.54]    1.370
+  One taper, then kernel matched to a multitaper estimate   1.328 (0.005)    -2.43% [ -2.70,  -2.18]    1.321
   No taper, then smooth                                     1.331 (0.005)    -2.20% [ -2.45,  -1.95]    1.323
   order on new records: unchanged
   Recipe (b')                                               1.596 (0.007)    +0.00% [ +0.00,  +0.00]    1.589
