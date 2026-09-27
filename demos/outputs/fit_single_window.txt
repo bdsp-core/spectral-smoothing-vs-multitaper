@@ -1,0 +1,18 @@
+Thomson K=7 (N=256, NW=4); relative Frobenius distance of single-window estimators to Q_K:
+  rect taper + box (= sliding sinc = all-taper lambda-weighted): 0.286
+  Hann taper + box:                                             0.861
+  best taper+kernel pair (ALS): 0.149; taper max/mean = 1.07 (rect = 1.00); first lags of kernel [1.    0.999 0.995 0.989 0.98 ] vs box [1.    0.998 0.994 0.986 0.974]  [0s]
+  Welch window fit, L= 36 step=  1 overhang=True : 0.384  (Hann window: 0.556)  [2s]
+  Welch window fit, L= 36 step= 18 overhang=False: 0.394  (Hann window: 0.586)  [0s]
+  Welch window fit, L= 36 step= 36 overhang=False: 0.636  (Hann window: 0.882)  [0s]
+  Welch window fit, L= 64 step=  1 overhang=True : 0.356  (Hann window: 0.369)  [2s]
+  Welch window fit, L= 64 step= 32 overhang=False: 0.453  (Hann window: 0.478)  [0s]
+  Welch window fit, L= 64 step= 64 overhang=False: 0.887  (Hann window: 0.967)  [0s]
+  Welch window fit, L=128 step=  1 overhang=True : 0.271  (Hann window: 0.807)  [5s]
+  Welch window fit, L=128 step= 64 overhang=False: 1.157  (Hann window: 1.190)  [0s]
+  Welch window fit, L=128 step=128 overhang=False: 1.582  (Hann window: 1.582)  [0s]
+  Welch window fit, L=256 step=  1 overhang=True : 0.395  (Hann window: 1.395)  [8s]
+  Welch window fit, L=256 step=128 overhang=False: 2.449  (Hann window: 2.449)  [0s]
+  Welch window fit, L=256 step=256 overhang=False: 2.449  (Hann window: 2.449)  [0s]
+  sliding sinc, L=256: distance to A 0.119, to Q_K 0.254
+  sliding sinc, L=1024: distance to A 0.015, to Q_K 0.278

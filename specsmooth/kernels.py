@@ -38,6 +38,29 @@ def kernel_smoothed(taper, h, nfft):
     return normalize_area(np.fft.fft(_place_lags(acs(taper) * hfull, N, nfft)).real)
 
 
+def kernel_quadratic(Q, nfft):
+    """Kernel of the estimator x_f^H Q x_f from its lag sums q_tau = sum_t Q[t, t+tau] (Q real symmetric, unmodulated)."""
+    Q = np.real(np.asarray(Q))
+    N = Q.shape[0]
+    q = np.array([np.trace(Q, offset=k) for k in range(-(N - 1), N)])
+    return normalize_area(np.fft.fft(_place_lags(q, N, nfft)).real)
+
+
+def eigen_tapers(Q):
+    """Every quadratic estimator is a multitaper estimator: x^T Q x = sum_k c_k |v_k^T x|^2 with (c_k, v_k) the
+    eigenpairs of the real symmetric Q. Returns weights c (descending) and tapers as columns of V."""
+    Q = np.real(np.asarray(Q))
+    c, V = np.linalg.eigh((Q + Q.T) / 2)
+    o = np.argsort(c)[::-1]
+    return c[o], V[:, o]
+
+
+def dof_from_weights(c):
+    """Equivalent dof at an interior frequency of a taper bank with weights c: 2 (sum c)^2 / sum c^2 (flat ladder of K -> 2K)."""
+    c = np.asarray(c, float)
+    return 2 * c.sum() ** 2 / np.sum(c ** 2)
+
+
 def kernel_box(nfft, W):
     return normalize_area((np.abs(signed_freq(nfft)) <= W).astype(float))
 

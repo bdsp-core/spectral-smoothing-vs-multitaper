@@ -92,11 +92,45 @@ def welch(x, seg_len, overlap=0.5, nfft=None, taper=None):
     return np.mean(segs, axis=0), _fgrid(nfft)
 
 
+def _placements(N, L, step, overhang):
+    """Offsets s at which a length-L window is placed on a length-N record; with overhang the window may run off either end."""
+    return range(-L + 1, N, step) if overhang else range(0, N - L + 1, step)
+
+
+def _placed(w, N, s):
+    """The length-N vector holding window w at offset s (zero elsewhere; parts of w outside the record are dropped)."""
+    L = len(w)
+    u = np.zeros(N)
+    lo, hi = max(0, s), min(N, s + L)
+    u[lo:hi] = w[lo - s:hi - s]
+    return u
+
+
+def welch_sliding(x, w, nfft=None, step=1, overhang=True):
+    """Averaged periodograms of a window slid across the record: sum_s |FT(u_s x)|^2 / sum_s ||u_s||^2.
+
+    u_s is the window w placed at offset s. With step=1 and overhang=True (the window may run off the zero-padded ends)
+    the quadratic form is exactly Toeplitz with lags r_w(tau) = sum_u w[u] w[u+tau], so this equals the raw periodogram
+    smoothed with the kernel |W(f)|^2 (Welch 1967 in the limit; Nuttall & Carter 1982). With w = sinc_window(L, W),
+    L -> inf, it is the box-smoothed periodogram = Thomson's eigenvalue-weighted all-taper estimate (his eq. 8.3).
+    """
+    x = np.asarray(x, float)
+    N = len(x)
+    nfft = nfft or 4 * N
+    S = np.zeros(nfft)
+    norm = 0.0
+    for s in _placements(N, len(w), step, overhang):
+        u = _placed(w, N, s)
+        S += np.abs(np.fft.fft(u * x, nfft)) ** 2
+        norm += u @ u
+    return S / norm, _fgrid(nfft)
+
+
 def quadratic_matrix(N, f0, method, **p):
     """Hermitian matrix Q with estimate(f0) = x^H Q x, for variance/dof bookkeeping (see metrics.dof_quadratic).
 
     method: 'multitaper' (tapers=(N,K), weights=None), 'lagwindow' (h=lag window, taper=None),
-            'welch' (seg_len, overlap, taper=None).
+            'welch' (seg_len, overlap, taper=None; or step=..., overhang=True for the sliding form of welch_sliding).
     """
     t = np.arange(N)
     e = np.exp(-2j * np.pi * f0 * t)
@@ -113,14 +147,14 @@ def quadratic_matrix(N, f0, method, **p):
         w = np.ones(N) / np.sqrt(N) if p.get("taper") is None else np.asarray(p["taper"], float)
         return (w[:, None] * Hm * w[None, :])
     if method == "welch":
-        L = int(p["seg_len"])
-        step = max(1, int(round(L * (1 - p.get("overlap", 0.5)))))
-        w = np.ones(L) / np.sqrt(L) if p.get("taper") is None else np.asarray(p["taper"], float)
-        starts = list(range(0, N - L + 1, step))
+        w = np.ones(int(p["seg_len"])) / np.sqrt(int(p["seg_len"])) if p.get("taper") is None else np.asarray(p["taper"], float)
+        L = len(w)
+        step = p["step"] if "step" in p else max(1, int(round(L * (1 - p.get("overlap", 0.5)))))
         Q = np.zeros((N, N), complex)
-        for s in starts:
-            u = np.zeros(N, complex)
-            u[s:s + L] = w * e[s:s + L]
+        norm = 0.0
+        for s in _placements(N, L, step, p.get("overhang", False)):
+            u = _placed(w, N, s) * e
             Q += np.outer(u, u.conj())
-        return Q / len(starts)
+            norm += (u.conj() @ u).real
+        return Q / norm
     raise ValueError(method)

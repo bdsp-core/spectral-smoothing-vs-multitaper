@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="30">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paper Agent Scoreboard</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --panel: #fffdf8;
+      --ink: #1c1c18;
+      --muted: #6b6a63;
+      --accent: #1f6f78;
+      --line: #d8d3c7;
+      --good: #3c8d5a;
+    }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: linear-gradient(180deg, #efe8da, var(--bg)); color: var(--ink); }
+    main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 48px; }
+    h1, h2 { margin: 0 0 12px; }
+    .hero, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: 0 12px 30px rgba(0,0,0,0.05); }
+    .meta { color: var(--muted); margin-top: 8px; }
+    .score { font-size: 3rem; color: var(--accent); margin: 8px 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.96rem; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    .bar { width: 100%; height: 10px; border-radius: 999px; background: #eee7da; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--good)); }
+    .chart { width: 100%; height: auto; }
+    .grid-line { stroke: #d8d3c7; stroke-width: 1; }
+    .line { fill: none; stroke: var(--accent); stroke-width: 4; }
+    .pt { fill: var(--good); }
+    .axis { fill: var(--muted); font-size: 11px; }
+    code { background: #f1ebde; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <h1>Paper Agent Scoreboard</h1>
+      <div class="score">87.8 / 102.0 (86.1%)</div>
+      <div class="meta">Auto-refreshes every 30 seconds. Source data: <code>score_history.json</code>. Latest iteration: v4-revised.</div>
+      <div class="meta">Paper: main_flat.tex</div>
+    </section>
+    <div class="grid">
+      <section class="panel">
+        <h2>Total Score Trend</h2>
+        <svg viewBox='0 0 760 260' class='chart'><line x1='30' y1='230.0' x2='730' y2='230.0' class='grid-line' /><text x='8' y='234.0' class='axis'>0</text><line x1='30' y1='180.0' x2='730' y2='180.0' class='grid-line' /><text x='8' y='184.0' class='axis'>25</text><line x1='30' y1='130.0' x2='730' y2='130.0' class='grid-line' /><text x='8' y='134.0' class='axis'>50</text><line x1='30' y1='80.0' x2='730' y2='80.0' class='grid-line' /><text x='8' y='84.0' class='axis'>75</text><line x1='30' y1='30.0' x2='730' y2='30.0' class='grid-line' /><text x='8' y='34.0' class='axis'>100</text><polyline points='30.0,91.6 730.0,57.8' class='line' /><circle cx='30.0' cy='91.6' r='4' class='pt' /><circle cx='730.0' cy='57.8' r='4' class='pt' /><text x='30.0' y='252' text-anchor='middle' class='axis'>v3-corrected</text><text x='730.0' y='252' text-anchor='middle' class='axis'>v4-revised</text></svg>
+      </section>
+      <section class="panel">
+        <h2>Category Scores</h2>
+        <table>
+          <thead><tr><th>Category</th><th>Score</th><th>%</th><th>Bar</th></tr></thead>
+          <tbody><tr><td>argument</td><td>14.4 / 16.0</td><td>90.0%</td><td><div class='bar'><span style='width:90.0%'></span></div></td></tr><tr><td>clarity</td><td>4.0 / 4.0</td><td>100.0%</td><td><div class='bar'><span style='width:100.0%'></span></div></td></tr><tr><td>positioning</td><td>3.3 / 6.0</td><td>55.0%</td><td><div class='bar'><span style='width:55.0%'></span></div></td></tr><tr><td>presentation</td><td>6.0 / 6.0</td><td>100.0%</td><td><div class='bar'><span style='width:100.0%'></span></div></td></tr><tr><td>prose</td><td>24.4 / 28.0</td><td>87.1%</td><td><div class='bar'><span style='width:87.1%'></span></div></td></tr><tr><td>rigor</td><td>20.0 / 20.0</td><td>100.0%</td><td><div class='bar'><span style='width:100.0%'></span></div></td></tr><tr><td>synthesis</td><td>8.0 / 8.0</td><td>100.0%</td><td><div class='bar'><span style='width:100.0%'></span></div></td></tr><tr><td>truthfulness</td><td>7.7 / 14.0</td><td>55.0%</td><td><div class='bar'><span style='width:55.0%'></span></div></td></tr></tbody>
+        </table>
+      </section>
+    </div>
+    <div class="grid">
+      <section class="panel">
+        <h2>Agent Scores</h2>
+        <table>
+          <thead><tr><th>Agent</th><th>Category</th><th>Score</th><th>Severity</th><th>Summary</th></tr></thead>
+          <tbody><tr><td>VSNC Framework</td><td>argument</td><td>6.4 / 8.0</td><td>minor</td><td># SUMMARY</td></tr><tr><td>Introduction Audit</td><td>argument</td><td>8.0 / 8.0</td><td>ok</td><td>## SUMMARY</td></tr><tr><td>Sentence Architecture</td><td>prose</td><td>8.0 / 8.0</td><td>ok</td><td>## SUMMARY</td></tr><tr><td>Voice & Tense</td><td>prose</td><td>6.0 / 6.0</td><td>ok</td><td>## SUMMARY</td></tr><tr><td>Conciseness Audit</td><td>prose</td><td>6.0 / 6.0</td><td>ok</td><td>**SUMMARY:** Unusually lean prose already in Strunk & White idiom; the remaining fat is almost entirely cross-sectional </td></tr><tr><td>Paragraph Quality</td><td>prose</td><td>4.4 / 8.0</td><td>moderate</td><td>SUMMARY: Strong, unusually well-topic-sentenced paper; the recurring defect is over-packed paragraphs (one paragraph doi</td></tr><tr><td>Acronym Audit</td><td>clarity</td><td>4.0 / 4.0</td><td>ok</td><td>SUMMARY: Only two acronyms are formally defined (PSD, FFT); PSD is defined twice (caption + body), while EEG — the paper</td></tr><tr><td>Figures, Tables & Captions</td><td>presentation</td><td>6.0 / 6.0</td><td>ok</td><td>## SUMMARY</td></tr><tr><td>Reproducibility Check</td><td>rigor</td><td>12.0 / 12.0</td><td>ok</td><td>**SUMMARY:** Nearly every quantitative claim traces to a specific script/print or test assertion; the residual issues ar</td></tr><tr><td>Truthfulness & Code Grounding</td><td>truthfulness</td><td>7.7 / 14.0</td><td>moderate</td><td>SUMMARY: Most headline numbers trace cleanly to the logged script output, but a few prominently used figures (the N=128 </td></tr><tr><td>Internal Consistency</td><td>rigor</td><td>8.0 / 8.0</td><td>ok</td><td>**SUMMARY:** Numbers are unusually well cross-checked (dof, kernel widths, band powers, dB conversions all reconcile); t</td></tr><tr><td>Discussion & Related Work</td><td>positioning</td><td>3.3 / 6.0</td><td>moderate</td><td>## SUMMARY</td></tr><tr><td>Synthesis & Prioritized Action Plan</td><td>synthesis</td><td>8.0 / 8.0</td><td>ok</td><td># Editorial Synthesis</td></tr></tbody>
+        </table>
+      </section>
+      <section class="panel">
+        <h2>Iteration History</h2>
+        <table>
+          <thead><tr><th>Label</th><th>Timestamp</th><th>Total</th><th>%</th></tr></thead>
+          <tbody><tr><td>v4-revised</td><td>2026-09-26T17:41:53</td><td>87.8 / 102.0</td><td>86.1%</td></tr><tr><td>v3-corrected</td><td>2026-09-26T17:09:55</td><td>70.6 / 102.0</td><td>69.2%</td></tr></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

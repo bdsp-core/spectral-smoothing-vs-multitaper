@@ -1,0 +1,5 @@
+N=128, NW=3, 200 realizations; median over frequency and realizations of |10log10(estimate/truth)|; lambda_k = [1.     1.     0.9997 0.9949 0.9462]
+  untapered periodogram, then box     13.4 dB
+  multitaper K=5 (=2NW-1)              7.1 dB
+  multitaper K=4                       3.5 dB
+  Hann periodogram, then box           2.1 dB

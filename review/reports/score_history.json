@@ -1,0 +1,344 @@
+{
+  "paper": "main_flat.tex",
+  "updated_at": "2026-09-26T17:41:53",
+  "iterations": [
+    {
+      "timestamp": "2026-09-26T17:09:55",
+      "label": "v3-corrected",
+      "report_path": "/Users/mwestover/GithubRepos/spectral-smoothing-vs-multitaper/review/reports/review_main_flat_20260926_170955.md",
+      "total_score": 70.6,
+      "total_max": 102.0,
+      "percent": 69.2,
+      "categories": {
+        "argument": {
+          "score": 12.8,
+          "max_score": 16.0,
+          "percent": 80.0
+        },
+        "clarity": {
+          "score": 4.0,
+          "max_score": 4.0,
+          "percent": 100.0
+        },
+        "positioning": {
+          "score": 6.0,
+          "max_score": 6.0,
+          "percent": 100.0
+        },
+        "presentation": {
+          "score": 6.0,
+          "max_score": 6.0,
+          "percent": 100.0
+        },
+        "prose": {
+          "score": 20.8,
+          "max_score": 28.0,
+          "percent": 74.3
+        },
+        "rigor": {
+          "score": 13.0,
+          "max_score": 20.0,
+          "percent": 65.0
+        },
+        "synthesis": {
+          "score": 8.0,
+          "max_score": 8.0,
+          "percent": 100.0
+        },
+        "truthfulness": {
+          "score": 0.0,
+          "max_score": 14.0,
+          "percent": 0.0
+        }
+      },
+      "agents": [
+        {
+          "id": "vsnc",
+          "name": "VSNC Framework",
+          "severity": "minor",
+          "summary": "## SUMMARY",
+          "score": 6.4,
+          "max_score": 8.0,
+          "category": "argument"
+        },
+        {
+          "id": "intro",
+          "name": "Introduction Audit",
+          "severity": "minor",
+          "summary": "## SUMMARY",
+          "score": 6.4,
+          "max_score": 8.0,
+          "category": "argument"
+        },
+        {
+          "id": "sentences",
+          "name": "Sentence Architecture",
+          "severity": "moderate",
+          "summary": "## SUMMARY",
+          "score": 4.4,
+          "max_score": 8.0,
+          "category": "prose"
+        },
+        {
+          "id": "voice",
+          "name": "Voice & Tense",
+          "severity": "ok",
+          "summary": "## SUMMARY",
+          "score": 6.0,
+          "max_score": 6.0,
+          "category": "prose"
+        },
+        {
+          "id": "conciseness",
+          "name": "Conciseness Audit",
+          "severity": "ok",
+          "summary": "**SUMMARY:** Unusually lean prose with no classic wordy-phrase offenders (\"in order to,\" \"due to the fact that,\" hedging",
+          "score": 6.0,
+          "max_score": 6.0,
+          "category": "prose"
+        },
+        {
+          "id": "paragraphs",
+          "name": "Paragraph Quality",
+          "severity": "moderate",
+          "summary": "**SUMMARY:** A well-written, unusually well-signposted paper whose topic sentences carry the argument almost everywhere;",
+          "score": 4.4,
+          "max_score": 8.0,
+          "category": "prose"
+        },
+        {
+          "id": "acronyms",
+          "name": "Acronym Audit",
+          "severity": "ok",
+          "summary": "SUMMARY: Two substantive acronyms (PSD, FFT) are used without ever being spelled out, EEG and dB are used undefined but ",
+          "score": 4.0,
+          "max_score": 4.0,
+          "category": "clarity"
+        },
+        {
+          "id": "figures_tables",
+          "name": "Figures, Tables & Captions",
+          "severity": "ok",
+          "summary": "**SUMMARY:** Strong figure set with a genuine story figure and mostly informative captions, but roughly half the caption",
+          "score": 6.0,
+          "max_score": 6.0,
+          "category": "presentation"
+        },
+        {
+          "id": "reproducibility",
+          "name": "Reproducibility Check",
+          "severity": "moderate",
+          "summary": "**SUMMARY:** The paper's structure, parameters, and most quoted numbers map cleanly onto `specsmooth`/`demos`, and the b",
+          "score": 6.6,
+          "max_score": 12.0,
+          "category": "rigor"
+        },
+        {
+          "id": "truthfulness",
+          "name": "Truthfulness & Code Grounding",
+          "severity": "major",
+          "summary": "Agent error: The read operation timed out",
+          "score": 0.0,
+          "max_score": 14.0,
+          "category": "truthfulness"
+        },
+        {
+          "id": "consistency",
+          "name": "Internal Consistency",
+          "severity": "minor",
+          "summary": "SUMMARY: The paper is unusually well cross-checked numerically (\u03bd values, dB conversions, segment arithmetic, and EEG ta",
+          "score": 6.4,
+          "max_score": 8.0,
+          "category": "rigor"
+        },
+        {
+          "id": "discussion",
+          "name": "Discussion & Related Work",
+          "severity": "ok",
+          "summary": "## SUMMARY",
+          "score": 6.0,
+          "max_score": 6.0,
+          "category": "positioning"
+        },
+        {
+          "id": "orchestrator",
+          "name": "Synthesis & Prioritized Action Plan",
+          "severity": "ok",
+          "summary": "# Editorial Synthesis",
+          "score": 8.0,
+          "max_score": 8.0,
+          "category": "synthesis"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-09-26T17:41:53",
+      "label": "v4-revised",
+      "report_path": "/Users/mwestover/GithubRepos/spectral-smoothing-vs-multitaper/review/reports/review_main_flat_20260926_174153.md",
+      "total_score": 87.8,
+      "total_max": 102.0,
+      "percent": 86.1,
+      "categories": {
+        "argument": {
+          "score": 14.4,
+          "max_score": 16.0,
+          "percent": 90.0
+        },
+        "clarity": {
+          "score": 4.0,
+          "max_score": 4.0,
+          "percent": 100.0
+        },
+        "positioning": {
+          "score": 3.3,
+          "max_score": 6.0,
+          "percent": 55.0
+        },
+        "presentation": {
+          "score": 6.0,
+          "max_score": 6.0,
+          "percent": 100.0
+        },
+        "prose": {
+          "score": 24.4,
+          "max_score": 28.0,
+          "percent": 87.1
+        },
+        "rigor": {
+          "score": 20.0,
+          "max_score": 20.0,
+          "percent": 100.0
+        },
+        "synthesis": {
+          "score": 8.0,
+          "max_score": 8.0,
+          "percent": 100.0
+        },
+        "truthfulness": {
+          "score": 7.7,
+          "max_score": 14.0,
+          "percent": 55.0
+        }
+      },
+      "agents": [
+        {
+          "id": "vsnc",
+          "name": "VSNC Framework",
+          "severity": "minor",
+          "summary": "# SUMMARY",
+          "score": 6.4,
+          "max_score": 8.0,
+          "category": "argument"
+        },
+        {
+          "id": "intro",
+          "name": "Introduction Audit",
+          "severity": "ok",
+          "summary": "## SUMMARY",
+          "score": 8.0,
+          "max_score": 8.0,
+          "category": "argument"
+        },
+        {
+          "id": "sentences",
+          "name": "Sentence Architecture",
+          "severity": "ok",
+          "summary": "## SUMMARY",
+          "score": 8.0,
+          "max_score": 8.0,
+          "category": "prose"
+        },
+        {
+          "id": "voice",
+          "name": "Voice & Tense",
+          "severity": "ok",
+          "summary": "## SUMMARY",
+          "score": 6.0,
+          "max_score": 6.0,
+          "category": "prose"
+        },
+        {
+          "id": "conciseness",
+          "name": "Conciseness Audit",
+          "severity": "ok",
+          "summary": "**SUMMARY:** Unusually lean prose already in Strunk & White idiom; the remaining fat is almost entirely cross-sectional ",
+          "score": 6.0,
+          "max_score": 6.0,
+          "category": "prose"
+        },
+        {
+          "id": "paragraphs",
+          "name": "Paragraph Quality",
+          "severity": "moderate",
+          "summary": "SUMMARY: Strong, unusually well-topic-sentenced paper; the recurring defect is over-packed paragraphs (one paragraph doi",
+          "score": 4.4,
+          "max_score": 8.0,
+          "category": "prose"
+        },
+        {
+          "id": "acronyms",
+          "name": "Acronym Audit",
+          "severity": "ok",
+          "summary": "SUMMARY: Only two acronyms are formally defined (PSD, FFT); PSD is defined twice (caption + body), while EEG \u2014 the paper",
+          "score": 4.0,
+          "max_score": 4.0,
+          "category": "clarity"
+        },
+        {
+          "id": "figures_tables",
+          "name": "Figures, Tables & Captions",
+          "severity": "ok",
+          "summary": "## SUMMARY",
+          "score": 6.0,
+          "max_score": 6.0,
+          "category": "presentation"
+        },
+        {
+          "id": "reproducibility",
+          "name": "Reproducibility Check",
+          "severity": "ok",
+          "summary": "**SUMMARY:** Nearly every quantitative claim traces to a specific script/print or test assertion; the residual issues ar",
+          "score": 12.0,
+          "max_score": 12.0,
+          "category": "rigor"
+        },
+        {
+          "id": "truthfulness",
+          "name": "Truthfulness & Code Grounding",
+          "severity": "moderate",
+          "summary": "SUMMARY: Most headline numbers trace cleanly to the logged script output, but a few prominently used figures (the N=128 ",
+          "score": 7.7,
+          "max_score": 14.0,
+          "category": "truthfulness"
+        },
+        {
+          "id": "consistency",
+          "name": "Internal Consistency",
+          "severity": "ok",
+          "summary": "**SUMMARY:** Numbers are unusually well cross-checked (dof, kernel widths, band powers, dB conversions all reconcile); t",
+          "score": 8.0,
+          "max_score": 8.0,
+          "category": "rigor"
+        },
+        {
+          "id": "discussion",
+          "name": "Discussion & Related Work",
+          "severity": "moderate",
+          "summary": "## SUMMARY",
+          "score": 3.3,
+          "max_score": 6.0,
+          "category": "positioning"
+        },
+        {
+          "id": "orchestrator",
+          "name": "Synthesis & Prioritized Action Plan",
+          "severity": "ok",
+          "summary": "# Editorial Synthesis",
+          "score": 8.0,
+          "max_score": 8.0,
+          "category": "synthesis"
+        }
+      ]
+    }
+  ]
+}

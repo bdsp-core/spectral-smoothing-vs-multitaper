@@ -15,6 +15,21 @@ cross-checked once in MATLAB R2025b. Numbers below are from `demos/verify_equiva
 | `legacy_matlab/` — 60 own scripts + Chronux/Stoica/Bogacz helpers, EEG snippets (`DATA_Spike.mat`, `InterestingSignal.mat`) | 2013–2016 | build the effective MT kernel, smooth a Gaussian-tapered periodogram with it, measure resolution/leakage/variance; last script (Jun 2016) fits the MT kernel with box ⊛ Papoulis |
 | `~/Downloads/Project Advertisement.docx` — student project pitch with Sunil Nagaraj (U Twente) | undated (≈2018–19) | nothing in Box followed from it |
 
+### 2e. The third thread (2026-09-26): averaging periodograms
+Kay's textbook route (average periodograms of segments) joins the family exactly: with unit step and the window
+allowed to overhang the zero-padded record, Q_{tt'} = r_w(t−t') (the window's autocorrelation), i.e. the raw
+periodogram smoothed with |W(f)|² (Welch 1967 / Nuttall–Carter 1982; the 2001 manuscript). With a sinc window
+w_t = 2W sinc(2Wt) this is the sinc Toeplitz matrix A, so **Welch with a sliding sinc window = box-smoothed
+periodogram = Thomson all tapers λ-weighted**, with error ∝ 1/L in the window length (12 % at L = N, 1.5 % at 4N,
+0.17 % at 32N; `tests/test_banks.py`). The Slepians are the principal components of the sliding sinc window.
+The K-taper estimator has no exact single-window equivalent in either family: least-squares fits of a segment
+window or of a (taper, kernel) pair to Q_K return essentially the sliding sinc / rect + box (Frobenius distance
+0.27–0.29 vs 0.86 for Hann + box), i.e. no single window can subtract the leaky remainder. Fig 3 caveat: at
+matched *half-power* width Welch (Hann, 50 %) has the most dof of all methods but a kernel with no flat top and
+broadband leakage equal to the untapered box; Bronez's advantage for MT appears only at matched leakage.
+`specsmooth`: `sinc_window`, `welch_sliding`, `quadratic_matrix('welch', step=, overhang=)`, `eigen_tapers`,
+`dof_from_weights`, `kernel_quadratic`.
+
 ## 2. Is the proof complete, and is it correct?
 
 **Short answer: the equivalence with multitaper was never written down; what was written is correct
@@ -80,8 +95,8 @@ single-taper route, and the EEG recipe.
 3. **The equal-weight K = 2NW−1 multitaper is itself leaky.** Its last taper has λ ≈ 0.94 and puts
    the kernel sidelobe at −22 dB; on AR(4) the K = 7 estimate floors 10 dB above the truth where a
    Hann + box estimate tracks it. Short records make it worse: at N = 128, NW = 3 the median |dB|
-   error against the true AR(4) spectrum is ≈ 20 dB (raw + box), 12 dB (MT, K = 5), 6 dB (MT, K = 4),
-   2 dB (Hann + box) — `tests/test_identity.py`. Dropping the last taper helps; Thomson's adaptive
+   error against the true AR(4) spectrum over 200 realizations is 13.4 dB (raw + box), 7.1 dB (MT, K = 5), 3.5 dB (MT, K = 4),
+   2.1 dB (Hann + box) — `demos/outputs/short_record_leakage.txt` (the earlier 20/12/6/2 were one realization). Dropping the last taper helps; Thomson's adaptive
    weights are the real fix. The paper must compare against the adaptive-weight estimator, not only
    equal weights, or the smoothing method will look better than it should.
 4. **Sine (Riedel-Sidorenko) tapers and the DPSS behave alike in this comparison** (`fig3`).
@@ -95,11 +110,42 @@ Done (`demos/make_figures.py`, `figures/`):
   bandwidth for MT (K = 2NW−1, 2NW−2), sine-taper MT, raw/Hann/Bohman + box, Hann + Gaussian, Welch.
 - **Fig 4** real EEG spectrograms (128 Hz, 4 s epochs): Hann periodogram, MT, Hann + box, difference.
 - `verify_equivalence.png` and the printed tables (identity error, kernel stats, dof).
+- **Fig 0 (pedagogy)**, redone 2026-09-26: (a) the record (N = 1024, AR(4)) with the Hann taper; (b) Monte-Carlo
+  RMS dB error vs box half-width W, split into blur bias and noise, whole band and peak region; (c–f) periodogram,
+  Hann periodogram, Hann + box W = 4/N ("just right": 2W ≈ the 7/N peak width, ν = 8.9), Hann + box W = 24/N
+  ("too smooth": 2W > the 30/N peak separation, ν = 50); (g–j) each kernel drawn over the true peaks for scale.
+  The rule the paper states (§3.3 of main.tex): set 2W to the width of the narrowest feature that must survive;
+  whole-band MSE prefers W ≈ 8/N, the peak region W ≈ 4–5/N.
+- **Fig 5** the Slepian windows tile the band (Thomson eq. 8.3 as a running sum).
+- **Fig 6 (taper banks)**, 2026-09-26: every quadratic estimator is a bank of tapers with weights (eigen-decomposition
+  of Q). Columns: Welch (time-shifted bank), Hann + Gaussian (frequency-shifted bank), sliding sinc = raw + box =
+  Thomson all tapers λ-weighted (eigen-tapers are the Slepians), Thomson K = 7. Rows: the bank, its eigen-tapers, the
+  eigen-weight ladder with ν = 2(Σc)²/Σc², the kernel. Flat ladder = Thomson; sloped ladder = single-taper smoother
+  (this is *why* it costs dof); Welch 50% Hann is nearly flat (ν 13.4 for 7 segments) but its kernel has no flat top.
+- **Fig 7 (three routes, one answer)**, 2026-09-26, on an 8-s EEG epoch: exact trio (Thomson all-λ / raw + box /
+  sinc window of length 16N slid one sample at a time) agree to 3e-13 dB and 0.06 dB; everyday trio (Thomson K = 7 /
+  Hann + box / Welch 9 Hann segments) differ by a median 1.6 and 0.9 dB, i.e. their own noise.
+
+- **Draft v3 figure set (2026-09-26, after comparing with Babadi & Brown 2014):** Fig 1 `fig9_graphical_abstract`
+  (exact trio on EEG), Fig 2 `fig0b_estimates_kernels` (estimate-over-kernel motif, 4 estimators), Fig 3
+  `fig0a_record_sweep` (record + bias–variance sweep), Fig 4 `fig5_slepian_fill`, Fig 5 `fig6_taper_banks` (compact),
+  Fig 6 `fig8_everyday_motif` (raw+box / Thomson K / Hann+box / Welch on the AR(4) record), Fig 7 `fig7_everyday_eeg`,
+  Fig 8 `fig10_eeg_seizure` (ELROND clip, case A: `~/ELROND/Data/segments/sub-I0003175292344_20170823183337.mat`,
+  seizure 292–366 s, channel C4 = largest 2–20 Hz ictal rise, NW = 2 in 2-s windows), Fig 9 `fig11_eeg_two_seizures`
+  (case C: `sub-I0003175080331_ses-84_445.mat`, seizures 49–183 and 298–441 s, Fp1), Table 2 = `paper/bandpower_table.tex`
+  from `demos/band_power_table.py` (ictal-minus-pre-ictal band power by estimator; per-window |diff| from MT ≈ 1 dB
+  Hann+box, 0.5 dB Welch). The user confirmed the de-identified BDSP clips may be shown. Supplement: S1 `fig1_kernels`, S2 `fig2_ar4_leakage`,
+  S3 `fig3_tradeoff`, S4 `fig6_taper_banks_full`. `fig4_eeg_spectrograms` (7-min InterestingSignal) is no longer in
+  the paper. Floats fixed with placeins + [!htb]; recipes boxed (framed); §5 and §6 merged; ~7,800 words.
+
+- **Review iteration (2026-09-26, bdsp-core paper-agents via Bedrock, see `review/`):** baseline v3 scored 70.6/102
+  (truthfulness agent timed out; Scholar agents skipped at the user's request). Applied: figures re-authored under one
+  style (`COLOR`, panel letters, 300 dpi, viridis with shared 10–45 dB scale, convergence inset in Fig 1); consistency
+  fixes (Welch leakage/base, width rule, Bohman, 0.7 dB, sliding-sinc exactness, eq. 7 normalization K/2NW); new
+  `demos/fit_single_window.py`; tests for 2N/32N convergence and Monte-Carlo dof; abstract/intro rewritten with
+  numbers and a contributions list; Limitations section; data-availability statement. v4 review running.
 
 Still needed:
-- **Fig 0 (pedagogy)** one panel each: truncation → sinc leakage; taper → less leakage, wider lobe;
-  a periodogram and its box-smoothed version; the MT kernel drawn as the sum of the K taper spectra
-  (the 2015 draft's "Figure XX" placeholders; ideas in `legacy_matlab/a_Fig1_VaryLengths.m`, `a_Fig2TruncationFreq.m`).
 - **Adaptive-weight multitaper** in Figs 2–3 (implement Thomson's iterative weights in `specsmooth.estimators`).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same
   half-power bandwidth, report dof and leakage (Fig 3 read at fixed x).
@@ -126,6 +172,9 @@ as this repo. Outline:
 ## 5. To-do, in order
 1. ~~Literature pass on §2c~~ done, see LITERATURE.md: build on Thomson (8.3); add the Riedel-Sidorenko-Thomson 1994 hybrid (few tapers, then smooth) to Fig. 3.
 2. Adaptive-weight MT in `specsmooth`; regenerate Figs 2–3.
-3. Fig 0 and the band-power EEG table.
-4. Rewrite `paper/main.tex` around the outline in §4; fix the notational slips in §2b.
+3. ~~Fig 0~~ done; ~~band-power EEG table~~ done (Table 2, two seizure clips).
+4. ~~Rewrite `paper/main.tex` around the outline in §4~~ done twice: v1 (identity-centred), v2 on 2026-09-26
+   (three routes: averaging / smoothing / multitaper are one estimator; Fig 0 bias–variance; Figs 6–7). Still to
+   fix: the notational slips in §2b are moot (the 2015 text is no longer used); the band-power EEG table; adaptive
+   weights; the title is provisional.
 5. Push the repo to GitHub (not done; owner/visibility is your call) and share with a co-author.

@@ -18,3 +18,9 @@ __pycache__/
 *.toc
 *.bbl
 *.blg
+# review working copies (derived; the wrappers, configs, captions and reports are tracked)
+review/backups/
+review/repo_snapshot/
+review/figures/*.png
+review/main_flat.tex
+review/__pycache__/

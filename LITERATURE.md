@@ -89,7 +89,8 @@ Sykulski & Cripps (2024)**, "Bias correction of quadratic spectral estimators" (
 both work inside the quadratic-estimator view that unifies lag-window, multitaper and Welch; the
 view is current, not just historical.
 
-**Practitioner-facing sources.** Babadi & Brown (2014, IEEE TBME review), Prerau et al. (2017,
+**Practitioner-facing sources.** Babadi & Brown (2014, IEEE TBME review; local copy
+`references/Babadi_Brown_2014_ReviewOfMultitaperSpectralAnalysis_IEEE-TBME.pdf`), Prerau et al. (2017,
 Physiology tutorial) and the Wikipedia article describe multitaper as averaging orthogonally
 tapered periodograms and compare it with the periodogram and a Hann estimate; none relates it to a
 smoothed periodogram or a lag-window estimator.
@@ -111,3 +112,14 @@ estimator on high-dynamic-range spectra (anticipated by Thomson's "only for whit
 quantified by Karnik et al.), and a one-box recipe. Riedel-Sidorenko-Thomson 1994 should be cited
 as the prior quantitative comparison, and the hybrid "few tapers, then smooth" they recommend is a
 natural addition to Fig. 3.
+
+## Added 2026-09-26: the averaging thread
+
+Kay (1988, *Modern Spectral Estimation*) presents nonparametric estimation as averaging periodograms
+(Bartlett 1948; Welch 1967). Nuttall & Carter (1982, Proc. IEEE 70:1115) give the general "combined time and
+lag weighting" quadratic estimator that contains both Welch and Blackman–Tukey; Hansson-Sandsten (EUSIPCO 2012)
+approximates Thomson's estimator by a Welch structure. The paper's new statement (§5.4, App. C): with a sinc
+window slid one sample at a time over the zero-padded record, Welch's method *is* Thomson's λ-weighted
+all-taper estimate, and the Slepians are the principal components of the sliding window. Not found stated in
+this form in the sources checked; it is an immediate consequence of Welch/Nuttall–Carter plus Thomson (8.3), so
+the paper presents it as such and cites both. Worth checking Hansson-Sandsten 2012 in full before submission.

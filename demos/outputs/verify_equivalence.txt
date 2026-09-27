@@ -1,0 +1,26 @@
+/Users/mwestover/GithubRepos/spectral-smoothing-vs-multitaper/demos/verify_equivalence.py:70: RuntimeWarning: invalid value encountered in log10
+  ax[0].plot(fs[o] * N, 10 * np.log10(H[o] + 1e-15), lw=1, label=name)
+N=256 NW=4 K=7  sum(lambda)=8.0000 (2NW=8)
+lambda[:K+2] = [1.     1.     1.     1.     0.9994 0.9925 0.9367 0.6989 0.2993]
+
+[Claim 1] max|sum_k lam_k|J_k|^2 - int_(f-W)^(f+W) I| / max = 2.18e-15
+[Claim 2] K-taper MT vs box-smoothed raw periodogram, |dB| over f: median 5.603, 95% 12.500, max 15.563
+[check] eigen-weighted MT kernel vs box*Fejer computed independently: 6.83e-16
+
+kernel                      bw3(1/N)  mass>W   mass>2W  sidelobe(dB)  2-tone res(1/N)
+ideal box                      8.06  0.0000  0.0000      -inf       8.12
+multitaper K=2NW-1             7.44  0.0091  0.0022     -22.2       4.88
+raw periodogram + box          8.06  0.0658  0.0138     -16.9       8.62
+Hann periodogram + box         8.06  0.0546  0.0000     -35.9       8.88
+Bohman periodogram + box       8.06  0.0662  0.0000     -31.1       9.00
+
+exact equivalent dof at f0=0.25 (white noise); 2K = 14
+  multitaper K=2NW-1               14.0
+  eigen-weighted, all N tapers     17.2
+  raw periodogram + box            17.2
+  Hann periodogram + box            8.9
+  Bohman periodogram + box          7.3
+
+MT kernel ~ box(half-width 3.68/N) * Gaussian(sigma 0.24/N): relative squared error 1.23e-03
+
+figure: /Users/mwestover/GithubRepos/spectral-smoothing-vs-multitaper/figures/verify_equivalence.png

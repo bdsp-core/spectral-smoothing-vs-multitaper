@@ -1,0 +1,13 @@
+{
+  "journal_name": "IEEE Transactions on Biomedical Engineering",
+  "Single-column width": "88 mm (3.5 in)",
+  "Double-column width": "181 mm (7.16 in)",
+  "Max figure height": "230 mm",
+  "Resolution": ">=300 DPI for line art with color; >=600 DPI preferred for line art",
+  "Preferred formats": "TIFF, EPS, PDF, or PS; PNG accepted for review",
+  "Color mode": "RGB",
+  "Font": "sans-serif (Arial, Helvetica, Times acceptable), 8-10 pt at final size; no smaller than 6 pt",
+  "File size limit": "10 MB per figure",
+  "Figure titles": "No titles inside the figure; brief descriptive caption below the figure; panel labels (a), (b), ... in lowercase",
+  "Statistical reporting": "State the number of realizations / windows behind any error bar or distribution; state the estimator's degrees of freedom where noise levels are compared"
+}

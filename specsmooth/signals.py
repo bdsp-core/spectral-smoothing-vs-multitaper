@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.signal import lfilter
 
-# Percival & Walden's AR(4): two sharp peaks with ~70 dB dynamic range; a classic leakage stress test.
+# Percival & Walden's AR(4): two sharp peaks 0.03 cycles/sample apart, 65 dB dynamic range over the band; a classic leakage stress test.
 AR4 = np.array([1.0, -2.7607, 3.8106, -2.6535, 0.9238])
 
 

@@ -1,4 +1,4 @@
-# Multitaper spectral estimation as kernel smoothing of a periodogram
+# Averaging periodograms, smoothing a periodogram, and multitaper estimation are one estimator
 
 Working repo for a short methods paper (with code): the multitaper (Slepian / Thomson) spectral
 estimate is, to a precise degree, a periodogram smoothed with a designed kernel. Smoothing is easier
@@ -14,7 +14,7 @@ figures and demos the paper needs, and the plan.
 |---|---|
 | `specsmooth/` | the Python package (numpy/scipy): tapers, estimators, expected-value kernels, variance/resolution/leakage metrics, test signals |
 | `demos/verify_equivalence.py` | numerical proof of the central identity plus the kernel / dof tables quoted in STATUS.md |
-| `demos/make_figures.py` | the paper figures (`figures/fig1..fig4`) |
+| `demos/make_figures.py` | the paper figures (`figures/fig0..fig5`) |
 | `tests/` | the claims as pytest tests |
 | `paper/` | 2015 draft (`main.tex`, `SpectralEstimationReview.pdf`), Aug-2015 whiteboard photo, notes on leakage and MT |
 | `notes/` | the 2001 typed manuscript "Periodogram Averaging with a Sliding Window" (scanned, with annotations) and lecture notes |
@@ -27,7 +27,7 @@ figures and demos the paper needs, and the plan.
 pip install -r requirements.txt        # numpy, scipy, matplotlib, pytest
 python -m pytest -q                    # the identity, kernel, and variance claims as tests
 python demos/verify_equivalence.py     # prints the numbers, writes figures/verify_equivalence.png
-python demos/make_figures.py           # writes figures/fig1_kernels.png ... fig4_eeg_spectrograms.png
+python demos/make_figures.py           # writes figures/fig0_pedagogy.png ... fig5_slepian_fill.png
 ```
 
 ## The result in one paragraph
@@ -38,7 +38,9 @@ Let `v_k` be the N Slepian sequences for bandwidth W and `λ_k` their concentrat
     Σ_{k=0}^{N-1} λ_k |J_k(f)|²  =  ∫_{f-W}^{f+W} |X(f')|² df'
 
 so the eigenvalue-weighted multitaper estimate over *all* tapers **is** the raw periodogram averaged
-over a box of half-width W. The usual estimator keeps only the K = 2NW−1 tapers with λ_k ≈ 1; it is
+over a box of half-width W, and (Welch/Nuttall–Carter) it is also the average of periodograms of a sinc
+window of half-bandwidth W slid across the record one sample at a time; the Slepians are that sliding
+window's principal components (`tests/test_banks.py`). The usual estimator keeps only the K = 2NW−1 tapers with λ_k ≈ 1; it is
 the box-smoothed periodogram minus the broadband leakage that the discarded tapers carry. That is
 why "taper, then smooth" reproduces multitaper: the taper removes the leakage, the kernel sets the
 bandwidth. The price is variance (a single taper wastes data at the segment edges):

@@ -54,3 +54,14 @@ def sine_tapers(N, K):
     """Riedel-Sidorenko minimum-bias (sinusoidal) tapers, unit norm, as columns."""
     t = np.arange(1, N + 1)
     return np.stack([np.sqrt(2 / (N + 1)) * np.sin(np.pi * k * t / (N + 1)) for k in range(1, K + 1)], axis=1)
+
+
+def sinc_window(L, W):
+    """The centered sinc window w[t] = 2W sinc(2W t), t = -(L-1)/2 .. (L-1)/2: its spectral window |W(f)|^2 tends to the
+    box of half-width W as L grows, and its autocorrelation is the box's lag sequence 2W sinc(2W tau) (exactly as L -> inf).
+
+    Sliding it one sample at a time over a zero-padded record and summing the squared transforms gives the box-smoothed
+    periodogram, i.e. Thomson's eigenvalue-weighted multitaper estimate with all N tapers (see estimators.welch_sliding).
+    """
+    t = np.arange(L) - (L - 1) / 2
+    return 2 * W * np.sinc(2 * W * t)

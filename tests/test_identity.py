@@ -38,9 +38,10 @@ def test_standard_multitaper_vs_box_smoothed_raw_periodogram():
     x = rng.standard_normal(N) + np.cos(2 * np.pi * 0.2 * np.arange(N))
     d = np.abs(10 * np.log10(ss.multitaper(x, V, nfft)[0] / ss.lag_window_estimate(x, ss.box_lag_window(N, W), nfft)[0]))
     assert np.median(d) < 0.5
-    # (b) AR(4), ~70 dB dynamic range: smoothing cannot undo periodogram leakage. Median |dB| error vs the true PSD:
-    #     raw periodogram + box ~ 20 dB, equal-weight MT K=2NW-1 ~ 12 dB (its last taper leaks), K=2NW-2 ~ 6 dB,
-    #     Hann periodogram + box ~ 2 dB.  So here "taper, then smooth" beats equal-weight multitaper outright.
+    # (b) AR(4), 65 dB dynamic range: smoothing cannot undo periodogram leakage. Median |dB| error vs the true PSD,
+    #     over 200 realizations (demos/outputs/short_record_leakage.txt): raw periodogram + box 13.4 dB, equal-weight
+    #     MT K=2NW-1 7.1 dB (its last taper leaks), K=2NW-2 3.5 dB, Hann periodogram + box 2.1 dB. The single
+    #     realization below is more extreme (about 20, 12, 6 and 2 dB); only the ordering is asserted.
     x = ss.ar_process(ss.AR4, N, rng)
     f = np.arange(nfft) / nfft
     truth = ss.ar_psd(ss.AR4, f)
