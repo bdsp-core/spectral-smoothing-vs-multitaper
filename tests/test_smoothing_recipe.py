@@ -5,13 +5,30 @@ import specsmooth as ss
 
 
 def test_parabolic_kernel_shape():
+    """The lag window is exactly the inverse transform of (3 / 4W)(1 - f^2 / W^2) on |f| <= W: it matches quadrature to 1e-14, which
+    a 2% error in the width (1.8e-2) or the constant 2.9 in place of 3 (3.6e-2) fails, and g_0 = 1 gives the kernel unit area.
+    The kernel of the lag window truncated to |tau| < N ripples about the parabola by 1.7% of its peak, and its half-power width
+    is sqrt(2) W to within one grid step."""
+    from scipy.integrate import quad
     N, W = 256, 6 / 256; nfft = 16 * N
-    H = ss.kernel_from_lag(ss.parabolic_lag_window(N, W), nfft)
+    g = ss.parabolic_lag_window(N, W)
+    gq = np.array([quad(lambda f: 1.5 / W * (1 - (f / W) ** 2) * np.cos(2 * np.pi * f * t), 0, W, epsabs=1e-14, limit=200)[0]
+                   for t in range(N)])
+    assert g[0] == 1.0 and np.abs(g - gq).max() < 1e-12
+    H = ss.kernel_from_lag(g, nfft)
     f = ss.signed_freq(nfft)
     target = np.where(np.abs(f) <= W, 0.75 / W * (1 - (f / W) ** 2), 0.0)
-    assert abs(H.sum() / nfft - 1) < 1e-9
-    assert np.abs(H * 1.0 - target).max() < 0.05 * target.max()              # a truncated lag window ripples slightly
-    assert abs(ss.kernel_stats(H)["bw3"] - np.sqrt(2) * W) < 2 / nfft + 0.03 * W
+    assert np.abs(H - target).max() < 0.02 * target.max()
+    assert abs(ss.kernel_stats(H)["bw3"] - np.sqrt(2) * W) < 1 / nfft
+
+
+def test_recipe_b_prime_cannot_give_a_negative_estimate():
+    """The parabola is non-negative, so its lag window is a positive semidefinite sequence (Bochner) and the matrix
+    h_k g_{k-l} h_l of the tapered, smoothed periodogram is positive semidefinite at every width (Section III-D)."""
+    N = 256; t = np.arange(N); w = ss.unit_taper("tukey", N, alpha=0.25)
+    for b in (1 / N, 4 / N, np.sqrt(2) * 4 / N, 20 / N):
+        ev = np.linalg.eigvalsh(np.outer(w, w) * ss.parabolic_lag_window(N, b)[np.abs(t[:, None] - t[None, :])])
+        assert ev.min() > -1e-12 * ev.max()
 
 
 def test_tukey_taper_is_between_rectangular_and_hann():
@@ -20,6 +37,9 @@ def test_tukey_taper_is_between_rectangular_and_hann():
           for w in (None, ss.unit_taper("tukey", N, alpha=0.25), ss.unit_taper("hann", N))]
     assert nu[0] > nu[1] > nu[2]
     assert abs(np.linalg.norm(ss.unit_taper("tukey", N, alpha=0.25)) - 1) < 1e-12
+    for n in (256, 1024):                                                        # alpha is the tapered fraction of the whole record:
+        w = ss.unit_taper("tukey", n, alpha=0.25)                                # the first and last eighth, not a quarter at each end
+        assert (w < w.max() * (1 - 1e-12)).sum() == n // 4
 
 
 def test_matched_lag_window_reproduces_the_multitaper_kernel():
@@ -28,10 +48,10 @@ def test_matched_lag_window_reproduces_the_multitaper_kernel():
     H_mt = ss.kernel_multitaper(V, 8 * N)
     g = ss.matched_lag_window(Q)                                                 # no taper: r_w > 0 at every lag, exact
     assert np.abs(ss.kernel_smoothed(np.ones(N) / np.sqrt(N), g, 8 * N) - H_mt).max() < 1e-12 * H_mt.max()
-    w = ss.unit_taper("tukey", N, alpha=0.25)                                    # zero end samples: the last lags are not matched
-    with pytest.warns(UserWarning, match="not matched"):
+    w = ss.unit_taper("tukey", N, alpha=0.25)                                    # zero end samples: the last lags are not matched,
+    with pytest.warns(UserWarning, match="not matched"):                         # so the match is approximate (4.1e-4 at N = 128)
         H = ss.kernel_smoothed(w, ss.matched_lag_window(Q, w), 8 * N)
-    assert np.abs(H - H_mt).max() < 1e-3 * H_mt.max()
+    assert 0 < np.abs(H - H_mt).max() < 5e-4 * H_mt.max()
     # same kernel, different estimator
     g = ss.matched_lag_window(Q)
     t = np.arange(N); Qs = g[np.abs(t[:, None] - t[None, :])] / N
@@ -39,14 +59,17 @@ def test_matched_lag_window_reproduces_the_multitaper_kernel():
 
 
 def test_smoothed_periodogram_has_least_variance_for_a_given_kernel():
-    """Same kernel as the K-taper estimate, but constant along each diagonal: at least as many degrees of freedom."""
-    N, NW = 128, 4; t = np.arange(N); e = np.exp(-2j * np.pi * 0.25 * t)
+    """Same kernel as the K-taper estimate, but constant along each diagonal: at least as many degrees of freedom, at interior
+    frequencies (0 and 1/2, and the exact real-data variance, are in test_least_variance_is_a_white_noise_result)."""
+    N, NW = 128, 4; t = np.arange(N)
     for K in (2, 4, 7):
         V, _ = ss.dpss(N, NW, K); Q = V @ V.T / K
         Qs = ss.matched_lag_window(Q)[np.abs(t[:, None] - t[None, :])] / N
         assert np.sum(Qs ** 2) <= np.sum(Q ** 2) + 1e-12
-        nu_mt = ss.dof_quadratic(e[:, None] * Q * e.conj()[None, :]); nu_s = ss.dof_quadratic(e[:, None] * Qs * e.conj()[None, :])
-        assert abs(nu_mt - 2 * K) < 0.05 and nu_s > nu_mt
+        for f in (0.1, 0.25, 0.4):
+            e = np.exp(-2j * np.pi * f * t)
+            nu_mt = ss.dof_quadratic(e[:, None] * Q * e.conj()[None, :]); nu_s = ss.dof_quadratic(e[:, None] * Qs * e.conj()[None, :])
+            assert abs(nu_mt - 2 * K) < 0.05 and nu_s > nu_mt
 
 
 def test_least_variance_is_a_white_noise_result():
