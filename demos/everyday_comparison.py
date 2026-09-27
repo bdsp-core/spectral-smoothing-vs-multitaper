@@ -54,7 +54,7 @@ def run(N, NW, M, seed, seg_len, nfft=None, W_matched=None):
             nuf = np.array(nus); nu_s = f"{np.median(nuf):.1f}*"; wd = tt = "   -"; extra = f"   (*median over f; {np.median(nuf[:, peak]):.1f} at the peaks, {np.median(nuf[:, hi]):.1f} for f>0.3)"
         else:
             nu_s = f"{nu[0]:.1f}"; wd = f"{nu[1]['bw3'] * N:.1f}"; tt = f"{nu[1]['resolution'] * N:.1f}"; extra = ""
-        print(f"{name:58s} {nu_s:>6s} {wd:>6s} {tt:>7s} {np.median(np.abs(E)):18.2f} {np.sqrt(np.mean(E[:, peak] ** 2)):14.2f} {np.median(np.abs(E[:, hi])):19.2f}{extra}")
+        print(f"{name:58s} {nu_s:>6s} {wd:>6s} {tt:>7s} {np.median(np.abs(E)):18.4f} {np.sqrt(np.mean(E[:, peak] ** 2)):14.4f} {np.median(np.abs(E[:, hi])):19.4f}{extra}")
 
 
 if __name__ == "__main__":

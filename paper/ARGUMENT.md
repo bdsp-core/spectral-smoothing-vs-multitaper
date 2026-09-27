@@ -127,7 +127,8 @@ kernel. The figures were switched to recipe (b') on the same day (M.B.W.'s decis
 Three candidates were considered. (1) The kernel matched to the multitaper estimate (the multitaper kernel deconvolved by the
 taper's spectral window) reproduces multitaper's bias exactly and its accuracy, but has negative lobes, fails without a taper
 when the dynamic range is large, and has two parameters (NW, K). (2) The box is the kernel of the exact identity. (3) The
-parabola is the kernel of least mean square error, derived in Section II-B.5, with one parameter. The paper recommends (3),
+parabola is the kernel of least asymptotic mean square error among non-negative kernels, each at its best width (Section
+II-B.5), with one parameter; at a fixed half-power width it has 20% more bias and 15% less variance than the box. The paper recommends (3),
 uses (2) in the figures, and reports (1) in Section II-D and Table III as the bridge between smoothing and multitaper.
 
 ## The elegant statement (added 2026-09-27, Section II-D.5)

@@ -3,6 +3,8 @@
 Conventions: tapers have unit norm, so every estimator here has E[S(f)] ~ S(f) (the true PSD)
 for a process with unit-variance white noise giving S = 1.
 """
+import warnings
+
 import numpy as np
 
 
@@ -180,14 +182,21 @@ def matched_lag_window(Q, taper=None):
     """Lag window g that gives 'taper, then smooth' the same kernel as the quadratic estimator with real symmetric matrix Q.
 
     The kernel of Q has lag sequence q_tau = sum_t Q[t, t+tau]; the kernel of the smoothed tapered periodogram has lag sequence
-    g_tau r_w(tau), with r_w the autocorrelation of the taper. So g_tau = q_tau / r_w(tau). The two estimators then have the same
-    expected value for every spectrum. They are not the same estimator: their matrices differ, and so do their variances."""
+    g_tau r_w(tau), with r_w the autocorrelation of the taper. So g_tau = q_tau / r_w(tau), which also keeps the kernel's area
+    (g_0 = tr Q / ||w||^2). The match is exact when r_w(tau) != 0 at every lag where q_tau != 0, as it is without a taper. Tapers
+    that vanish at their end samples (scipy's symmetric Hann and Tukey windows) have r_w = 0 at the last lags; those lags are left
+    unmatched, with a warning. Where r_w is small g is large, so g must be applied in the lag domain, not as a deconvolved kernel
+    on a frequency grid. With an exact match the two estimators have the same expected value for every spectrum. They are not
+    the same estimator: their matrices differ, and so do their variances."""
     Q = np.real(np.asarray(Q)); N = Q.shape[0]
     w = np.ones(N) / np.sqrt(N) if taper is None else np.asarray(taper, float)
     q = np.array([np.trace(Q, offset=k) for k in range(N)])
     rw = np.array([(w[:N - k] * w[k:]).sum() for k in range(N)])
-    g = np.where(rw > 1e-9 * rw[0], q / np.maximum(rw, 1e-300), 0.0)
-    return g / g[0]
+    ok = np.abs(rw) > 1e-9 * rw[0]                 # |r_w|: an autocorrelation may be negative at some lags
+    if np.any(np.abs(q[~ok]) > 1e-12 * np.abs(q).max()):
+        warnings.warn("the taper's autocorrelation vanishes at lags where Q has nonzero lag sums; those lags are not matched",
+                      stacklevel=2)
+    return np.where(ok, q / np.where(ok, rw, 1.0), 0.0)
 
 
 def smooth_on_grid(S, H):

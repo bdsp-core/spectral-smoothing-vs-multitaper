@@ -188,7 +188,7 @@ Done (`demos/make_figures.py`, `figures/`):
 
 - **Smoothing recipe changed (2026-09-27):** recipe (b') is now a 25% cosine (Tukey) taper followed by a parabola of
   half-power width 2W, in place of Hann then box. At N = 1024, W = 4/N it has nu = 16.7 (Hann then box: 8.9; multitaper
-  K = 7: 14.0) and errors 1.1 / 1.7 / 1.1 dB (band, peaks, low spectrum). On the seizure clips its spectrogram differs
+  K = 7: 14.0). Of that, the taper gives nu = 14.8 with the box; the parabola's wider base (at equal half-power width) adds the rest and errors 1.0 / 1.7 / 1.0 dB (band, peaks, low spectrum). On the seizure clips its spectrogram differs
   from multitaper's by a median of 0.9 and 0.7 dB (Hann then box: 1.5 and 1.2) and its band powers by 0.1-0.3 dB.
   The Hann window divides nu by 1.94 after smoothing; the 25% cosine taper by 1.15. Tables I-IV include both recipes.
 - **Figures switched to the new recipe (2026-09-27, decided by M.B.W.):** in Figs. 2, 3, 5-9 and S1-S4 the smoothing
@@ -210,14 +210,19 @@ Done (`demos/make_figures.py`, `figures/`):
   development, preparation of the figures and drafting of the manuscript". IEEE policy asks that the AI system be
   named and the sections identified; the statement names neither.
 
-- **Optimal kernel (2026-09-27, Section II-B.5):** the smoothing kernel with the least mean square error is derived, not
+- **Optimal kernel (2026-09-27, Section II-B.5):** the smoothing kernel with the least asymptotic mean square error among non-negative kernels
+  (each at its best width) is derived, not
   chosen: the parabola (Priestley 1962; Epanechnikov 1969), one parameter b, half-power width sqrt(2) b,
   nu = (10/3) N b / c_w, best half-width b_opt = (15 c_w / N)^(1/5) |S / S''|^(2/5). Box and Gaussian are 3% and 2% worse
   in RMS error at their best widths. For the 1.4 Hz alpha peak in a 2-s record the formula gives a half-power width of
   1.5 Hz and the exact optimum is 1.9 Hz.
 - **Least variance for a given kernel (2026-09-27, Section II-D):** by Cauchy-Schwarz on each diagonal of Q, the untapered
   smoothed periodogram has the smallest white-noise variance of all quadratic estimators with the same kernel (N = 256,
-  NW = 4: nu = 14.6 vs 14 for K = 7; 10.9 vs 8 for K = 4). Test in `tests/test_smoothing_recipe.py`.
+  NW = 4: nu = 14.6 vs 14 for K = 7; 10.9 vs 8 for K = 4). For real data the white-noise variance is
+  sum_tau (1 + cos 4 pi f tau) e_tau, with e_tau the sum of squares on diagonal tau (not proportional to sum Q^2), and the
+  bound holds at every f. It is a white-noise result only: on the AR(4) process, above 0.2 cycles/sample, the smoothed
+  periodogram has more than 10 times the multitaper variance. Most of its eigen-weights are negative (about 3% of the
+  positive total). Tests in `tests/test_smoothing_recipe.py`.
 - **Matched kernel tested as a family (2026-09-27, Table III):** tuned over taper and (NW, K): 2.48, 1.39, 1.94, 1.38 dB.
   Matched to the best multitaper estimate it reproduces that estimate's error (1.96 vs 1.97; 1.40 vs 1.40). It is never
   ahead of the parabola, and without a taper it fails on the AR(4) process (over 10% negative estimates at every setting).
