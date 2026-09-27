@@ -1,0 +1,36 @@
+N = 256: largest offset from the line, in units of W, at which the expected bias is >= 1 dB
+   2NW  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
+     4  recipe (b'): 25% cosine, parabola          3.2       4.5       5.6
+     4  Hann, then box                             1.8       2.0       2.6
+     4  multitaper, K = 2NW - 1                    1.9       6.3      20.3
+     6  recipe (b'): 25% cosine, parabola          2.5       3.4       4.2
+     6  Hann, then box                             1.5       1.6       2.1
+     6  multitaper, K = 2NW - 1                    1.9       5.5      18.8
+     8  recipe (b'): 25% cosine, parabola          2.1       2.9       3.4
+     8  Hann, then box                             1.4       1.5       1.8
+     8  multitaper, K = 2NW - 1                    1.7       5.1      17.9
+
+N = 400: largest offset from the line, in units of W, at which the expected bias is >= 1 dB
+   2NW  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
+     4  recipe (b'): 25% cosine, parabola          3.2       4.5       5.6
+     4  Hann, then box                             1.8       2.0       2.6
+     4  multitaper, K = 2NW - 1                    1.9       6.3      19.8
+     6  recipe (b'): 25% cosine, parabola          2.5       3.4       4.2
+     6  Hann, then box                             1.5       1.6       2.1
+     6  multitaper, K = 2NW - 1                    1.9       5.5      17.8
+     8  recipe (b'): 25% cosine, parabola          2.1       2.9       3.4
+     8  Hann, then box                             1.4       1.5       1.8
+     8  multitaper, K = 2NW - 1                    1.7       4.9      16.4
+
+N = 1024: largest offset from the line, in units of W, at which the expected bias is >= 1 dB
+   2NW  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
+     4  recipe (b'): 25% cosine, parabola          3.2       4.5       5.6
+     4  Hann, then box                             1.8       2.0       2.6
+     4  multitaper, K = 2NW - 1                    1.9       6.3      19.3
+     6  recipe (b'): 25% cosine, parabola          2.5       3.4       4.2
+     6  Hann, then box                             1.5       1.6       2.1
+     6  multitaper, K = 2NW - 1                    1.9       5.5      17.5
+     8  recipe (b'): 25% cosine, parabola          2.1       2.9       3.4
+     8  Hann, then box                             1.4       1.5       1.8
+     8  multitaper, K = 2NW - 1                    1.7       4.9      15.9
+
