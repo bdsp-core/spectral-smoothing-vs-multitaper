@@ -53,6 +53,22 @@ the construction of optimum estimates; the attribution of the quadratic window t
 window) and was not checked against the full text. The efficiencies quoted in the manuscript (box 3%, Gaussian 2% worse in RMS
 error) were recomputed numerically.
 
+## Literature check for the split into a smoothed periodogram and a cross term, 2026-09-27
+
+Question: has the exact split of the K-taper multitaper estimate into a smoothed periodogram plus a cross term, with the share of the
+variance in the cross term, been published? Searched: the local reference PDFs, Crossref, OpenAlex and the web.
+
+| Source | What it contains | Read in full? |
+|---|---|---|
+| McCloud, Scharf and Mullis 1999, IEEE Trans. Signal Process. 47(3), 839-843, doi:10.1109/78.747788 | lag-windowed estimators have multiple-window implementations, by an approximate low-rank factorization of the band-limiting Toeplitz matrix; "roughly equivalent" | abstract only (paywalled) |
+| Stoica and Moses 2005, Spectral Analysis of Signals, Sec. 5.3.3 and Complement 5.6.2 | the Slepian estimator as the smoothed periodogram with the matrix replaced by its K leading eigenvectors (approximate); the Daniell and Blackman-Tukey estimators as exact multiwindow estimators | yes (local copy) |
+| Riedel and Sidorenko 1995 | kernel smoothers have equivalent tapers close to sine tapers; sine-taper estimate as differences of FFT values; cancellation of side lobes between neighbouring Fourier coefficients; parabolic weighting; a split-cosine taper with a box is nearly a 4-taper estimate | yes (arXiv:1803.04078) |
+| Walden, McCoy and Percival 1994, 1995 | exact variance of multitaper estimates for real processes; effective bandwidth | abstracts only |
+
+Result: the approximate equivalence is established and is now credited. The exact split with a cross term, and the formula for its share
+of the variance, were not found. This is not proof of novelty: the full text of McCloud et al. and the Percival and Walden
+textbook were not available. An author with library access should read both before the manuscript claims the split as new.
+
 ## Sentences changed because the source did not support them as written
 
 | Where | Before | After | Reason |

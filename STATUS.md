@@ -262,6 +262,12 @@ Done (`demos/make_figures.py`, `figures/`):
   too wide to resolve an alpha peak (4.2 Hz at N = 400). Abstract, introduction and conclusion state the relation.
 - **Spectrograms use the jet colour map (2026-09-27, M.B.W.'s preference and the EEG convention).**
 
+- **The split is now a stated contribution (2026-09-27):** one sentence in the abstract (in place of the Hann and cosine
+  taper sentence), a passage in the introduction, and a sixth listed contribution. A literature check found the
+  approximate equivalence already published (McCloud, Scharf and Mullis 1999; Stoica and Moses 2005, Sec. 5.3.3;
+  Riedel and Sidorenko 1995) and these are now cited; the exact split with a cross term was not found, but McCloud et al.
+  and Percival and Walden could not be read in full. See `review/reports/reference_verification.md`.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same
