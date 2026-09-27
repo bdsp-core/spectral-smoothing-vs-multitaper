@@ -1,4 +1,4 @@
-# Three equivalent routes to spectral estimation: averaging, smoothing, and multitaper
+# Three equivalent routes to estimating power spectra: averaging, multitaper, and smoothing
 
 Working repo for a short methods paper (with code): the multitaper (Slepian / Thomson) spectral
 estimate is, to a precise degree, a periodogram smoothed with a designed kernel. Smoothing is easier

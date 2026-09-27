@@ -202,5 +202,5 @@ as this repo. Outline:
 4. ~~Rewrite `paper/main.tex` around the outline in §4~~ done twice: v1 (identity-centred), v2 on 2026-09-26
    (three routes: averaging / smoothing / multitaper are one estimator; Fig 0 bias–variance; Figs 6–7). Still to
    fix: the notational slips in §2b are moot (the 2015 text is no longer used); the band-power EEG table; adaptive
-   weights; the title is provisional.
-5. Push the repo to GitHub (not done; owner/visibility is your call) and share with a co-author.
+   weights; the title is now "Three Equivalent Routes to Estimating Power Spectra: Averaging, Multitaper, and Smoothing" (M.B.W., 2026-09-26).
+5. ~~Push the repo to GitHub~~ pushed to `origin/main` (bdsp-core/spectral-smoothing-vs-multitaper, private) on 2026-09-26. Still to do: share with co-authors.

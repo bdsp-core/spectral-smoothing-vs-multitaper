@@ -110,8 +110,10 @@ figure; the three-route recipe; the EEG validation.
 
 ## Weak points and decisions for you
 
-1. **Title.** "Three Equivalent Routes to Spectral Estimation: Averaging, Smoothing, and Multitaper" (chosen by
-   M.B.W., 2026-09-26); alternatives considered: "Three Routes to One Spectrum", "Multitaper Spectral Analysis Is Smoothing", "Averaging, Smoothing, Multitaper: One
+1. **Title.** "Three Equivalent Routes to Estimating Power Spectra: Averaging, Multitaper, and Smoothing" (chosen by
+   M.B.W., 2026-09-26; it replaced "Three Equivalent Routes to Spectral Estimation: Averaging, Smoothing, and Multitaper").
+   The title lists the routes as averaging, multitaper, smoothing; the text still presents them as averaging, smoothing,
+   multitaper. Alternatives considered earlier: "Three Routes to One Spectrum", "Multitaper Spectral Analysis Is Smoothing", "Averaging, Smoothing, Multitaper: One
    Spectral Estimator", "The Unity of Spectral Estimators".
 2. **The exact trio is the leaky estimator.** Everything that is exactly equal is the untapered,
    λ-weighted, all-taper estimate, which nobody should use on a coloured spectrum. The paper says this

@@ -487,7 +487,7 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
         out[name.split(":")[0]] = (np.median(np.abs(dd)), np.percentile(np.abs(dd), 95))
         a.plot(f[keep], dd, color=c, lw=0.8, label=f"{name.split(':')[0]} minus multitaper: median |diff| {np.median(np.abs(dd)):.1f} dB")
     a.axhline(0, color="black", lw=0.5)
-    a.set(xlabel="frequency (Hz)", ylabel="difference from multitaper (dB)", xlim=(0, fmax), ylim=(-15, 15)); a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1)
+    a.set(xlabel="frequency (Hz)", ylabel="difference from\nmultitaper (dB)", xlim=(0, fmax), ylim=(-15, 15)); a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1)
     _letters(ax); fig.tight_layout(w_pad=0.8); _save(fig, "fig7_everyday_eeg.png")
     print("fig7:", out, "dofs", np.round(dofs, 1), "bws(Hz)", np.round(bws, 2), "nseg", nseg, "step", step, "expected log-noise std (dB):", np.round(4.34 * np.sqrt(2 / np.array(dofs)), 2))
 
