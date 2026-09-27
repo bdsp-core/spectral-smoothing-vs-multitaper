@@ -12,8 +12,9 @@ No taper, then smooth: no taper, parabola of half-width 1.5/N                   
 Paper setting: multitaper, NW=4, K=7, equal weights                                                  8.67   4.83  12.44  25.165   14.0    7.4
 Paper setting: multitaper, NW=4, K=6, equal weights                                                  4.61   4.53   6.23   4.052   12.0    6.6
 Paper setting: Hann, then box of half-width 4/N                                                      2.98   5.27   2.15   1.678    8.9    8.1
+Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        2.87   5.17   1.57   1.796   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               2.99   4.84   2.76   1.344      -      -
-[404 s]
+[36 s]
 
 AR(4) process, N = 1024; 1000 records; RMS dB error at 201 frequencies (band / peaks / low spectrum); relative RMS error; nu and half-power width (1/N) for white noise
 family: best setting                                                                                 band  peaks    low  relRMS     nu  width
@@ -28,8 +29,9 @@ No taper, then smooth: no taper, parabola of half-width 6/N                     
 Paper setting: multitaper, NW=4, K=7, equal weights                                                  5.10   1.87   7.53   6.131   14.0    7.4
 Paper setting: multitaper, NW=4, K=6, equal weights                                                  2.54   1.99   3.25   1.083   12.0    6.6
 Paper setting: Hann, then box of half-width 4/N                                                      2.18   2.30   2.17   0.497    8.9    8.1
+Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        1.59   1.78   1.55   0.370   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               2.39   1.87   2.80   0.492      -      -
-[602 s]
+[193 s]
 
 EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 400; 1000 records; RMS dB error at 156 frequencies (band / peaks / low spectrum); relative RMS error; nu and half-power width (1/N) for white noise
 family: best setting                                                                                 band  peaks    low  relRMS     nu  width
@@ -44,8 +46,9 @@ Multitaper, Slepian tapers, adaptive weights (500 records): NW=5, K=9           
 Paper setting: multitaper, NW=4, K=7, equal weights                                                  2.03   3.37   1.73   0.581   14.0    7.4
 Paper setting: multitaper, NW=4, K=6, equal weights                                                  2.12   3.28   1.88   0.577   12.0    6.6
 Paper setting: Hann, then box of half-width 4/N                                                      2.45   3.77   2.17   0.712    8.9    8.1
+Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        1.95   3.41   1.55   0.573   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               2.05   3.36   1.76   0.585      -      -
-[448 s]
+[57 s]
 
 EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 1024; 1000 records; RMS dB error at 200 frequencies (band / peaks / low spectrum); relative RMS error; nu and half-power width (1/N) for white noise
 family: best setting                                                                                 band  peaks    low  relRMS     nu  width
@@ -60,5 +63,6 @@ Multitaper, sine tapers, equal weights: K=15                                    
 Paper setting: multitaper, NW=4, K=7, equal weights                                                  1.76   1.97   1.72   0.396   14.0    7.4
 Paper setting: multitaper, NW=4, K=6, equal weights                                                  1.91   2.07   1.88   0.421   12.0    6.6
 Paper setting: Hann, then box of half-width 4/N                                                      2.18   2.34   2.15   0.492    8.9    8.1
+Recipe (b'): Tukey 25%, then parabola of half-power width 8/N                                        1.60   1.93   1.54   0.370   16.7    8.1
 Paper setting: multitaper, NW=4, K=7, adaptive weights                                               1.78   1.98   1.76   0.396      -      -
-[204 s]
+[186 s]
