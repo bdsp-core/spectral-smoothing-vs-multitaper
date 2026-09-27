@@ -207,7 +207,11 @@ Done (`demos/make_figures.py`, `figures/`):
   1.5 Hz and the exact optimum is 1.9 Hz.
 - **Least variance for a given kernel (2026-09-27, Section II-D):** by Cauchy-Schwarz on each diagonal of Q, the untapered
   smoothed periodogram has the smallest white-noise variance of all quadratic estimators with the same kernel (N = 256,
-  NW = 4: nu = 14.6 vs 14 for K = 7; 10.9 vs 8 for K = 4). Test in `tests/test_smoothing_recipe.py`.
+  NW = 4: nu = 14.6 vs 14 for K = 7; 10.9 vs 8 for K = 4). For real data the white-noise variance is
+  sum_tau (1 + cos 4 pi f tau) e_tau, with e_tau the sum of squares on diagonal tau (not proportional to sum Q^2), and the
+  bound holds at every f. It is a white-noise result only: on the AR(4) process, above 0.2 cycles/sample, the smoothed
+  periodogram has more than 10 times the multitaper variance. Most of its eigen-weights are negative (about 3% of the
+  positive total). Tests in `tests/test_smoothing_recipe.py`.
 - **Matched kernel tested as a family (2026-09-27, Table III):** tuned over taper and (NW, K): 2.48, 1.39, 1.94, 1.38 dB.
   Matched to the best multitaper estimate it reproduces that estimate's error (1.96 vs 1.97; 1.40 vs 1.40). It is never
   ahead of the parabola, and without a taper it fails on the AR(4) process (over 10% negative estimates at every setting).

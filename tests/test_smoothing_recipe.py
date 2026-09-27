@@ -45,3 +45,28 @@ def test_smoothed_periodogram_has_least_variance_for_a_given_kernel():
         assert np.sum(Qs ** 2) <= np.sum(Q ** 2) + 1e-12
         nu_mt = ss.dof_quadratic(e[:, None] * Q * e.conj()[None, :]); nu_s = ss.dof_quadratic(e[:, None] * Qs * e.conj()[None, :])
         assert abs(nu_mt - 2 * K) < 0.05 and nu_s > nu_mt
+
+
+def test_least_variance_is_a_white_noise_result():
+    """For real white noise, var(x_f^* Q x_f) = sum_tau (1 + cos 4 pi f tau) e_tau, where e_tau is the sum of squares of Q along
+    the diagonal at lag tau, so the untapered kernel-matched (Toeplitz) estimator has the least variance at every f, including
+    0 and 1/2. For a coloured spectrum the ordering reverses where the spectrum is low. Most of its eigen-weights are negative."""
+    N, NW, K = 256, 4, 7; t = np.arange(N); lag = np.abs(t[:, None] - t[None, :])
+    V, _ = ss.dpss(N, NW, K); Q = V @ V.T / K
+    Qs = ss.matched_lag_window(Q)[lag] / N
+
+    def moments(M, f, Sig):
+        e = np.exp(-2j * np.pi * f * t); R = np.real(e[:, None] * M * e.conj()[None, :])
+        return np.trace(R @ Sig), 2 * np.trace(R @ Sig @ R @ Sig)
+
+    tau = np.arange(-(N - 1), N); e_tau = np.array([np.sum(np.diagonal(Q, k) ** 2) for k in tau])
+    for f in (0.0, 0.1, 0.25, 0.37, 0.5):
+        v_mt = moments(Q, f, np.eye(N))[1]; v_s = moments(Qs, f, np.eye(N))[1]
+        assert abs(v_mt - np.sum((1 + np.cos(4 * np.pi * f * tau)) * e_tau)) < 1e-10 * v_mt
+        assert v_s < v_mt
+    nfft = 1 << 15; acv = np.real(np.fft.ifft(ss.ar_psd(ss.AR4, np.arange(nfft) / nfft)))[:N]
+    for f in np.arange(0.2, 0.501, 0.05):                                        # AR(4): same mean, > 10x the variance
+        (m_mt, v_mt), (m_s, v_s) = moments(Q, f, acv[lag]), moments(Qs, f, acv[lag])
+        assert abs(m_s / m_mt - 1) < 1e-9 and v_s > 10 * v_mt
+    c = np.linalg.eigvalsh(Qs)
+    assert (c < 0).sum() > N // 2 and -c[c < 0].sum() < 0.05 * c[c > 0].sum()
