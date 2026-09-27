@@ -176,7 +176,7 @@ Done (`demos/make_figures.py`, `figures/`):
   funding (R01HL161253, R01NS126282) in the first-page footnote; IRB statement in Methods (Stanford #83833, BIDMC
   #2016P000058, MGH #2013P001024, waiver of consent). All 27 references checked against Crossref, publisher pages and
   source texts; Thomson 1990 (quadratic-inverse) added as reference 28. Still open in `paper/main.tex`: submission date,
-  corresponding e-mail, and the wording of the AI-use sentence. The repository has no LICENSE file.
+  corresponding e-mail, and the wording of the AI-use sentence. License: CC BY-NC 4.0 (`LICENSE.txt`, added 2026-09-26).
 
 - **Tuned comparison (2026-09-26, not yet in the manuscript):** `demos/tuned_comparison.py` searches each family's
   parameters and scores the best setting on 1000 simulated records (output in `demos/outputs/tuned_comparison.txt`).
