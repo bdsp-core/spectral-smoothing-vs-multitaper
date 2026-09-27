@@ -27,7 +27,7 @@
 \maketitle
 
 \begin{abstract}
-\textit{Objective:} The parameters of multitaper spectral estimation have no counterpart in the two methods most users learn first, averaging the periodograms of segments and smoothing one periodogram across frequency. \textit{Methods:} We write each estimator as a bank of tapers with weights and compare kernels and degrees of freedom. We score them on simulated spectra, at a fixed bandwidth and with each tuned to its best setting, and on scalp EEG containing seizures. \textit{Results:} The three methods are one estimator, built from a single window by shifting it in time, shifting it in frequency, or taking orthogonal tapers. The multitaper estimate with all $N$ Slepian tapers, weighted by their eigenvalues, equals the periodogram averaged over a box of half-width $W$ and, for a long window, the average of periodograms of a sliding sinc window. Where the spectrum is low, the untapered smoothed periodogram errs by 14~dB, the default multitaper estimate by 6~dB, and a tapered smoothed periodogram by 1 to 1.4~dB. A Hann taper costs a third of the multitaper estimate's degrees of freedom and a 25\% cosine taper none. With each route tuned, the smoothed periodogram is at least as accurate as the multitaper estimate. On EEG the routes agree to a median of 0.7 to 1.5~dB. \textit{Conclusion:} A lightly tapered, smoothed periodogram matches an adaptively weighted multitaper estimate in leakage and accuracy. \textit{Significance:} Users can choose the parameters of a spectral estimate from the features of their data and use whichever route their pipeline already computes.
+\textit{Objective:} Multitaper parameters have no counterpart in the two methods most users learn first, averaging the periodograms of segments and smoothing one periodogram across frequency. \textit{Methods:} We write each estimator as a bank of tapers with weights and compare kernels and degrees of freedom. We score the estimators at a fixed resolution on simulated spectra, seizure EEG and sleep spindles, and with each tuned to its best setting. \textit{Results:} The three methods are one estimator, built from a single window by shifting it in time, shifting it in frequency, or taking orthogonal tapers. With all $N$ Slepian tapers weighted by their eigenvalues, the multitaper estimate equals the periodogram averaged over a box and the average of periodograms of a long sliding sinc window. For every route the degrees of freedom are about twice the window length times the frequency resolution, so users choose the resolution and the noise follows. Where the spectrum is low, the untapered smoothed periodogram errs by 14~dB, the default multitaper estimate by 6~dB, and a tapered smoothed periodogram by 1 to 1.4~dB. A Hann taper costs a third of the degrees of freedom and a 25\% cosine taper none. On EEG the routes agree to a median of 0.6 to 0.9~dB. \textit{Conclusion:} At equal resolution, a lightly tapered, smoothed periodogram matches an adaptively weighted multitaper estimate in leakage and accuracy. \textit{Significance:} Users can choose time and frequency resolution from the features of their data and use whichever route their pipeline computes.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -49,7 +49,7 @@ We show that the three methods are the same estimator (Fig.~\ref{fig:abstract}).
 
 These results have three practical consequences, which we measured over 300 realizations of a spectrum spanning 65~dB. Leakage survives smoothing and averaging. Where the spectrum is low, a box-smoothed periodogram errs by 14~dB without a taper and by 1.4~dB with one. A Hann taper has a third fewer degrees of freedom than the multitaper estimate at the same bandwidth ($\nu=8.9$ against $14.0$), which raises the error at the spectral peaks from 1.8 to 2.3~dB. A cosine taper applied only to the ends of the record avoids this loss ($\nu=14.8$ with the same box, and $16.7$ with a parabola of the same half-power width, whose base is wider). With default settings the multitaper estimate errs by 6~dB where the spectrum is low, and by 15~dB on records of 128 samples, while a tapered, smoothed periodogram errs by 1.0 to 1.4~dB. Adaptive weights remove this difference. When every route is tuned to its best setting, a tapered, smoothed periodogram is at least as accurate as the multitaper estimate in each of four test cases.
 
-The paper makes five contributions. We prove that averaging periodograms, smoothing a periodogram and multitaper estimation are one estimator (Section~\ref{sec:one}). We derive the sliding-window form of Thomson's identity and show that the Slepian sequences are the principal components of a sinc window slid across the record (Section~\ref{sec:sliding}, Appendix~\ref{app:welch}). We show that the variance cost of a single taper belongs to the taper and not to smoothing, that the best smoothing kernel is a parabola, and that for white noise the smoothed periodogram has the smallest variance of all estimators with a given kernel (Sections~\ref{sec:shape} and \ref{sec:beforeafter}). We compute exact kernels, leakage and degrees of freedom for eleven estimators at matched bandwidth, together with their errors over an ensemble (Tables~\ref{tab:ensemble} and \ref{tab:dof}). We give a recipe for each route and a rule for choosing its bandwidth (Sections~\ref{sec:howwide} and \ref{sec:recipe}), and we test both on scalp EEG containing focal seizures (Section~\ref{sec:eeg}).
+The paper makes five contributions. We prove that averaging periodograms, smoothing a periodogram and multitaper estimation are one estimator (Section~\ref{sec:one}). We derive the sliding-window form of Thomson's identity and show that the Slepian sequences are the principal components of a sinc window slid across the record (Section~\ref{sec:sliding}, Appendix~\ref{app:welch}). We show that the variance cost of a single taper belongs to the taper and not to smoothing, that the best smoothing kernel is a parabola, and that for white noise the smoothed periodogram has the smallest variance of all estimators with a given kernel (Sections~\ref{sec:shape} and \ref{sec:beforeafter}). We compute exact kernels, leakage and degrees of freedom for eleven estimators at matched bandwidth, together with their errors over an ensemble (Tables~\ref{tab:ensemble} and \ref{tab:dof}). We show that the degrees of freedom of every route are about twice the product of the window length and the frequency resolution, and we give a recipe for each route that starts from the resolution required in time and in frequency (Sections~\ref{sec:resolution} and \ref{sec:recipe}). We test both on scalp EEG containing focal seizures and on sleep spindles (Sections~\ref{sec:eeg} and \ref{sec:sleep}).
 
 The method is the same throughout. We write each estimator as a quadratic form, diagonalize it, and compare estimators through their kernels and eigen-weight ladders. Sections~\ref{sec:periodogram} and \ref{sec:fixes} introduce the kernel picture and the three classical remedies. Section~\ref{sec:mt} presents multitaper estimation in the usual way. Section~\ref{sec:one} shows that the three methods are one and quantifies how the versions used in practice differ. Sections~\ref{sec:recipe} and \ref{sec:eeg} give the recipes and the EEG demonstration. Proofs are in the appendices.
 
@@ -109,6 +109,18 @@ The second remedy computes one periodogram of the whole record and averages it o
 \label{sec:tapering}
 Averaging and smoothing do not reduce leakage, which is why both are usually applied to tapered periodograms. A taper is a window $w_t$ that falls smoothly to zero at both ends of the record, and the data are multiplied by it before the transform. The kernel becomes $|\mathcal{W}(f)|^2$, the squared transform of the taper. We use a cosine (Tukey) taper, which is flat over the middle of the record and falls to zero as half a cosine at each end (Fig.~\ref{fig:sweep}a). With one eighth of the record tapered at each end, which we call a 25\% cosine taper, the tails of the kernel decay as $1/f^6$ instead of $1/f^2$ beyond about $8/N$. They are 22~dB below those of the untapered kernel at $16/N$ and 39~dB below at $40/N$, and the main lobe is 15\% wider (Fig.~\ref{fig:motif}f). The Hann window tapers the whole record. Its tails are a further 25~dB lower and its main lobe is 60\% wider than that of the untapered kernel. Tapering does not reduce the variance, and a single tapered periodogram still has $\nu=2$ (Fig.~\ref{fig:motif}b). A taper also discards data, because the samples near the ends receive little weight. After smoothing, $\nu$ is divided by $N\sum_tw_t^4/(\sum_tw_t^2)^2$, which is $1.94$ for the Hann window and $1.15$ for the 25\% cosine taper. The taper sets how fast the skirts fall. The smoothing window, or the segment length, sets the width of the main lobe.
 
+\subsection{Choosing the Resolution}
+\label{sec:resolution}
+
+\subsubsection{Time resolution, frequency resolution and noise}
+\label{sec:timefreq}
+A user of a spectrogram makes two choices, the length $T$ of the window and the width of the kernel. Events closer together than $T$ are merged in time, and peaks closer together than the half-power width $\Delta f$ of the kernel are merged in frequency. The two resolutions fix the noise, because
+\begin{equation}
+\nu\approx2\,T\,\Delta f,
+\label{eq:design}
+\end{equation}
+with $T$ in seconds and $\Delta f$ in hertz. For windows of 1 to 8~s and design bandwidths of 1 to 4~Hz, the ratio of $\nu$ to $2T\Delta f$ is between $0.91$ and $0.98$ for the multitaper estimate of Section~\ref{sec:mt} with $K=2NW-1$ tapers and between $1.03$ and $1.15$ for recipe (b$'$). A user therefore chooses two of the three quantities, time resolution, frequency resolution and noise, and the third follows, by whichever route the estimate is computed. In EEG the choice is constrained by physiology. Sleep spindles last 0.5 to 2~s and lie between 11 and 16~Hz, and epileptiform discharges last less than a second. Windows of 1 to 2~s and kernels 1 to 2~Hz wide leave $\nu$ between 2 and 8. In this range the time--bandwidth product $NW=T\Delta f/2$ is 1 or 2, and the multitaper estimate has one to three tapers.
+
 \subsubsection{Choosing the bandwidth}
 \label{sec:howwide}
 Each remedy requires a bandwidth, set by the segment length, by the half-width $W$, or by the time--bandwidth product of Section~\ref{sec:mt}. Fig.~\ref{fig:sweep} shows how the choice affects a smoothed periodogram. A wider kernel pools more periodogram ordinates, so the noise falls as $4.3\sqrt{2/\nu}$~dB with $\nu$ roughly proportional to $NW$ (blue curve). A wider kernel also blurs the spectrum over a width $2W$. A peak narrower than $2W$ is lowered and broadened, and a valley narrower than $2W$ is partly filled. This bias is zero for a flat spectrum and grows with the curvature of $S$ on the scale of the kernel (orange curve). Noise and bias add in quadrature, and their total has a broad minimum where the two are comparable.
@@ -129,14 +141,6 @@ b_{\mathrm{opt}}=\Bigl(\frac{15\,c_w}{N}\Bigr)^{1/5}\,\Bigl|\frac{S(f)}{S''(f)}\
 \end{equation}
 It depends on the curvature of the spectrum, which changes from one frequency to the next and is not known in advance, and only weakly on the length of the record. For the alpha peak of the EEG-like spectrum of Section~\ref{sec:simulations}, which is 1.4~Hz wide, \eqref{eq:bopt} gives a half-power width of 1.5~Hz in a 2-second record. The width that minimizes the exact mean square error is 1.9~Hz, because the peak is too narrow for the quadratic approximation. Both agree with the rule of setting the width of the kernel to about the width of the narrowest feature. Appendix~\ref{app:variational} derives \eqref{eq:parabola} and \eqref{eq:bopt} by the calculus of variations.
 
-\subsubsection{Time resolution and the time--bandwidth product}
-\label{sec:timefreq}
-A spectrogram requires a second choice, the length $T$ of the window. Events closer together than $T$ are merged in time, and peaks closer together than the half-power width $\Delta f$ of the kernel are merged in frequency. The two resolutions fix the noise, because
-\begin{equation}
-\nu\approx2\,T\,\Delta f,
-\label{eq:design}
-\end{equation}
-with $T$ in seconds and $\Delta f$ in hertz. For windows of 1 to 8~s and design bandwidths of 1 to 4~Hz, the ratio of $\nu$ to $2T\Delta f$ is between $0.91$ and $0.98$ for the multitaper estimate with $K=2NW-1$ and between $1.03$ and $1.15$ for recipe (b$'$). A user therefore chooses two of the three quantities, time resolution, frequency resolution and noise, and the third follows, by whichever route the estimate is computed. In EEG the choice is constrained by physiology. Sleep spindles last 0.5 to 2~s and lie between 11 and 16~Hz, and epileptiform discharges last less than a second. Windows of 1 to 2~s and kernels 1 to 2~Hz wide leave $\nu$ between 2 and 8. In this range the time--bandwidth product $NW=T\Delta f/2$ is 1 or 2, and the multitaper estimate has one to three tapers.
 
 \begin{figure*}[!t]
 \centering
@@ -277,7 +281,7 @@ The taper can be built from the Slepian tapers as well. The diagonal of the mult
 \label{sec:simulations}
 We compared the estimators on a fourth-order autoregressive process, AR(4), that is a standard test of leakage \cite{percival1993}. Its PSD has two peaks $7/N$ wide at half power and $30/N$ apart for $N=1024$, on a background that spans 65~dB. We generated 300 realizations of $N=1024$ samples and estimated the PSD of each with a design half-bandwidth of $W=4/N$. The error of an estimate is the absolute difference in dB between the estimate and the true PSD. We report the median error over the whole band, the root-mean-square error over the peak region ($0.09$ to $0.16$ cycles per sample), and the median error where the spectrum is low ($f>0.3$). Kernel properties and degrees of freedom were computed exactly from the quadratic form of each estimator (Appendix~\ref{app:quadratic}), for $N=256$ and $W=4/N$ unless stated otherwise. The same comparison for $N=256$ and $N=128$ is in the repository. In the figures the smoothing route is recipe (b$'$) of Section~\ref{sec:recipe}, a 25\% cosine taper followed by a parabola whose half-power width is $2W$. The tables also give the Hann window followed by a box, which is the most familiar choice.
 
-A comparison at one bandwidth leaves open whether a route would do better with other settings, so we also tuned each family. The families were multitaper estimates with Slepian or sine tapers \cite{riedel1995} and equal weights, for time--bandwidth products from 1 to 12 and every number of tapers; adaptively weighted Slepian estimates; one taper (Hann, a cosine taper of 10\%, 25\% or 50\%, or one Slepian taper) followed by a box or a parabola of 17 widths; two to five Slepian tapers followed by a box; and Welch's method with Hann segments of 12 lengths. For each family we shortlisted the five settings with the smallest error predicted from the exact mean and variance of the estimator (Appendix~\ref{app:quadratic}), scored them on 1000 simulated records, and kept the best. The adaptively weighted estimates are not quadratic and were scored on 500 records at every setting. The error is the root mean square, over records and frequencies, of the difference in dB between the estimate and the true PSD. The test cases were the AR(4) process with $N=256$ and $N=1024$, and an EEG-like spectrum sampled at 200~Hz with $N=400$ and $N=1024$. The EEG-like spectrum has a background that falls as $1/f^2$ above 3~Hz, an alpha peak at 10~Hz that is 1.4~Hz wide, and a noise floor. It spans 30~dB and was scored from 1 to 40~Hz. The tuning uses the true spectrum, so it shows what each route can achieve and is not a procedure for choosing settings.
+As a check that no route is favoured by the choice of bandwidth, we also tuned each family. The families were multitaper estimates with Slepian or sine tapers \cite{riedel1995} and equal weights, for time--bandwidth products from 1 to 12 and every number of tapers; adaptively weighted Slepian estimates; one taper (Hann, a cosine taper of 10\%, 25\% or 50\%, or one Slepian taper) followed by a box or a parabola of 17 widths; two to five Slepian tapers followed by a box; and Welch's method with Hann segments of 12 lengths. For each family we shortlisted the five settings with the smallest error predicted from the exact mean and variance of the estimator (Appendix~\ref{app:quadratic}), scored them on 1000 simulated records, and kept the best. The adaptively weighted estimates are not quadratic and were scored on 500 records at every setting. The error is the root mean square, over records and frequencies, of the difference in dB between the estimate and the true PSD. The test cases were the AR(4) process with $N=256$ and $N=1024$, and an EEG-like spectrum sampled at 200~Hz with $N=400$ and $N=1024$. The EEG-like spectrum has a background that falls as $1/f^2$ above 3~Hz, an alpha peak at 10~Hz that is 1.4~Hz wide, and a noise floor. It spans 30~dB and was scored from 1 to 40~Hz. The tuning uses the true spectrum, so it shows what each route can achieve and is not a procedure for choosing settings.
 
 \subsection{EEG Data and Settings}
 \label{sec:eegmethods}
@@ -370,50 +374,6 @@ Welch, Hann segments $L=N/4$, 50\% overlap & 13.4 & 5.84 & 0.0005 & $-31$~dB\\
 \end{figure*}
 
 
-\subsection{Each Route at Its Best Setting}
-\label{sec:tuned}
-Table~\ref{tab:tuned} gives the smallest error that each family reached when its parameters were tuned. In each of the four cases the tapered families lie within 20\% of one another, and a single taper followed by smoothing is never behind the multitaper estimate. Multitaper estimates with Slepian tapers and equal weights are 3 to 10\% behind the single taper followed by smoothing, and adaptively weighted ones are 4 to 19\% behind. The adaptive weights protect a default setting against leakage. A setting that has been tuned does not need them.
-
-The best single taper was a cosine taper of 10\% or 25\% in every case. The Hann window was 17 to 24\% behind it, and the parabola was 2 to 4\% ahead of the box (\texttt{demos/taper\_and\_kernel.py}). The 25\% cosine taper was within 3\% of the best taper in every case, including records of 128 samples of the AR(4) process, for which the 10\% taper leaks. Without any taper, the smoothed periodogram is the most accurate estimator on the EEG-like spectrum and the least accurate, by 8 to 11~dB, on the AR(4) process.
-
-The kernel of \eqref{eq:matched} was tuned in the same way, over the taper and over the multitaper estimate to which it is matched. Matched to the best multitaper estimate, it reproduces the error of that estimate: 1.96 and 1.40~dB on the EEG-like spectrum, against 1.97 and 1.40~dB. Its own best settings are matched to multitaper estimates with a large time--bandwidth product and few tapers, whose kernels are bell-shaped, and they come within 6\% of the parabola. On the AR(4) process it requires a taper. Without one, more than a tenth of its estimates are negative at every setting. A kernel matched to the multitaper estimate is therefore the right choice for reproducing that estimate, and not for improving on it. The parabola \eqref{eq:parabola} is at least as accurate, has one parameter, and cannot give a negative estimate.
-
-The lower rows of the table give the estimators at the bandwidth used in the figures. At that bandwidth recipe (b$'$) has a smaller error than the adaptively weighted multitaper estimate in all four cases.
-
-The settings above use one width at all frequencies. The best width \eqref{eq:bopt} varies with the curvature of the spectrum, so we also chose the width separately at each frequency, on one set of records, and scored the choice on a second set. With a 25\% cosine taper and a parabola the error falls from 2.42, 1.41, 1.94 and 1.41~dB in the four cases to 1.69, 1.01, 1.39 and 1.00~dB, a gain of 28 to 30\%. The multitaper estimate with equal weights falls to 1.77, 1.15, 1.42 and 1.08~dB, and with adaptive weights to 1.87, 1.26, 1.47 and 1.17~dB. The gain from choosing the width well is several times the difference between the routes. The choice uses the true spectrum, so these values are bounds and not the results of a procedure. A width that varies with frequency is simple to apply to a periodogram. A multitaper estimate requires a different set of tapers for every width (\texttt{demos/local\_width.py}).
-
-\begin{table*}[!t]
-\caption{Error of Each Family at Its Best Setting}
-\label{tab:tuned}
-\centering
-\footnotesize
-\begin{tabular}{lcccc}
-\toprule
- & \multicolumn{2}{c}{AR(4) process} & \multicolumn{2}{c}{EEG-like spectrum}\\
-Family & $N=256$ & $N=1024$ & $N=400$ & $N=1024$\\
-\midrule
-One taper, then smooth & 2.42 & 1.37 & 1.89 & 1.36\\
-A few Slepian tapers, then smooth & 2.46 & 1.49 & 1.87 & 1.37\\
-Welch, Hann segments & 2.48 & 1.39 & 1.90 & 1.36\\
-Multitaper, sine tapers, equal weights & 2.47 & 1.41 & 1.99 & 1.41\\
-Multitaper, Slepian tapers, equal weights & 2.67 & 1.46 & 1.97 & 1.40\\
-Multitaper, Slepian tapers, adaptive weights & 2.89 & 1.52 & 2.00 & 1.41\\
-One taper, then kernel matched to a multitaper estimate & 2.48 & 1.39 & 1.94 & 1.38\\
-No taper, then smooth & 13.98 & 9.71 & 1.84 & 1.33\\
-\midrule
-\multicolumn{5}{l}{\emph{At the fixed half-bandwidth $W=4/N$}}\\
-Cosine taper (25\%), then parabola, recipe (b$'$) & 2.87 & 1.59 & 1.95 & 1.60\\
-Hann periodogram, then box & 2.98 & 2.18 & 2.45 & 2.18\\
-Multitaper, $K=7$, adaptive weights & 2.99 & 2.39 & 2.05 & 1.78\\
-Multitaper, $K=7$, equal weights & 8.67 & 5.10 & 2.03 & 1.76\\
-\bottomrule
-\end{tabular}
-
-\vspace{3pt}
-\parbox{0.92\textwidth}{\footnotesize Root-mean-square error in dB over 1000 simulated records (500 for adaptive weights) and about 200 frequencies. The best settings, in the order of the columns, were: one taper, a 25\% cosine taper with a parabola of half-width $3.5/N$, then 10\% cosine tapers with parabolas of half-width $8/N$, $6/N$ and $10/N$; Slepian tapers with equal weights, $(NW,K)=(5,6)$, $(8,12)$, $(4,8)$ and $(7,14)$; adaptive weights, $(4,6)$, $(8,14)$, $(5,9)$ and $(8,15)$; sine tapers, $K=5$, 14, 9 and 15; Welch, 18 segments of 84 samples, 57 of 128, 33 of 80 and 57 of 128, all at 7/8 overlap; matched kernel \eqref{eq:matched}, a 25\% cosine taper matched to $(10,2)$, a 10\% cosine taper matched to $(12,9)$, and no taper matched to $(12,4)$ and $(12,9)$. Settings of the matched kernel at which 0.1\% or more of the estimates were negative were excluded, and its error is computed over its positive estimates. Computed by \texttt{demos/tuned\_comparison.py} and \texttt{demos/taper\_and\_kernel.py}.}
-\end{table*}
-
-
 \subsection{EEG With Seizures}
 \label{sec:eeg}
 In Fig.~\ref{fig:eeg} the ictal rhythm begins near 7.5~Hz with harmonics up to 25~Hz, slows over about a minute, and ends in post-ictal suppression. This descending pattern is often called a chirp and is typical of an evolving seizure. Fig.~\ref{fig:eeg2} contains two such seizures, each with a stack of harmonics that descends from 20~Hz to 3~Hz. These descriptions are based on reading the spectrograms. The unsmoothed periodogram shows the chirps but is very noisy. The multitaper and smoothed-periodogram spectrograms cannot be told apart by inspection, and the spectra at a pre-ictal and an ictal instant (Fig.~\ref{fig:eeg}d,\,f) show all three practical estimators resolving the same harmonics. Over all $599$ windows the two spectrograms differ by a median of $0.9$~dB (Fig.~\ref{fig:eeg}h) and $0.7$~dB (Fig.~\ref{fig:eeg2}). With the Hann taper and the box the medians are $1.5$ and $1.2$~dB. These differences are smaller than the noise of the estimators, which is $2.5$ and $2.1$~dB for $\nu=6$ and $\nu=8.7$, because the two estimates share most of their noise.
@@ -457,6 +417,52 @@ Fig.~\ref{fig:sleep} shows the trade between time resolution and frequency resol
 \caption{\unboldmath\textbf{Sleep spindles at three resolutions.} (a)~Forty seconds of stage N2 sleep, channel C4-M1, filtered between 0.3 and 35~Hz (black) and between 11 and 16~Hz (orange, offset), with five spindles shaded. (b--g)~Spectrograms from windows of 1~s (b,\,c), 2~s (d,\,e) and 4~s (f,\,g) stepped by 0.1~s, by the multitaper estimate with $K=2NW-1$ tapers (left) and by a cosine-tapered periodogram smoothed with a parabola (right), on one colour scale. The titles give the window length, the half-power width of the kernel and $\nu$. The white box has these dimensions, so it shows the resolution of the panel, and twice its area is approximately $\nu$. Short windows keep the spindles brief and blur them in frequency, and long windows do the opposite.}
 \label{fig:sleep}
 \end{figure*}
+
+
+\subsection{A Check: Each Route at Its Best Setting}
+\label{sec:tuned}
+The comparisons above fix the resolution, as a user would. As a check that the conclusions do not depend on that choice, Table~\ref{tab:tuned} gives the smallest error that each family reached when its parameters were tuned to minimize the error over the whole band. These settings are not recommendations. On the EEG-like spectrum with $N=400$ the best kernel is 4.2~Hz wide at half power, three times the width of the alpha peak, because most of the band has no features. A user who needs to resolve the peak would choose a narrower kernel and accept more noise.
+
+With that caveat, the families agree. In each of the four cases the tapered families lie within 20\% of one another, and a single taper followed by smoothing is never behind the multitaper estimate. Multitaper estimates with Slepian tapers and equal weights are 3 to 10\% behind the single taper followed by smoothing, and adaptively weighted ones are 4 to 19\% behind. The adaptive weights protect a default setting against leakage. A setting that has been tuned does not need them.
+
+The best single taper was a cosine taper of 10\% or 25\% in every case. The Hann window was 17 to 24\% behind it, and the parabola was 2 to 4\% ahead of the box (\texttt{demos/taper\_and\_kernel.py}). The 25\% cosine taper was within 3\% of the best taper in every case, including records of 128 samples of the AR(4) process, for which the 10\% taper leaks. Without any taper, the smoothed periodogram is the most accurate estimator on the EEG-like spectrum and the least accurate, by 8 to 11~dB, on the AR(4) process.
+
+The kernel of \eqref{eq:matched} was tuned in the same way, over the taper and over the multitaper estimate to which it is matched. Matched to the best multitaper estimate, it reproduces the error of that estimate: 1.96 and 1.40~dB on the EEG-like spectrum, against 1.97 and 1.40~dB. Its own best settings are matched to multitaper estimates with a large time--bandwidth product and few tapers, whose kernels are bell-shaped, and they come within 6\% of the parabola. On the AR(4) process it requires a taper. Without one, more than a tenth of its estimates are negative at every setting. A kernel matched to the multitaper estimate is therefore the right choice for reproducing that estimate, and not for improving on it. The parabola \eqref{eq:parabola} is at least as accurate, has one parameter, and cannot give a negative estimate.
+
+The lower rows of the table give the estimators at the bandwidth used in the figures. At that bandwidth recipe (b$'$) has a smaller error than the adaptively weighted multitaper estimate in all four cases.
+
+The settings above use one width at all frequencies. The best width \eqref{eq:bopt} varies with the curvature of the spectrum, so we also chose the width separately at each frequency, on one set of records, and scored the choice on a second set. With a 25\% cosine taper and a parabola the error falls from 2.42, 1.41, 1.94 and 1.41~dB in the four cases to 1.69, 1.01, 1.39 and 1.00~dB, a gain of 28 to 30\%. The multitaper estimate with equal weights falls to 1.77, 1.15, 1.42 and 1.08~dB, and with adaptive weights to 1.87, 1.26, 1.47 and 1.17~dB. The gain from choosing the width well is several times the difference between the routes. The choice uses the true spectrum, so these values are bounds and not the results of a procedure. A width that varies with frequency is simple to apply to a periodogram. A multitaper estimate requires a different set of tapers for every width (\texttt{demos/local\_width.py}).
+
+\begin{table*}[!t]
+\caption{Error of Each Family at Its Best Setting}
+\label{tab:tuned}
+\centering
+\footnotesize
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{AR(4) process} & \multicolumn{2}{c}{EEG-like spectrum}\\
+Family & $N=256$ & $N=1024$ & $N=400$ & $N=1024$\\
+\midrule
+One taper, then smooth & 2.42 & 1.37 & 1.89 & 1.36\\
+A few Slepian tapers, then smooth & 2.46 & 1.49 & 1.87 & 1.37\\
+Welch, Hann segments & 2.48 & 1.39 & 1.90 & 1.36\\
+Multitaper, sine tapers, equal weights & 2.47 & 1.41 & 1.99 & 1.41\\
+Multitaper, Slepian tapers, equal weights & 2.67 & 1.46 & 1.97 & 1.40\\
+Multitaper, Slepian tapers, adaptive weights & 2.89 & 1.52 & 2.00 & 1.41\\
+One taper, then kernel matched to a multitaper estimate & 2.48 & 1.39 & 1.94 & 1.38\\
+No taper, then smooth & 13.98 & 9.71 & 1.84 & 1.33\\
+\midrule
+\multicolumn{5}{l}{\emph{At the fixed half-bandwidth $W=4/N$}}\\
+Cosine taper (25\%), then parabola, recipe (b$'$) & 2.87 & 1.59 & 1.95 & 1.60\\
+Hann periodogram, then box & 2.98 & 2.18 & 2.45 & 2.18\\
+Multitaper, $K=7$, adaptive weights & 2.99 & 2.39 & 2.05 & 1.78\\
+Multitaper, $K=7$, equal weights & 8.67 & 5.10 & 2.03 & 1.76\\
+\bottomrule
+\end{tabular}
+
+\vspace{3pt}
+\parbox{0.92\textwidth}{\footnotesize Root-mean-square error in dB over 1000 simulated records (500 for adaptive weights) and about 200 frequencies. The best settings, in the order of the columns, were: one taper, a 25\% cosine taper with a parabola of half-width $3.5/N$, then 10\% cosine tapers with parabolas of half-width $8/N$, $6/N$ and $10/N$; Slepian tapers with equal weights, $(NW,K)=(5,6)$, $(8,12)$, $(4,8)$ and $(7,14)$; adaptive weights, $(4,6)$, $(8,14)$, $(5,9)$ and $(8,15)$; sine tapers, $K=5$, 14, 9 and 15; Welch, 18 segments of 84 samples, 57 of 128, 33 of 80 and 57 of 128, all at 7/8 overlap; matched kernel \eqref{eq:matched}, a 25\% cosine taper matched to $(10,2)$, a 10\% cosine taper matched to $(12,9)$, and no taper matched to $(12,4)$ and $(12,9)$. Settings of the matched kernel at which 0.1\% or more of the estimates were negative were excluded, and its error is computed over its positive estimates. Computed by \texttt{demos/tuned\_comparison.py} and \texttt{demos/taper\_and\_kernel.py}.}
+\end{table*}
 
 
 \section{Discussion}
@@ -508,7 +514,7 @@ The kernels, degrees of freedom and leakage values describe the estimators for a
 
 \section{Conclusion}
 \label{sec:conclusion}
-Averaging periodograms, smoothing a periodogram and multitaper estimation are the same estimator, a bank of tapers with weights that can be built from one window in three ways. When all Slepian tapers are used with their eigenvalues as weights, the multitaper estimate equals a smoothed periodogram exactly, and in the limit of a long window it equals an average of sliding-window periodograms. A multitaper estimate smooths the Fourier transform before squaring it, and a smoothed periodogram smooths after. The estimator used in practice is this estimate with its leaky components removed. This description expresses the multitaper parameters in terms that users of the other two methods already know. The taper controls the skirts of the kernel, and the box width or segment length controls the width of its main lobe. The bandwidth is chosen by balancing blur against noise. A lightly tapered and smoothed periodogram controls leakage as well as an adaptively weighted multitaper estimate, and is as accurate when both are tuned. A heavy taper such as the Hann window halves the degrees of freedom. Among non-negative smoothing kernels, each at its best width, the parabola has the smallest asymptotic mean square error, and for white noise no quadratic estimator with a given kernel has a smaller variance than the untapered smoothed periodogram. Without a taper, a smoothed or averaged periodogram is biased by leakage wherever the spectrum is low. For most EEG applications any of the three routes is adequate, and the choice can be made for convenience.
+Averaging periodograms, smoothing a periodogram and multitaper estimation are the same estimator, a bank of tapers with weights that can be built from one window in three ways. When all Slepian tapers are used with their eigenvalues as weights, the multitaper estimate equals a smoothed periodogram exactly, and in the limit of a long window it equals an average of sliding-window periodograms. A multitaper estimate smooths the Fourier transform before squaring it, and a smoothed periodogram smooths after. The estimator used in practice is this estimate with its leaky components removed. This description expresses the multitaper parameters in terms that users of the other two methods already know. The taper controls the skirts of the kernel, and the box width or segment length controls the width of its main lobe. For every route the degrees of freedom are about twice the product of the window length and the frequency resolution, so the user chooses the resolution in time and in frequency and the noise follows. A lightly tapered and smoothed periodogram controls leakage as well as an adaptively weighted multitaper estimate, and is as accurate when both are tuned. A heavy taper such as the Hann window halves the degrees of freedom. Among non-negative smoothing kernels, each at its best width, the parabola has the smallest asymptotic mean square error, and for white noise no quadratic estimator with a given kernel has a smaller variance than the untapered smoothed periodogram. Without a taper, a smoothed or averaged periodogram is biased by leakage wherever the spectrum is low. For most EEG applications any of the three routes is adequate, and the choice can be made for convenience.
 
 
 \section*{Data and Code Availability}

@@ -8,7 +8,7 @@ Supplement: fig1 kernels at equal bandwidth | fig2 AR(4): dropping the leakiest 
 
 Presentation conventions (one style for every figure): bold lowercase panel letters outside each frame; one colour per
 estimator (COLOR); reference truth heavy black; single-realization periodograms thin light grey; no suptitles; the
-spectrograms share one perceptually uniform colour map and one dB range (SPEC_VLIM).
+spectrograms share one colour map (jet, the convention for EEG) and one dB range (SPEC_VLIM).
 """
 import sys, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -34,7 +34,7 @@ plt.rcParams.update({
 COLOR = {"truth": "black", "periodogram": "0.65", "multitaper": "#0072B2", "smooth": "#E69F00", "hann_box": "#999933", "raw_box": "#009E73",
          "welch": "#CC79A7", "bohman_box": "#56B4E9", "hann_gauss": "#D55E00", "box": "black", "band": "#0072B2"}
 LW = {"truth": 1.7, "est": 1.0, "thin": 0.55, "heavy": 2.6}
-SPEC_CMAP, SPEC_VLIM = "viridis", (10.0, 45.0)
+SPEC_CMAP, SPEC_VLIM = "jet", (10.0, 45.0)      # jet is the convention for EEG spectrograms (M.B.W.)
 TAPER_ALPHA = 0.25                     # recipe (b'): half a cosine on the first and last eighth of the record (a 25% Tukey taper)
 
 

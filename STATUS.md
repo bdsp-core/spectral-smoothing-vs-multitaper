@@ -249,8 +249,15 @@ Done (`demos/make_figures.py`, `figures/`):
   resolution. The recording is a de-identified BDSP polysomnogram kept outside the repository (found by pattern in
   `~/GithubRepos/sleep-yoda/dev/standardization/output/`; no identifier appears in the code, figure or text).
   The seizure figures now state resolution in seconds and hertz in the panel titles. Figure 9 was kept.
-- **Not yet combined with GitHub (2026-09-27):** local main holds commits that are not on GitHub, and GitHub holds seven
-  commits by E. Keldsen that are not local. Both edit `paper/main.tex`; a rebase with manual conflict resolution is needed.
+- **Combined with E. Keldsen's revisions (2026-09-27):** merged on main with manual resolution of five conflicts in
+  `paper/main.tex` and one in the tests; every one of his edits was kept (hypotheses for the parabola, white-noise
+  statement of the least-variance result, exactness conditions for the matched kernel, Table I rounding, nu = 14.8
+  with the box, Andrews 1991). 29 tests pass.
+- **Resolution first (2026-09-27):** Section II-C "Choosing the Resolution" now opens with nu = 2 T Delta f, then the
+  bandwidth rule, then the shape of the kernel. The tuned comparison moved to the end of the Results as a check
+  (Section III-D, now Table IV; the band powers are Table III), with the caveat that a whole-band optimum picks kernels
+  too wide to resolve an alpha peak (4.2 Hz at N = 400). Abstract, introduction and conclusion state the relation.
+- **Spectrograms use the jet colour map (2026-09-27, M.B.W.'s preference and the EEG convention).**
 
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
