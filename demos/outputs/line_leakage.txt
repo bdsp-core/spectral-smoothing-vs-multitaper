@@ -1,36 +1,36 @@
-N = 256: largest offset from the line, in units of W, at which the expected bias is >= 1 dB
-   2NW  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
-     4  recipe (b'): 25% cosine, parabola          3.2       4.5       5.6
-     4  Hann, then box                             1.8       2.0       2.6
-     4  multitaper, K = 2NW - 1                    1.9       6.3      20.3
-     6  recipe (b'): 25% cosine, parabola          2.5       3.4       4.2
-     6  Hann, then box                             1.5       1.6       2.1
-     6  multitaper, K = 2NW - 1                    1.9       5.5      18.8
-     8  recipe (b'): 25% cosine, parabola          2.1       2.9       3.4
-     8  Hann, then box                             1.4       1.5       1.8
-     8  multitaper, K = 2NW - 1                    1.7       5.1      17.9
+N = 256: largest offset from the line, in units of R, at which the expected bias is >= 1 dB
+  2alpha  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
+       4  recipe (b'): 25% cosine, parabola         1.58      2.27      2.81
+       4  Hann, then box                            0.88      0.98      1.32
+       4  multitaper, L = 2 alpha - 1               0.96      3.14     10.14
+       6  recipe (b'): 25% cosine, parabola         1.23      1.71      2.08
+       6  Hann, then box                            0.75      0.82      1.04
+       6  multitaper, L = 2 alpha - 1               0.96      2.77      9.42
+       8  recipe (b'): 25% cosine, parabola         1.06      1.43      1.72
+       8  Hann, then box                            0.69      0.74      0.91
+       8  multitaper, L = 2 alpha - 1               0.85      2.57      8.94
 
-N = 400: largest offset from the line, in units of W, at which the expected bias is >= 1 dB
-   2NW  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
-     4  recipe (b'): 25% cosine, parabola          3.2       4.5       5.6
-     4  Hann, then box                             1.8       2.0       2.6
-     4  multitaper, K = 2NW - 1                    1.9       6.3      19.8
-     6  recipe (b'): 25% cosine, parabola          2.5       3.4       4.2
-     6  Hann, then box                             1.5       1.6       2.1
-     6  multitaper, K = 2NW - 1                    1.9       5.5      17.8
-     8  recipe (b'): 25% cosine, parabola          2.1       2.9       3.4
-     8  Hann, then box                             1.4       1.5       1.8
-     8  multitaper, K = 2NW - 1                    1.7       4.9      16.4
+N = 400: largest offset from the line, in units of R, at which the expected bias is >= 1 dB
+  2alpha  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
+       4  recipe (b'): 25% cosine, parabola         1.58      2.27      2.81
+       4  Hann, then box                            0.88      0.98      1.31
+       4  multitaper, L = 2 alpha - 1               0.96      3.14      9.89
+       6  recipe (b'): 25% cosine, parabola         1.23      1.71      2.08
+       6  Hann, then box                            0.75      0.82      1.04
+       6  multitaper, L = 2 alpha - 1               0.96      2.77      8.92
+       8  recipe (b'): 25% cosine, parabola         1.06      1.43      1.72
+       8  Hann, then box                            0.69      0.74      0.91
+       8  multitaper, L = 2 alpha - 1               0.85      2.46      8.20
 
-N = 1024: largest offset from the line, in units of W, at which the expected bias is >= 1 dB
-   2NW  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
-     4  recipe (b'): 25% cosine, parabola          3.2       4.5       5.6
-     4  Hann, then box                             1.8       2.0       2.6
-     4  multitaper, K = 2NW - 1                    1.9       6.3      19.3
-     6  recipe (b'): 25% cosine, parabola          2.5       3.4       4.2
-     6  Hann, then box                             1.5       1.6       2.1
-     6  multitaper, K = 2NW - 1                    1.9       5.5      17.5
-     8  recipe (b'): 25% cosine, parabola          2.1       2.9       3.4
-     8  Hann, then box                             1.4       1.5       1.8
-     8  multitaper, K = 2NW - 1                    1.7       4.9      15.9
+N = 1024: largest offset from the line, in units of R, at which the expected bias is >= 1 dB
+  2alpha  estimator                             D = 20 dB  D = 30 dB  D = 40 dB
+       4  recipe (b'): 25% cosine, parabola         1.58      2.27      2.80
+       4  Hann, then box                            0.88      0.98      1.31
+       4  multitaper, L = 2 alpha - 1               0.96      3.14      9.64
+       6  recipe (b'): 25% cosine, parabola         1.23      1.71      2.08
+       6  Hann, then box                            0.75      0.82      1.04
+       6  multitaper, L = 2 alpha - 1               0.96      2.77      8.76
+       8  recipe (b'): 25% cosine, parabola         1.06      1.43      1.72
+       8  Hann, then box                            0.69      0.74      0.91
+       8  multitaper, L = 2 alpha - 1               0.85      2.46      7.94
 

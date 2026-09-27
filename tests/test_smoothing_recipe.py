@@ -121,17 +121,18 @@ def test_recipe_b_prime_skirts_depend_on_the_time_bandwidth_product():
 
 def test_line_leakage_reach_of_recipe_b_prime():
     """A line D dB above a flat background in the expected estimate biases it by 10 log10(1 + 10^(D/10) H(d)/H(0)) at offset d.
-    At D = 30 dB the bias of recipe (b') is 1 dB or more out to 4.5W, 3.4W and 2.9W for 2NW = 4, 6 and 8, for any N; Hann then
-    box stays within about 2W, and multitaper with K = 2NW - 1 reaches 6.3W to 4.9W (Section IV, recipe (b'))."""
+    With R = 2 alpha / N the resolution: at D = 30 dB the bias of recipe (b') is 1 dB or more out to 2.3R, 1.7R and 1.4R for
+    2 alpha = 4, 6 and 8, for any N; Hann then box stays within R, and multitaper with L = 2 alpha - 1 reaches 3.1R, 2.8R and
+    about 2.5R (Section IV, recipe (b'))."""
     for N in (256, 1024):
         nfft = 64 * N; f = ss.signed_freq(nfft)
-        for NW, b_reach, mt_reach in ((2, 4.5, 6.3), (3, 3.4, 5.5), (4, 2.9, 5.0)):
-            W = NW / N
+        for NW, b_reach, mt_reach in ((2, 2.27, 3.14), (3, 1.71, 2.77), (4, 1.43, 2.51)):
+            W = NW / N; R = 2 * W
             Hb = ss.kernel_smoothed(ss.unit_taper("tukey", N, alpha=0.25), ss.parabolic_lag_window(N, np.sqrt(2) * W), nfft)
             Hh = ss.kernel_smoothed(ss.unit_taper("hann", N), ss.box_lag_window(N, W), nfft)
             Hm = ss.kernel_multitaper(ss.dpss(N, NW, 2 * NW - 1)[0], nfft)
-            r = lambda H: np.abs(f)[10 * np.log10(1 + 1e3 * H / H.max()) >= 1].max() / W       # D = 30 dB
-            assert abs(r(Hb) - b_reach) < 0.06 and r(Hh) < 2.05 and abs(r(Hm) - mt_reach) < 0.15
+            r = lambda H: np.abs(f)[10 * np.log10(1 + 1e3 * H / H.max()) >= 1].max() / R       # D = 30 dB
+            assert abs(r(Hb) - b_reach) < 0.01 and r(Hh) < 1.0 and abs(r(Hm) - mt_reach) < 0.07
     # the closed form is the exact expectation: a complex line at f0 adds P x_d^* Q x_d, the kernel at offset d
     N, NW = 256, 2; W = NW / N; nfft = 64 * N; t = np.arange(N)
     tuk = ss.unit_taper("tukey", N, alpha=0.25); g = ss.parabolic_lag_window(N, np.sqrt(2) * W)

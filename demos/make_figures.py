@@ -36,6 +36,8 @@ COLOR = {"truth": "black", "periodogram": "0.65", "multitaper": "#0072B2", "smoo
 LW = {"truth": 1.7, "est": 1.0, "thin": 0.55, "heavy": 2.6}
 SPEC_CMAP, SPEC_VLIM = "jet", (10.0, 45.0)      # jet is the convention for EEG spectrograms (M.B.W.)
 TAPER_ALPHA = 0.25                     # recipe (b'): half a cosine on the first and last eighth of the record (a 25% Tukey taper)
+# Labels follow the notation of the paper (Babadi and Brown 2014): sample k, taper index i = 1, 2, ..., L tapers, time-bandwidth
+# product alpha, resolution R = 2 alpha / (N Delta) (the full width; the code's half-bandwidth W = NW / N is R / 2 with Delta = 1).
 
 
 def _recipe(N, Wn):
@@ -62,8 +64,8 @@ def fig1_kernels(N=256, NW=4, nfft=8192):
     Vk, _ = ss.dpss(N, NW)
     hb = ss.box_lag_window(N, W)
     rect, hann, boh = np.ones(N) / np.sqrt(N), ss.unit_taper("hann", N), ss.unit_taper("bohman", N)
-    ks = [("ideal box, half-width W", ss.kernel_box(nfft, W), COLOR["box"], ":", 1.0),
-          (f"multitaper, K = 2NW$-$1 = {2 * NW - 1}", ss.kernel_multitaper(Vk, nfft), COLOR["multitaper"], "-", 1.0),
+    ks = [("ideal box of width R", ss.kernel_box(nfft, W), COLOR["box"], ":", 1.0),
+          (f"multitaper, L = 2$\\alpha-$1 = {2 * NW - 1}", ss.kernel_multitaper(Vk, nfft), COLOR["multitaper"], "-", 1.0),
           ("untapered periodogram, then box", ss.kernel_smoothed(rect, hb, nfft), COLOR["raw_box"], "-", 1.0),
           ("cosine-tapered periodogram, then parabola", ss.kernel_smoothed(*_recipe(N, NW), nfft), COLOR["smooth"], "-", 1.3),
           ("Hann periodogram, then box", ss.kernel_smoothed(hann, hb, nfft), COLOR["hann_box"], "-", 1.0),
@@ -73,8 +75,8 @@ def fig1_kernels(N=256, NW=4, nfft=8192):
     for name, H, c, st, lw in ks:
         ax[0].plot(fs[o] * N, H[o] / N, color=c, ls=st, lw=lw, label=name)
         ax[1].plot(fs[o] * N, 10 * np.log10(np.maximum(H[o] / H.max(), 1e-15)), color=c, ls=st, lw=lw, label=name)
-    ax[0].set(xlim=(-2.5 * NW, 2.5 * NW), xlabel="frequency offset (units of 1/N)", ylabel="kernel, linear (units of N)")
-    ax[1].set(xlim=(-6 * NW, 6 * NW), ylim=(-100, 5), xlabel="frequency offset (units of 1/N)", ylabel="kernel (dB re peak)")
+    ax[0].set(xlim=(-2.5 * NW, 2.5 * NW), xlabel="frequency offset (units of $1/N\\Delta$)", ylabel="kernel, linear (units of $N\\Delta$)")
+    ax[1].set(xlim=(-6 * NW, 6 * NW), ylim=(-100, 5), xlabel="frequency offset (units of $1/N\\Delta$)", ylabel="kernel (dB re peak)")
     h, l = ax[1].get_legend_handles_labels()
     _letters(ax); fig.tight_layout(rect=[0, 0.17, 1, 1]); fig.legend(h, l, loc="lower center", ncol=3, bbox_to_anchor=(0.5, 0.0))
     _save(fig, "fig1_kernels.png")
@@ -91,9 +93,9 @@ def fig2_ar4(N=1024, NW=4, nfft=8192, seed=3):
     hann = ss.unit_taper("hann", N)
     ests = [("periodogram", ss.periodogram(x, nfft)[0], COLOR["periodogram"], LW["thin"], "-"),
             ("untapered periodogram, then box", ss.lag_window_estimate(x, hb, nfft)[0], COLOR["raw_box"], LW["est"], "-"),
-            (f"multitaper, K = {2 * NW - 1}", ss.multitaper(x, Vk, nfft)[0], COLOR["multitaper"], LW["est"], "-"),
-            (f"multitaper, K = {2 * NW - 2} (last taper dropped)", ss.multitaper(x, Vk[:, :-1], nfft)[0], COLOR["multitaper"], LW["est"], "--"),
-            (f"multitaper, K = {2 * NW - 1}, adaptive weights", ss.multitaper_adaptive(x, Vk, lam, nfft)[0], COLOR["multitaper"], LW["est"], ":"),
+            (f"multitaper, L = {2 * NW - 1}", ss.multitaper(x, Vk, nfft)[0], COLOR["multitaper"], LW["est"], "-"),
+            (f"multitaper, L = {2 * NW - 2} (last taper dropped)", ss.multitaper(x, Vk[:, :-1], nfft)[0], COLOR["multitaper"], LW["est"], "--"),
+            (f"multitaper, L = {2 * NW - 1}, adaptive weights", ss.multitaper_adaptive(x, Vk, lam, nfft)[0], COLOR["multitaper"], LW["est"], ":"),
             ("cosine-tapered periodogram, then parabola", ss.lag_window_estimate(x, _recipe(N, NW)[1], nfft, taper=_recipe(N, NW)[0])[0], COLOR["smooth"], LW["est"], "-")]
     fig, ax = plt.subplots(1, 2, figsize=(W2, 2.7), gridspec_kw={"width_ratios": [1.4, 1]})
     for name, S, c, lw, st in ests:
@@ -101,8 +103,8 @@ def fig2_ar4(N=1024, NW=4, nfft=8192, seed=3):
         if name != "periodogram":
             ax[1].plot(f, 10 * np.log10(S[:nfft // 2]) - 10 * np.log10(truth), color=c, lw=lw, ls=st)
     ax[0].plot(f, 10 * np.log10(truth), color=COLOR["truth"], lw=LW["truth"], label="true PSD", zorder=10)
-    ax[0].set(xlabel="frequency (cycles per sample)", ylabel="power (dB)", ylim=(-35, 55), xlim=(0, 0.5))
-    ax[1].axhline(0, color=COLOR["truth"], lw=0.6); ax[1].set(xlabel="frequency (cycles per sample)", ylabel="estimate minus true PSD (dB)", ylim=(-10, 30), xlim=(0, 0.5))
+    ax[0].set(xlabel="frequency $f\\Delta$ (cycles per sample)", ylabel="power (dB)", ylim=(-35, 55), xlim=(0, 0.5))
+    ax[1].axhline(0, color=COLOR["truth"], lw=0.6); ax[1].set(xlabel="frequency $f\\Delta$ (cycles per sample)", ylabel="estimate minus true PSD (dB)", ylim=(-10, 30), xlim=(0, 0.5))
     ax[0].legend(loc="upper center", bbox_to_anchor=(0.85, -0.25), ncol=3)
     _letters(ax); fig.tight_layout(); _save(fig, "fig2_ar4_leakage.png")
 
@@ -120,9 +122,9 @@ def fig3_tradeoff(N=256, nfft=8192, f0=0.25):
     for NW in NWs:
         W = NW / N; K = int(2 * NW - 1)
         Vk, _ = ss.dpss(N, NW, K)
-        add("multitaper, K = 2NW$-$1", ss.kernel_multitaper(Vk, nfft), ss.quadratic_matrix(N, f0, "multitaper", tapers=Vk))
+        add("multitaper, L = 2$\\alpha-$1", ss.kernel_multitaper(Vk, nfft), ss.quadratic_matrix(N, f0, "multitaper", tapers=Vk))
         V2 = Vk[:, :-1] if K > 1 else Vk
-        add("multitaper, K = 2NW$-$2", ss.kernel_multitaper(V2, nfft), ss.quadratic_matrix(N, f0, "multitaper", tapers=V2))
+        add("multitaper, L = 2$\\alpha-$2", ss.kernel_multitaper(V2, nfft), ss.quadratic_matrix(N, f0, "multitaper", tapers=V2))
         St = ss.sine_tapers(N, K)
         add("multitaper, sine tapers", ss.kernel_multitaper(St, nfft), ss.quadratic_matrix(N, f0, "multitaper", tapers=St))
         hb = ss.box_lag_window(N, W)
@@ -135,7 +137,7 @@ def fig3_tradeoff(N=256, nfft=8192, f0=0.25):
     for L in [16, 24, 32, 48, 64, 96, 128]:
         wl = ss.unit_taper("hann", L)
         add("Welch, Hann, 50% overlap", ss.kernel_wosa(N, L, .5, nfft, wl), ss.quadratic_matrix(N, f0, "welch", seg_len=L, overlap=.5, taper=wl))
-    style = {"multitaper, K = 2NW$-$1": (COLOR["multitaper"], "o", "-"), "multitaper, K = 2NW$-$2": (COLOR["multitaper"], "s", "--"),
+    style = {"multitaper, L = 2$\\alpha-$1": (COLOR["multitaper"], "o", "-"), "multitaper, L = 2$\\alpha-$2": (COLOR["multitaper"], "s", "--"),
              "multitaper, sine tapers": (COLOR["multitaper"], "^", ":"), "untapered periodogram, then box": (COLOR["raw_box"], "o", "-"),
              "cosine taper, then parabola": (COLOR["smooth"], "o", "-"),
              "Hann periodogram, then box": (COLOR["hann_box"], "o", "-"), "Bohman periodogram, then box": (COLOR["bohman_box"], "s", "-"),
@@ -147,9 +149,9 @@ def fig3_tradeoff(N=256, nfft=8192, f0=0.25):
             a.plot(p[:, 0], p[:, k + 1], color=c, marker=m, ls=st, ms=2.5, lw=0.9, label=name)
     for a in ax:
         a.axvline(8, color="0.7", lw=0.6, ls=":")
-    ax[0].set(xlabel="half-power width (units of 1/N)", ylabel="equivalent degrees of freedom $\\nu$")
-    ax[1].set(xlabel="half-power width (units of 1/N)", ylabel="kernel power beyond\n2$\\times$ half-power half-width", yscale="log")
-    ax[2].set(xlabel="half-power width (units of 1/N)", ylabel="peak beyond 1.5$\\times$\nhalf-power half-width (dB)")
+    ax[0].set(xlabel="half-power width (units of $1/N\\Delta$)", ylabel="equivalent degrees of freedom $\\nu$")
+    ax[1].set(xlabel="half-power width (units of $1/N\\Delta$)", ylabel="kernel power beyond\n2$\\times$ half-power half-width", yscale="log")
+    ax[2].set(xlabel="half-power width (units of $1/N\\Delta$)", ylabel="peak beyond 1.5$\\times$\nhalf-power half-width (dB)")
     h, l = ax[0].get_legend_handles_labels()
     _letters(ax, dx=-0.2); fig.tight_layout(rect=[0, 0.2, 1, 1], w_pad=1.2); fig.legend(h, l, loc="lower center", ncol=3, bbox_to_anchor=(0.5, 0.0))
     _save(fig, "fig3_tradeoff.png")
@@ -178,7 +180,7 @@ def fig4_eeg(NW=3, win_s=4.0, fmax=30.0):
     tt = (np.array(list(starts)) + N / 2) / Fs
     vmin, vmax = np.percentile(mt, [2, 99])
     fig, ax = plt.subplots(4, 1, figsize=(W2, 6.5), sharex=True)
-    for a, img, title in zip(ax[:3], (pg, mt, sb), ("Hann periodogram (unsmoothed)", f"multitaper, NW = {NW}, K = {2 * NW - 1}",
+    for a, img, title in zip(ax[:3], (pg, mt, sb), ("Hann periodogram (unsmoothed)", f"multitaper, $\\alpha$ = {NW}, L = {2 * NW - 1}",
                                                     f"Hann periodogram, then box of half-width {W * Fs:.2f} Hz")):
         im = a.imshow(img, aspect="auto", origin="lower", extent=[tt[0], tt[-1], f[keep][0], f[keep][-1]], vmin=vmin, vmax=vmax, cmap=SPEC_CMAP)
         a.set(ylabel="frequency (Hz)", title=title)
@@ -201,23 +203,23 @@ def fig5_slepian_fill(N=256, NW=4, nfft=8192):
     t = np.arange(N)
     cols = plt.cm.viridis(np.linspace(0, 0.9, 8))
     for k in range(6):
-        ax[0, 0].plot(t, V[:, k] + 0.25 * k, lw=0.9, color=cols[k], label=f"k = {k}")
-    ax[0, 0].set(title="Slepian tapers, offset for display", xlabel="sample t", yticks=[], ylabel="taper (offset)")
-    ax[0, 0].legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.25))
+        ax[0, 0].plot(t, V[:, k] + 0.25 * k, lw=0.9, color=cols[k], label=f"i = {k + 1}")
+    ax[0, 0].set(title="Slepian tapers $h^{(i)}_k$, offset for display", xlabel="sample k", yticks=[], ylabel="taper (offset)")
+    ax[0, 0].legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.32))
     for k in range(8):
-        ax[0, 1].plot(fs[o] * N, Uk[o, k], lw=0.9, color=cols[k], label=f"k = {k}")
+        ax[0, 1].plot(fs[o] * N, Uk[o, k], lw=0.9, color=cols[k], label=f"i = {k + 1}")
     ax[0, 1].axvspan(-NW, NW, color="0.92", lw=0)
-    ax[0, 1].set(xlim=(-2 * NW, 2 * NW), title="spectral windows $|U_k(f)|^2$ (shading: $|f| \\leq W$)", xlabel="frequency offset (units of 1/N)", ylabel="$|U_k(f)|^2$ (unit-norm tapers)")
-    ax[0, 1].legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.25))
+    ax[0, 1].set(xlim=(-2 * NW, 2 * NW), title="kernels $|H^{(i)}(f)|^2/\\Delta$ (shading: $|f| \\leq R/2$)", xlabel="frequency offset (units of $1/N\\Delta$)", ylabel="$|H^{(i)}(f)|^2/\\Delta$ (units of $N\\Delta$)")
+    ax[0, 1].legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.32))
     cum = np.cumsum(Uk * lam, axis=1)
     for K, c in [(1, cols[0]), (3, cols[2]), (5, cols[4]), (7, cols[6]), (9, cols[7]), (N, "black")]:
         ax[1, 0].plot(fs[o] * N, cum[o, K - 1] / (2 * NW), color=c, lw=1.0 if K < N else 1.6, label=f"first {K} tapers" if K < N else f"all N tapers (= the box)")
     ax[1, 0].plot(fs[o] * N, (np.abs(fs[o]) <= W) / (2 * W) / N, color="black", ls="--", lw=0.7, label="ideal box")
-    ax[1, 0].set(xlim=(-2 * NW, 2 * NW), title="running sum $\\sum_{k<K} \\lambda_k |U_k(f)|^2 / 2NW$", xlabel="frequency offset (units of 1/N)", ylabel="kernel (unit area)")
+    ax[1, 0].set(xlim=(-2 * NW, 2 * NW), title="running sum $\\sum_{i \\leq L} \\lambda_i |H^{(i)}(f)|^2 / 2\\alpha\\Delta$", xlabel="frequency offset (units of $1/N\\Delta$)", ylabel="kernel (unit area)")
     ax[1, 0].legend(ncol=3, loc="upper center", bbox_to_anchor=(0.5, -0.32))
-    ax[1, 1].semilogy(np.arange(N), np.maximum(1 - lam, 1e-16), "o-", ms=2, lw=0.7, color=COLOR["multitaper"])
-    ax[1, 1].axvline(2 * NW, color=COLOR["hann_gauss"], ls="--", lw=0.8, label="2NW"); ax[1, 1].axvline(2 * NW - 1, color="0.5", ls=":", lw=0.8, label="K = 2NW$-$1")
-    ax[1, 1].set(xlim=(-0.5, 2 * NW + 8), ylim=(1e-16, 2), xlabel="taper index k", ylabel="$1 - \\lambda_k$", title="energy outside the band, $1-\\lambda_k$")
+    ax[1, 1].semilogy(np.arange(1, N + 1), np.maximum(1 - lam, 1e-16), "o-", ms=2, lw=0.7, color=COLOR["multitaper"])
+    ax[1, 1].axvline(2 * NW, color=COLOR["hann_gauss"], ls="--", lw=0.8, label="$2\\alpha$"); ax[1, 1].axvline(2 * NW - 1, color="0.5", ls=":", lw=0.8, label="$L = 2\\alpha-1$")
+    ax[1, 1].set(xlim=(0.5, 2 * NW + 9), ylim=(1e-16, 2), xlabel="taper index i", ylabel="$1 - \\lambda_i$", title="energy outside the band, $1-\\lambda_i$")
     ax[1, 1].legend(loc="lower right")
     _letters(ax, dx=-0.2); fig.tight_layout(h_pad=2.6); _save(fig, "fig5_slepian_fill.png")
 
@@ -273,18 +275,18 @@ def _motif_rows(ax_top, ax_bot, f, truth, ests, kers, titles, nus, bws, masses, 
         a.plot([fc - bw / 2 / N, fc + bw / 2 / N], [50, 50], color=COLOR["band"], lw=2.2, solid_capstyle="butt")
         if j == 0 and geometry is not None:
             pw, sep = geometry; x0 = 0.30
-            a.plot([x0, x0 + pw / N], [-30, -30], color="0.3", lw=1.4, solid_capstyle="butt"); a.text(x0 + sep / N + 0.01, -30, f"peak width {pw:.0f}/N", fontsize=5.5, va="center", color="0.3")
-            a.plot([x0, x0 + sep / N], [-39, -39], color="0.3", lw=1.4, solid_capstyle="butt"); a.text(x0 + sep / N + 0.01, -39, f"separation {sep:.0f}/N", fontsize=5.5, va="center", color="0.3")
-        a.set(title=(f"{title}, $\\nu$ = {nu:.1f}" if "\n" in title else f"{title}\n$\\nu$ = {nu:.1f}"), xlabel="frequency (cycles per sample)", ylabel="power (dB)" if j == 0 else "", ylim=(-45, 57), xlim=(0, 0.5))
+            a.plot([x0, x0 + pw / N], [-30, -30], color="0.3", lw=1.4, solid_capstyle="butt"); a.text(x0 + sep / N + 0.01, -30, f"peak width {pw:.0f}/N$\\Delta$", fontsize=5.5, va="center", color="0.3")
+            a.plot([x0, x0 + sep / N], [-39, -39], color="0.3", lw=1.4, solid_capstyle="butt"); a.text(x0 + sep / N + 0.01, -39, f"separation {sep:.0f}/N$\\Delta$", fontsize=5.5, va="center", color="0.3")
+        a.set(title=(f"{title}, $\\nu$ = {nu:.1f}" if "\n" in title else f"{title}\n$\\nu$ = {nu:.1f}"), xlabel="frequency $f\\Delta$ (cycles per sample)", ylabel="power (dB)" if j == 0 else "", ylim=(-45, 57), xlim=(0, 0.5))
         if j == 0:
             a.legend(loc="upper right", fontsize=5.5)
     for j, (a, H, Wn, m, c) in enumerate(zip(ax_bot, kers, W_shade, masses, colors)):
         a.fill_between(d[keep], -80, prof, color="0.86", label="true spectrum (shape only)")
         if Wn > 0:
-            a.axvspan(-Wn, Wn, color=COLOR["band"], alpha=0.12, lw=0, label="$|f| \\leq W$")
+            a.axvspan(-Wn, Wn, color=COLOR["band"], alpha=0.12, lw=0, label="$|f| \\leq R/2$")
         a.plot(fs[o] * N, 10 * np.log10(np.maximum(H[o] / H.max(), 1e-15)), color=c, lw=0.9, label="kernel")
         ms = "< 0.001%" if m < 1e-5 else f"{100 * m:.2g}%"
-        a.set(title=f"kernel: {ms} beyond 2W", xlim=(-40, 40), ylim=(-80, 5), xlabel="frequency offset (units of 1/N)", ylabel="kernel (dB re peak)" if j == 0 else "")
+        a.set(title=f"kernel: {ms} beyond R", xlim=(-40, 40), ylim=(-80, 5), xlabel="frequency offset (units of $1/N\\Delta$)", ylabel="kernel (dB re peak)" if j == 0 else "")
         if j == 0:
             a.legend(loc="upper right", fontsize=5)
 
@@ -303,8 +305,8 @@ def fig0_pedagogy(N=1024, nfft=4096, seed=11, W_right=4, W_wide=24, mc=300):
     print(f"fig0: AR(4) peaks at f={f1:.4f}, {f2:.4f}; half-power width {peak_width:.1f}/N; separation {peak_sep:.1f}/N")
     W = W_right / N
     cols = [(rect, 0, "no taper\nleaky and noisy", COLOR["periodogram"]), (cosw, 0, "cosine taper\nstill noisy", COLOR["smooth"]),
-            (cosw, W_right, f"cosine taper, parabola W = {W_right}/N\njust right", COLOR["smooth"]),
-            (cosw, W_wide, f"cosine taper, parabola W = {W_wide}/N\ntoo smooth", COLOR["smooth"])]
+            (cosw, W_right, f"cosine taper, parabola R = {2 * W_right}/N$\\Delta$\njust right", COLOR["smooth"]),
+            (cosw, W_wide, f"cosine taper, parabola R = {2 * W_wide}/N$\\Delta$\ntoo smooth", COLOR["smooth"])]
     ests, kers, nus, bws, masses = [], [], [], [], []
     for tp, Wn, _, _ in cols:
         h = _recipe(N, Wn)[1]
@@ -324,21 +326,21 @@ def fig0_pedagogy(N=1024, nfft=4096, seed=11, W_right=4, W_wide=24, mc=300):
     # fig0a: the record and the sweep
     fig, (ax_ts, ax_err) = plt.subplots(1, 2, figsize=(W2, 2.6), gridspec_kw={"width_ratios": [1.1, 1]})
     t = np.arange(N); env = cosw / cosw.max(); amp = np.abs(x).max()
-    ax_ts.plot(t, x, color="0.6", lw=0.45, label="record $x_t$")
+    ax_ts.plot(t, x, color="0.6", lw=0.45, label="record $x_k$")
     ax_ts.plot(t, env * x, color=COLOR["smooth"], lw=0.5, label="tapered record")
     ax_ts.plot(t, amp * env, color="black", ls="--", lw=0.8, label="cosine taper (25%), scaled to the record's peak amplitude"); ax_ts.plot(t, -amp * env, color="black", ls="--", lw=0.8)
-    ax_ts.set(xlim=(0, N - 1), xlabel="sample t", ylabel="$x_t$", title=f"the record: N = {N} samples of the AR(4) process")
+    ax_ts.set(xlim=(0, N - 1), xlabel="sample k", ylabel="$x_k$", title=f"the record: N = {N} samples of the AR(4) process")
     ax_ts.legend(loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1)
-    ax_err.plot(Ws, sw["total"], color="black", marker="o", ms=2.2, lw=1.4, label="total RMS error, whole band")
-    ax_err.plot(Ws, sw["total_band"], color="black", marker="o", ms=2.2, lw=1.0, ls="--", label=f"total RMS error, peak region {band[0]:.2f}$-${band[1]:.2f}")
-    ax_err.plot(Ws, sw["noise"], color=COLOR["multitaper"], lw=1.2, label="noise: standard deviation of the estimate")
-    ax_err.plot(Ws, sw["blur"], color=COLOR["hann_gauss"], lw=1.2, label="bias: blur by the kernel")
-    for Wn, lab, dx, dy in [(0, "too noisy", 1.0, -1.7), (W_right, "just right", 0.4, 1.9), (W_wide, "too smooth", 1.0, -1.6)]:
-        i = np.argmin(np.abs(Ws - Wn)); ax_err.plot(Wn, sw["total"][i], "o", ms=7, mfc="none", mec=COLOR["hann_gauss"], mew=1.4)
-        ax_err.annotate(f"{lab}\n$\\nu$ = {sw['nu'][i]:.0f}", (Wn, sw["total"][i]), (Wn + dx, sw["total"][i] + dy), fontsize=6.5, color=COLOR["hann_gauss"])
-    for xv, lab in [(peak_width / 2, "2W = peak width"), (peak_sep / 2, "2W = peak separation")]:
-        ax_err.axvline(xv, color="0.6", ls=":", lw=0.8); ax_err.text(xv + 0.3, 7.05, lab, fontsize=6, color="0.4", va="top")
-    ax_err.set(xlim=(-0.5, Ws[-1] + 0.5), ylim=(0, 7.2), xlabel="half-bandwidth W (units of 1/N)", ylabel="RMS error vs true PSD (dB)",
+    ax_err.plot(2 * Ws, sw["total"], color="black", marker="o", ms=2.2, lw=1.4, label="total RMS error, whole band")
+    ax_err.plot(2 * Ws, sw["total_band"], color="black", marker="o", ms=2.2, lw=1.0, ls="--", label=f"total RMS error, peak region {band[0]:.2f}$-${band[1]:.2f}")
+    ax_err.plot(2 * Ws, sw["noise"], color=COLOR["multitaper"], lw=1.2, label="noise: standard deviation of the estimate")
+    ax_err.plot(2 * Ws, sw["blur"], color=COLOR["hann_gauss"], lw=1.2, label="bias: blur by the kernel")
+    for Wn, lab, dx, dy in [(0, "too noisy", 2.0, -1.7), (W_right, "just right", 0.8, 1.9), (W_wide, "too smooth", 2.0, -1.6)]:
+        i = np.argmin(np.abs(Ws - Wn)); ax_err.plot(2 * Wn, sw["total"][i], "o", ms=7, mfc="none", mec=COLOR["hann_gauss"], mew=1.4)
+        ax_err.annotate(f"{lab}\n$\\nu$ = {sw['nu'][i]:.0f}", (2 * Wn, sw["total"][i]), (2 * Wn + dx, sw["total"][i] + dy), fontsize=6.5, color=COLOR["hann_gauss"])
+    for xv, lab in [(peak_width, "R = peak width"), (peak_sep, "R = peak separation")]:
+        ax_err.axvline(xv, color="0.6", ls=":", lw=0.8); ax_err.text(xv + 0.6, 7.05, lab, fontsize=6, color="0.4", va="top")
+    ax_err.set(xlim=(-1, 2 * Ws[-1] + 1), ylim=(0, 7.2), xlabel="resolution R (units of $1/N\\Delta$)", ylabel="RMS error vs true PSD (dB)",
                title=f"cosine taper, then parabola: error vs width ({mc} realizations)")
     ax_err.legend(loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1)
     _letters([ax_ts, ax_err], dx=-0.16); fig.tight_layout(); _save(fig, "fig0a_record_sweep.png")
@@ -361,9 +363,9 @@ def fig8_everyday_motif(N=1024, NW=4, nfft=4096, seed=11, seg_len=192):
     Vk, _ = ss.dpss(N, NW)
     hb = ss.box_lag_window(N, W); rect = np.ones(N) / np.sqrt(N); cosw, hp = _recipe(N, NW)
     step = (N - seg_len) // 8; hann_seg = ss.unit_taper("hann", seg_len); nseg = len(range(0, N - seg_len + 1, step))
-    cols = [(f"no taper, then box W = {NW}/N", ss.lag_window_estimate(x, hb, nfft)[0], dict(method="lagwindow", h=hb, taper=rect), COLOR["raw_box"]),
-            (f"multitaper, K = {K}, NW = {NW}", ss.multitaper(x, Vk, nfft)[0], dict(method="multitaper", tapers=Vk), COLOR["multitaper"]),
-            (f"cosine taper, then parabola W = {NW}/N", ss.lag_window_estimate(x, hp, nfft, taper=cosw)[0], dict(method="lagwindow", h=hp, taper=cosw), COLOR["smooth"]),
+    cols = [(f"no taper, then box R = {2 * NW}/N$\\Delta$", ss.lag_window_estimate(x, hb, nfft)[0], dict(method="lagwindow", h=hb, taper=rect), COLOR["raw_box"]),
+            (f"multitaper, L = {K}, $\\alpha$ = {NW}", ss.multitaper(x, Vk, nfft)[0], dict(method="multitaper", tapers=Vk), COLOR["multitaper"]),
+            (f"cosine taper, then parabola R = {2 * NW}/N$\\Delta$", ss.lag_window_estimate(x, hp, nfft, taper=cosw)[0], dict(method="lagwindow", h=hp, taper=cosw), COLOR["smooth"]),
             (f"Welch, {nseg} Hann segments", ss.welch_sliding(x, hann_seg, nfft, step=step, overhang=False)[0], dict(method="welch", taper=hann_seg, step=step), COLOR["welch"])]
     ests, kers, nus, bws, masses = [], [], [], [], []
     for _, S, q, _ in cols:
@@ -386,10 +388,10 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
     hann_seg = ss.unit_taper("hann", seg_len); cosw, hp = _recipe(N, NW)
     V, lam = ss.dpss_all(N, W)
     step = seg_len // 2
-    Qs = [("average segments\n(Welch: Hann, L = N/4, 50%)", ss.quadratic_matrix(N, 0.0, "welch", taper=hann_seg, step=step).real, COLOR["welch"]),
+    Qs = [("average segments\n(Welch: Hann, $N_s$ = N/4, 50%)", ss.quadratic_matrix(N, 0.0, "welch", taper=hann_seg, step=step).real, COLOR["welch"]),
           ("smooth one periodogram\n(cosine taper, parabola)", ss.quadratic_matrix(N, 0.0, "lagwindow", h=hp, taper=cosw).real, COLOR["smooth"]),
           ("slide a sinc window\n(= untapered, box)", ss.quadratic_matrix(N, 0.0, "lagwindow", h=ss.box_lag_window(N, W)).real, COLOR["raw_box"]),
-          (f"Thomson multitaper\n(K = {K} Slepians, equal weights)", ss.quadratic_matrix(N, 0.0, "multitaper", tapers=V[:, :K]).real, COLOR["multitaper"])]
+          (f"Thomson multitaper\n(L = {K} Slepians, equal weights)", ss.quadratic_matrix(N, 0.0, "multitaper", tapers=V[:, :K]).real, COLOR["multitaper"])]
     fs = ss.signed_freq(nfft); o = np.argsort(fs)
     nrows = 4 if full else 2
     fig, ax = plt.subplots(nrows, 4, figsize=(W2, 1.75 * nrows + 0.5))
@@ -402,7 +404,7 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
             a.set(title=title + "\nbank: one window at 7 offsets")
         elif j == 1:
             for i, fk in enumerate([0, 1, 2, 3]):
-                a.plot(t, cosw * np.cos(2 * np.pi * fk / N * t) + 0.22 * (3 - i), lw=0.8, color=kcols[i], label=f"f' = {fk}/N")
+                a.plot(t, cosw * np.cos(2 * np.pi * fk / N * t) + 0.22 * (3 - i), lw=0.8, color=kcols[i], label=f"f' = {fk}/N$\\Delta$")
             a.set(title=title + "\nbank: one taper modulated to f'"); a.legend(loc="upper right", fontsize=5, ncol=2)
         elif j == 2:
             w = ss.sinc_window(8 * N, W)
@@ -413,9 +415,9 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
             a.set(title=title + "\nbank: a sinc at every offset")
         else:
             for i in range(4):
-                a.plot(t, V[:, i] + 0.25 * (3 - i), lw=0.8, color=kcols[i], label=f"k = {i}")
-            a.set(title=title + "\nbank: Slepian tapers k = 0..3"); a.legend(loc="upper right", fontsize=5, ncol=2)
-        a.set(xlabel="sample t", yticks=[], xlim=(0, N - 1), ylabel="amplitude (curves offset)" if j == 0 else "")
+                a.plot(t, V[:, i] + 0.25 * (3 - i), lw=0.8, color=kcols[i], label=f"i = {i + 1}")
+            a.set(title=title + "\nbank: Slepian tapers i = 1..4"); a.legend(loc="upper right", fontsize=5, ncol=2)
+        a.set(xlabel="sample k", yticks=[], xlim=(0, N - 1), ylabel="amplitude (curves offset)" if j == 0 else "")
         c, U = ss.eigen_tapers(Q)
         if j == 3:
             U = V
@@ -423,21 +425,21 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
         if full:
             a = ax[1, j]
             for i in range(4):
-                a.plot(t, U[:, i] * np.sign(U[N // 2 + i, i] if abs(U[N // 2 + i, i]) > 1e-6 else 1) + 0.25 * (3 - i), lw=0.8, color=kcols[i], label=f"k = {i}")
-            a.set(title="eigen-tapers of Q, k = 0..3" if j != 3 else "eigen-tapers: the Slepians", xlabel="sample t", yticks=[], xlim=(0, N - 1), ylabel="amplitude (curves offset)" if j == 0 else "")
+                a.plot(t, U[:, i] * np.sign(U[N // 2 + i, i] if abs(U[N // 2 + i, i]) > 1e-6 else 1) + 0.25 * (3 - i), lw=0.8, color=kcols[i], label=f"i = {i + 1}")
+            a.set(title="eigen-tapers of Q, i = 1..4" if j != 3 else "eigen-tapers: the Slepians", xlabel="sample k", yticks=[], xlim=(0, N - 1), ylabel="amplitude (curves offset)" if j == 0 else "")
             if j == 0:
                 a.legend(loc="upper right", fontsize=5, ncol=2)
             r = 2
         a = ax[r, j]
         cc = c / c.sum(); kmax = 12
-        a.bar(np.arange(kmax), cc[:kmax], color=col)
-        a.set(title=f"eigen-weight ladder: $\\nu$ = {ss.dof_from_weights(c):.1f}", xlabel="taper index k", ylabel="weight $c_k$ (normalized)" if j == 0 else "", ylim=(0, 0.45))
+        a.bar(np.arange(1, kmax + 1), cc[:kmax], color=col)
+        a.set(title=f"eigen-weight ladder: $\\nu$ = {ss.dof_from_weights(c):.1f}", xlabel="taper index i", ylabel="weight $c_i$ (normalized)" if j == 0 else "", ylim=(0, 0.45))
         H = ss.kernel_quadratic(Q, nfft); st = ss.kernel_stats(H, W)
         if full:
             a = ax[3, j]
             a.plot(fs[o] * N, 10 * np.log10(np.maximum(H[o] / H.max(), 1e-15)), color=col, lw=0.9)
             a.axvspan(-NW, NW, color=COLOR["band"], alpha=0.12, lw=0)
-            a.set(title=f"kernel: width {st['bw3'] * N:.1f}/N,\n{100 * st['mass_out_2W']:.1f}% beyond 2W", xlim=(-24, 24), ylim=(-80, 5), xlabel="frequency offset (units of 1/N)", ylabel="kernel (dB re peak)" if j == 0 else "")
+            a.set(title=f"kernel: width {st['bw3'] * N:.1f}/N$\\Delta$,\n{100 * st['mass_out_2W']:.1f}% beyond R", xlim=(-24, 24), ylim=(-80, 5), xlabel="frequency offset (units of $1/N\\Delta$)", ylabel="kernel (dB re peak)" if j == 0 else "")
         print(f"fig6 {title.splitlines()[0]}: dof {ss.dof_from_weights(c):.1f}; bw {st['bw3']*N:.2f}/N; mass beyond 2W {100*st['mass_out_2W']:.2f}%; top weights {np.round(cc[:8], 3)}")
     _letters(ax); fig.tight_layout(w_pad=0.6, h_pad=1.6); _save(fig, "fig6_taper_banks_full.png" if full else "fig6_taper_banks.png")
 
@@ -465,8 +467,8 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
     # fig9
     fig, ax = plt.subplots(1, 3, figsize=(W2, 2.5), gridspec_kw={"width_ratios": [1.6, 1, 0.75]})
     a = ax[0]
-    a.plot(f[keep], dB(S_mt_all), color="0.75", lw=LW["heavy"], label="multitaper: all N Slepian tapers, weights $\\lambda_k$")
-    a.plot(f[keep], dB(S_box), color=COLOR["raw_box"], lw=1.0, label="smooth: untapered periodogram, box of half-width W")
+    a.plot(f[keep], dB(S_mt_all), color="0.75", lw=LW["heavy"], label="multitaper: all N Slepian tapers, weights $\\lambda_i$")
+    a.plot(f[keep], dB(S_box), color=COLOR["raw_box"], lw=1.0, label="smooth: untapered periodogram, box of width R")
     a.plot(f[keep], dB(S_sinc[16 * N]), color=COLOR["welch"], lw=0.8, ls="--", label=f"average: sinc window of length 16N slid one sample at a time")
     a.set(xlabel="frequency (Hz)", ylabel="power (dB)", xlim=(0, fmax)); a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1)
     a = ax[1]
@@ -476,14 +478,14 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
     a = ax[2]
     mx = [d_sinc[L].max() for L in Ls]
     a.loglog(np.array(Ls) / N, mx, "o-", color=COLOR["welch"], ms=3, lw=1.0, label="max |difference|")
-    a.loglog(np.array(Ls) / N, mx[1] * (Ls[1] / np.array(Ls)), color="0.5", ls=":", lw=0.8, label="1/L")
-    a.set(xlabel="window length L / N", ylabel="max |average $-$ multitaper| (dB)", xticks=[1, 2, 4, 8, 16], xticklabels=["1", "2", "4", "8", "16"]); a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1)
+    a.loglog(np.array(Ls) / N, mx[1] * (Ls[1] / np.array(Ls)), color="0.5", ls=":", lw=0.8, label="$1/N_s$")
+    a.set(xlabel="window length $N_s / N$", ylabel="max |average $-$ multitaper| (dB)", xticks=[1, 2, 4, 8, 16], xticklabels=["1", "2", "4", "8", "16"]); a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.27), ncol=1)
     _letters(ax); fig.tight_layout(w_pad=0.8); _save(fig, "fig9_graphical_abstract.png")
     print("fig9: max|box-mt| = %.2g dB; max|sinc-mt| by L/N: %s" % (d_box.max(), {L // N: round(float(d_sinc[L].max()), 4) for L in Ls}))
     # fig7: the everyday trio
     step = (N - seg_len) // 8; hann_seg = ss.unit_taper("hann", seg_len); nseg = len(range(0, N - seg_len + 1, step))
-    every = [(f"multitaper: K = {K} Slepian tapers, equal weights", ss.multitaper(x, V[:, :K], nfft)[0], COLOR["multitaper"], LW["est"]),
-             ("smooth: cosine-tapered periodogram, parabola 2W wide at half power", ss.lag_window_estimate(x, hp, nfft, taper=cosw)[0], COLOR["smooth"], LW["est"]),
+    every = [(f"multitaper: L = {K} Slepian tapers, equal weights", ss.multitaper(x, V[:, :K], nfft)[0], COLOR["multitaper"], LW["est"]),
+             ("smooth: cosine-tapered periodogram, parabola R wide at half power", ss.lag_window_estimate(x, hp, nfft, taper=cosw)[0], COLOR["smooth"], LW["est"]),
              (f"average: Welch, {nseg} Hann segments of {seg_len / Fs:.1f} s, step {step / Fs:.2f} s", ss.welch_sliding(x, hann_seg, nfft, step=step, overhang=False)[0], COLOR["welch"], LW["est"])]
     dofs = [ss.dof_quadratic(ss.quadratic_matrix(N, 0.25, "multitaper", tapers=V[:, :K])),
             ss.dof_quadratic(ss.quadratic_matrix(N, 0.25, "lagwindow", h=hp, taper=cosw)),
@@ -578,7 +580,7 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
     vmin, vmax = SPEC_VLIM
     t = np.arange(len(x)) / Fs
     bws = [ss.kernel_stats(H)["bw3"] * Fs for H in (np.abs(np.fft.fft(cosw, 16 * N)) ** 2, ss.kernel_multitaper(Vk, 16 * N), ss.kernel_smoothed(cosw, hp, 16 * N))]
-    labels = [(pg, f"cosine-tapered periodogram: {win_s:.0f} s by {bws[0]:.1f} Hz, $\\nu$ = 2"), (mt, f"multitaper, K = {K}: {win_s:.0f} s by {bws[1]:.1f} Hz, $\\nu$ = {nus[1]:.0f}"),
+    labels = [(pg, f"cosine-tapered periodogram: {win_s:.0f} s by {bws[0]:.1f} Hz, $\\nu$ = 2"), (mt, f"multitaper, L = {K}: {win_s:.0f} s by {bws[1]:.1f} Hz, $\\nu$ = {nus[1]:.0f}"),
               (sb, f"cosine taper, then parabola: {win_s:.0f} s by {bws[2]:.1f} Hz, $\\nu$ = {nus[2]:.1f}")]
     dd = mt - sb
     if compact:
@@ -739,7 +741,7 @@ def fig12_sleep_spindles(channel="c4-m1", t0=2788.0, dur=40.0, fmax=25.0, step_s
     a0.set(xlim=(0, dur), ylim=(-125, 150), yticks=[-100, 0, 100], xlabel="time (s)", ylabel="$\\mu$V", title=f"stage N2 sleep, channel {chn}; {len(on)} spindles shaded")
     a0.legend(loc="upper right", ncol=2, fontsize=5.5)
     for r, row in enumerate(rows):
-        for c, (key, name) in enumerate((("mt", f"multitaper, K = {row['K']}"), ("sm", "cosine taper, then parabola"))):
+        for c, (key, name) in enumerate((("mt", f"multitaper, L = {row['K']}"), ("sm", "cosine taper, then parabola"))):
             a = fig.add_subplot(gs[r + 1, c]); axes.append(a)
             im = a.imshow(10 * np.log10(row[key]), aspect="auto", origin="lower", extent=[row["tc"][0], row["tc"][-1], row["f"][0], row["f"][-1]], vmin=vmin, vmax=vmax, cmap=SPEC_CMAP)
             a.add_patch(plt.Rectangle((1.0, fmax - 2.0 - row["bw"][c]), row["T"], row["bw"][c], fill=False, ec="white", lw=1.0))
