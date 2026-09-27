@@ -1,0 +1,13 @@
+N = 256, NW = 4, K = 7; 1000 records per process
+estimator                                        kernel  matrix   neg. w    nu | per process: RMS dB difference from multitaper / RMS dB error [multitaper] / negative estimates
+no taper, kernel matched to multitaper          4.0e-16   0.197 -3.9e-02  14.6 | white noise:  0.37 /  1.71 [1.74] /  0.0% | EEG-like:  0.56 /  2.01 [1.96] /  0.0% | AR(4):  3.96 / 11.79 [8.81] / 34.4% |
+Tukey 25%, kernel matched to multitaper         9.1e-05   0.324 -1.4e-01  12.8 | white noise:  0.57 /  1.84 [1.74] /  0.0% | EEG-like:  0.65 /  2.04 [1.96] /  0.0% | AR(4):  4.67 / 10.00 [8.81] / 10.7% |
+Hann, kernel matched to multitaper              1.9e-04   0.892 -9.3e-02   7.8 | white noise:  1.59 /  2.41 [1.74] /  0.0% | EEG-like:  1.64 /  2.55 [1.96] /  0.0% | AR(4):  5.08 / 10.36 [8.81] / 14.2% |
+closest taper and kernel (least squares)        2.7e-02   0.149 -3.4e-02  14.5 | white noise:  0.27 /  1.71 [1.74] /  0.0% | EEG-like:  0.33 /  1.93 [1.96] /  0.0% | AR(4):  1.12 /  9.24 [8.81] /  0.3% |
+Tukey 25%, parabola of half-power width 2W      4.0e-01   0.405 -4.1e-16  16.7 | white noise:  0.72 /  1.57 [1.74] /  0.0% | EEG-like:  0.83 /  1.85 [1.96] /  0.0% | AR(4):  8.74 /  2.89 [8.81] /  0.0% |
+Hann, box of half-width W                       3.2e-01   0.861 -2.4e-16   8.9 | white noise:  1.47 /  2.18 [1.74] /  0.0% | EEG-like:  1.51 /  2.37 [1.96] /  0.0% | AR(4):  8.99 /  2.99 [8.81] /  0.0% |
+no taper, box of half-width W                   3.1e-01   0.286 -4.5e-16  17.2 | white noise:  0.53 /  1.56 [1.74] /  0.0% | EEG-like:  0.76 /  1.81 [1.96] /  0.0% | AR(4):  6.02 / 14.20 [8.81] /  0.0% |
+
+Kernel properties at N = 256, W = 4/N (Table II):
+  Tukey 25%, parabola of half-power width 2W     nu  16.7  width  8.06  leakage(>2W) 0.00129  peak side lobe  -15.7 dB  two-tone  9.9
+  Hann, box of half-width W                      nu   8.9  width  8.06  leakage(>2W) 0.00000  peak side lobe  -35.9 dB  two-tone  8.9

@@ -116,11 +116,11 @@ the spectrum is low); not true with a taper (Hann then box: 1.5 dB, adaptive mul
 smoothed periodogram loses is efficiency (nu 8.9 against 14 at the same design bandwidth); two Slepian tapers then a
 box recover nu 13.3. The paper does not claim that Thomson misunderstood: he derived the identity.
 
-Evidence not yet in the manuscript (`demos/tuned_comparison.py`): when every family is tuned to its best setting, the
+In the manuscript since 2026-09-27 (Section III-B, Table III; `demos/tuned_comparison.py`): when every family is tuned to its best setting, the
 routes come within 3-10% of one another in RMS dB error on the AR(4) process and on an EEG-like spectrum (adaptive
 multitaper is 4-19% behind the best), and a tapered, smoothed periodogram is never behind multitaper. The efficiency advantage stated in the paper holds at a fixed design bandwidth
-with a Hann taper; it disappears with a lighter taper and a parabolic kernel. Decision for the authors: add this as a
-table, and consider changing recipe (b') from Hann-then-box to a light Tukey taper with a parabolic kernel.
+with a Hann taper; it disappears with a lighter taper and a parabolic kernel. Both changes were made on 2026-09-27: the table is in, and recipe (b') is a 25% cosine (Tukey) taper with a parabolic
+kernel. Open decision: Figs. 5-9 still show Hann-then-box as the familiar choice; regenerate them with recipe (b') or not.
 
 ## Weak points and decisions for you
 

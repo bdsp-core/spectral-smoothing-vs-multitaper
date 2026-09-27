@@ -169,7 +169,7 @@ Done (`demos/make_figures.py`, `figures/`):
 - **TBME format (2026-09-26):** `paper/main.tex` now uses the official TBME template (December 2025; `ieeecolor2.cls`,
   `generic.sty`): structured abstract (249 words), index terms, IMRaD sections (Methods II, Results III, Discussion IV),
   figure*/table* floats, references renumbered in order of first citation, appendices A–C, AI-use statement in the
-  Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 15 pages as of the prior-work paragraph on "hopelessly obsolete" (three references spill onto page 15); TBME's standard is 8 and the maximum 12
+  Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 16 pages as of 2026-09-27 (tuned comparison, recipe b', kernel matching); TBME's standard is 8 and the maximum 12
   (with the Editor-in-Chief's permission; overlength charges apply beyond 8). `paper/main_onecolumn.tex` is draft v6 frozen.
 
 - **Submission details (2026-09-26):** repository link in Data and Code Availability (the repository is public); NIH
@@ -178,13 +178,27 @@ Done (`demos/make_figures.py`, `figures/`):
   source texts; Thomson 1990 (quadratic-inverse) added as reference 28. Still open in `paper/main.tex`: submission date,
   corresponding e-mail, and the wording of the AI-use sentence. License: CC BY-NC 4.0 (`LICENSE.txt`, added 2026-09-26).
 
-- **Tuned comparison (2026-09-26, not yet in the manuscript):** `demos/tuned_comparison.py` searches each family's
+- **Tuned comparison (2026-09-26; in the manuscript since 2026-09-27, Section III-B and Table III):** `demos/tuned_comparison.py` searches each family's
   parameters and scores the best setting on 1000 simulated records (output in `demos/outputs/tuned_comparison.txt`).
   RMS dB error over the band, best setting of each family: AR(4) N=256: one taper then smooth 2.42, Welch 2.48, Slepian
   multitaper 2.67 (equal weights) and 2.89 (adaptive); AR(4) N=1024: 1.37, 1.39, 1.46, 1.52; EEG-like N=400: 1.89, 1.90,
   1.97, 2.00; EEG-like N=1024: 1.36, 1.36, 1.40, 1.41. Once each is tuned, equal-weight Slepian multitaper is 3-10% behind the best
   smoothed periodogram and adaptive multitaper 4-19% behind; the smoothed periodogram is never behind. The best single taper is a light Tukey taper (10-25%) with a parabolic kernel, not Hann
   with a box; at the paper's fixed W = 4/N, Hann-then-box trails multitaper on the EEG-like spectrum (2.2 vs 1.8 dB).
+
+- **Smoothing recipe changed (2026-09-27):** recipe (b') is now a 25% cosine (Tukey) taper followed by a parabola of
+  half-power width 2W, in place of Hann then box. At N = 1024, W = 4/N it has nu = 16.7 (Hann then box: 8.9; multitaper
+  K = 7: 14.0) and errors 1.1 / 1.7 / 1.1 dB (band, peaks, low spectrum). On the seizure clips its spectrogram differs
+  from multitaper's by a median of 0.9 and 0.7 dB (Hann then box: 1.5 and 1.2) and its band powers by 0.1-0.3 dB.
+  The Hann window divides nu by 1.94 after smoothing; the 25% cosine taper by 1.15. Figures 5-9 still show Hann then
+  box; Tables I-IV include the new recipe. Regenerating the figures with the new recipe is an open decision.
+- **Kernel matching (2026-09-27, Section II-D):** the lag window g = q / r_w gives one taper plus smoothing exactly the
+  multitaper kernel (`ss.matched_lag_window`, `demos/kernel_matched.py`). Same bias for every spectrum; estimates of
+  the same record differ by 0.3-0.6 dB on an EEG-like spectrum and by 1-4 dB on the AR(4) process, where a third of
+  the kernel-matched estimates are negative.
+- **Acknowledgment (2026-09-27):** softened at M.B.W.'s request to "AI tools were used to assist with software
+  development, preparation of the figures and drafting of the manuscript". IEEE policy asks that the AI system be
+  named and the sections identified; the statement names neither.
 
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).

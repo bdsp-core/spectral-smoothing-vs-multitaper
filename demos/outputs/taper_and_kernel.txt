@@ -1,0 +1,53 @@
+Factor by which a taper divides the degrees of freedom after smoothing, N sum w^4 / (sum w^2)^2:
+  none           1.000
+  cosine 10%     1.055
+  cosine 25%     1.150
+  cosine 50%     1.347
+  Hann           1.945
+  Slepian NW=1   1.340
+  Slepian NW=2   1.961
+
+AR(4) process, N = 128: best half-width, and RMS dB error over the band / at the peaks / where the spectrum is low
+  none           box:    1/N  16.32 /  4.10 / 22.86     parabola:    1/N  16.30 /  3.99 / 22.85
+  cosine 10%     box:    1/N   5.76 /  4.18 /  3.76     parabola:    1/N   5.76 /  4.08 /  3.88
+  cosine 25%     box:  1.5/N   3.40 /  4.81 /  2.67     parabola:    2/N   3.39 /  4.83 /  2.60
+  cosine 50%     box:  1.5/N   3.38 /  4.93 /  2.95     parabola:    2/N   3.33 /  4.94 /  2.87
+  Hann           box:    2/N   3.72 /  5.68 /  3.04     parabola:  2.5/N   3.68 /  5.52 /  3.05
+  Slepian NW=1   box:    1/N   9.49 /  4.28 / 13.68     parabola:  1.5/N   9.49 /  4.38 / 13.68
+  Slepian NW=2   box:  1.5/N   3.52 /  5.24 /  2.82     parabola:    2/N   3.48 /  5.23 /  2.75
+
+AR(4) process, N = 256: best half-width, and RMS dB error over the band / at the peaks / where the spectrum is low
+  none           box:  1.5/N  13.98 /  3.09 / 19.90     parabola:  1.5/N  13.98 /  3.05 / 19.90
+  cosine 10%     box:  2.5/N   2.61 /  3.79 /  1.98     parabola:    3/N   2.56 /  3.59 /  2.01
+  cosine 25%     box:  2.5/N   2.46 /  3.81 /  2.11     parabola:  3.5/N   2.42 /  3.96 /  1.99
+  cosine 50%     box:    3/N   2.58 /  4.31 /  2.09     parabola:  3.5/N   2.52 /  4.00 /  2.15
+  Hann           box:    3/N   2.88 /  4.48 /  2.46     parabola:    4/N   2.83 /  4.50 /  2.38
+  Slepian NW=1   box:    2/N   7.59 /  3.41 / 11.06     parabola:  2.5/N   7.58 /  3.31 / 11.06
+  Slepian NW=2   box:    3/N   2.79 /  4.48 /  2.21     parabola:    4/N   2.74 /  4.50 /  2.14
+
+AR(4) process, N = 1024: best half-width, and RMS dB error over the band / at the peaks / where the spectrum is low
+  none           box:    4/N   9.71 /  1.78 / 14.26     parabola:    6/N   9.71 /  1.74 / 14.26
+  cosine 10%     box:    7/N   1.41 /  2.21 /  1.20     parabola:    8/N   1.37 /  1.97 /  1.24
+  cosine 25%     box:    7/N   1.45 /  2.22 /  1.26     parabola:   10/N   1.41 /  2.36 /  1.16
+  cosine 50%     box:    8/N   1.54 /  2.52 /  1.28     parabola:   10/N   1.49 /  2.39 /  1.26
+  Hann           box:    8/N   1.75 /  2.65 /  1.53     parabola:   10/N   1.70 /  2.52 /  1.51
+  Slepian NW=1   box:    6/N   4.34 /  2.06 /  6.42     parabola:    8/N   4.33 /  2.02 /  6.42
+  Slepian NW=2   box:    8/N   1.73 /  2.65 /  1.48     parabola:   10/N   1.68 /  2.52 /  1.46
+
+EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 400: best half-width, and RMS dB error over the band / at the peaks / where the spectrum is low
+  none           box:    4/N   1.90 /  3.43 /  1.50     parabola:    5/N   1.84 /  3.23 /  1.49
+  cosine 10%     box:    4/N   1.96 /  3.46 /  1.59     parabola:    6/N   1.89 /  3.41 /  1.43
+  cosine 25%     box:    5/N   2.02 /  3.69 /  1.49     parabola:    6/N   1.94 /  3.45 /  1.51
+  cosine 50%     box:    5/N   2.12 /  3.75 /  1.62     parabola:    7/N   2.03 /  3.59 /  1.51
+  Hann           box:    6/N   2.35 /  3.95 /  1.77     parabola:    8/N   2.26 /  3.78 /  1.69
+  Slepian NW=1   box:    5/N   2.11 /  3.75 /  1.60     parabola:    7/N   2.02 /  3.58 /  1.49
+  Slepian NW=2   box:    6/N   2.35 /  3.95 /  1.77     parabola:    8/N   2.26 /  3.78 /  1.70
+
+EEG-like spectrum at 200 Hz, scored from 1 to 40 Hz, N = 1024: best half-width, and RMS dB error over the band / at the peaks / where the spectrum is low
+  none           box:    7/N   1.37 /  2.46 /  1.15     parabola:   10/N   1.33 /  2.53 /  1.06
+  cosine 10%     box:    7/N   1.41 /  2.47 /  1.19     parabola:   10/N   1.36 /  2.54 /  1.10
+  cosine 25%     box:    7/N   1.46 /  2.50 /  1.24     parabola:   10/N   1.40 /  2.56 /  1.14
+  cosine 50%     box:    8/N   1.54 /  2.78 /  1.26     parabola:   10/N   1.48 /  2.60 /  1.24
+  Hann           box:   10/N   1.74 /  3.25 /  1.34     parabola:   12/N   1.66 /  2.97 /  1.35
+  Slepian NW=1   box:    8/N   1.52 /  2.77 /  1.25     parabola:   10/N   1.47 /  2.59 /  1.23
+  Slepian NW=2   box:   10/N   1.74 /  3.25 /  1.35     parabola:   12/N   1.67 /  2.97 /  1.36

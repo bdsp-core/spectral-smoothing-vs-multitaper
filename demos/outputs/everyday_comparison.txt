@@ -7,6 +7,7 @@ multitaper, K=6, equal weights                               12.0    6.6     4.2
 multitaper, K=7, adaptive weights                            8.5*      -       -               1.43           1.85                1.68   (*median over f; 14.0 at the peaks, 6.5 for f>0.3)
 hybrid: 2 Slepians (NW=2), then box W                        13.3    8.1     9.5               1.32           1.88                1.61
 Hann periodogram, then box                                    8.9    8.1     9.0               1.44           2.29                1.45
+Tukey (25%) periodogram, then parabola (width 2W)            16.7    8.1    10.0               1.05           1.72                1.05
 Welch, Hann segments of 192, step 104                        17.6    7.6    10.8               1.04           1.80                1.01
 Hann periodogram, then box W=6.5/N (matched nu)              14.0   13.1    14.0               1.19           2.34                1.15
 
@@ -18,6 +19,7 @@ multitaper, K=6, equal weights                               12.0    6.6     4.2
 multitaper, K=7, adaptive weights                            8.6*      -       -               1.76           4.86                1.69   (*median over f; 14.0 at the peaks, 6.5 for f>0.3)
 hybrid: 2 Slepians (NW=2), then box W                        13.3    8.1     9.5               2.49           5.27                3.80
 Hann periodogram, then box                                    8.9    8.1     9.0               1.69           5.30                1.41
+Tukey (25%) periodogram, then parabola (width 2W)            16.7    8.1    10.0               1.37           5.28                1.04
 Welch, Hann segments of 48, step 26                          17.7    7.9    11.0               1.47           5.27                1.00
 Hann periodogram, then box W=6.5/N (matched nu)              14.0   13.1    14.0               1.59           5.86                1.11
 
@@ -29,5 +31,6 @@ multitaper, K=4, equal weights                                8.0    4.6     3.2
 multitaper, K=5, adaptive weights                            5.2*      -       -               2.46           5.92                2.41   (*median over f; 10.0 at the peaks, 3.5 for f>0.3)
 hybrid: 1 Slepians (NW=1.5), then box W                       7.8    6.1     6.8               3.54           5.95                4.98
 Hann periodogram, then box                                    6.8    6.1     7.0               2.10           5.96                1.65
+Tukey (25%) periodogram, then parabola (width 2W)            12.6    6.1     7.5               1.95           5.60                1.16
 Welch, Hann segments of 30, step 16                          13.7    6.4     9.0               2.49           5.61                1.30
 Hann periodogram, then box W=5/N (matched nu)                10.9   10.1    11.0               2.20           5.79                1.36

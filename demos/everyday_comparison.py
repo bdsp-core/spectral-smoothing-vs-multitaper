@@ -21,6 +21,7 @@ def run(N, NW, M, seed, seg_len, nfft=None, W_matched=None):
     Vh, _ = ss.dpss(N, NW / 2, max(1, int(NW) - 2))               # hybrid: the K' = 2(NW/2) - 2 well-concentrated tapers at half the bandwidth ...
     hb = ss.box_lag_window(N, W); hb2 = hb                           # ... then the same box of half-width W, so its half-power width matches the others
     hann = ss.unit_taper("hann", N); rect = np.ones(N) / np.sqrt(N)
+    tuk = ss.unit_taper("tukey", N, alpha=0.25); hp = ss.parabolic_lag_window(N, np.sqrt(2) * W)   # recipe (b'): light taper, parabola of half-power width 2W
     hseg = ss.unit_taper("hann", seg_len); step = max(1, (N - seg_len) // max(1, int((N - seg_len) / (seg_len / 2))))   # as in Figs. 6-7: 9 segments at N = 1024
     nu_q = lambda m, **q: (ss.dof_quadratic(ss.quadratic_matrix(N, 0.25, m, **q)), ss.kernel_stats(ss.kernel_quadratic(ss.quadratic_matrix(N, 0.0, m, **q).real, 8 * N)))
     ests = {
@@ -30,6 +31,7 @@ def run(N, NW, M, seed, seg_len, nfft=None, W_matched=None):
         f"multitaper, K={K}, adaptive weights": (None, None),
         f"hybrid: {Vh.shape[1]} Slepians (NW={NW / 2:g}), then box W": (lambda x: ss.hybrid_estimate(x, Vh, hb2, nfft)[0], nu_q("hybrid", tapers=Vh, h=hb2)),
         "Hann periodogram, then box": (lambda x: ss.lag_window_estimate(x, hb, nfft, taper=hann)[0], nu_q("lagwindow", h=hb, taper=hann)),
+        "Tukey (25%) periodogram, then parabola (width 2W)": (lambda x: ss.lag_window_estimate(x, hp, nfft, taper=tuk)[0], nu_q("lagwindow", h=hp, taper=tuk)),
         f"Welch, Hann segments of {seg_len}, step {step}": (lambda x: ss.welch_sliding(x, hseg, nfft, step=step, overhang=False)[0], nu_q("welch", taper=hseg, step=step)),
     }
     if W_matched:

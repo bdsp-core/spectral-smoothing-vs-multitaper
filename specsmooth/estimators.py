@@ -112,6 +112,30 @@ def gaussian_lag_window(N, sigma_f):
     return np.exp(-2 * (np.pi * sigma_f * np.arange(N)) ** 2)
 
 
+def parabolic_lag_window(N, W):
+    """Lag window of the unit-area parabolic kernel (3 / 4W)(1 - f^2 / W^2) on |f| <= W: h = 3 (sin a - a cos a) / a^3, a = 2 pi W tau.
+    Its half-power width is sqrt(2) W, so W = sqrt(2) W0 matches the half-power width 2 W0 of a box of half-width W0."""
+    a = 2 * np.pi * W * np.arange(N, dtype=float)
+    h = np.ones(N)
+    nz = a > 1e-4
+    h[nz] = 3 * (np.sin(a[nz]) - a[nz] * np.cos(a[nz])) / a[nz] ** 3
+    return h
+
+
+def matched_lag_window(Q, taper=None):
+    """Lag window g that gives 'taper, then smooth' the same kernel as the quadratic estimator with real symmetric matrix Q.
+
+    The kernel of Q has lag sequence q_tau = sum_t Q[t, t+tau]; the kernel of the smoothed tapered periodogram has lag sequence
+    g_tau r_w(tau), with r_w the autocorrelation of the taper. So g_tau = q_tau / r_w(tau). The two estimators then have the same
+    expected value for every spectrum. They are not the same estimator: their matrices differ, and so do their variances."""
+    Q = np.real(np.asarray(Q)); N = Q.shape[0]
+    w = np.ones(N) / np.sqrt(N) if taper is None else np.asarray(taper, float)
+    q = np.array([np.trace(Q, offset=k) for k in range(N)])
+    rw = np.array([(w[:N - k] * w[k:]).sum() for k in range(N)])
+    g = np.where(rw > 1e-9 * rw[0], q / np.maximum(rw, 1e-300), 0.0)
+    return g / g[0]
+
+
 def smooth_on_grid(S, H):
     """What a practitioner does: circularly convolve a spectrum with a kernel on the same FFT grid (kernel normalized to unit sum)."""
     H = np.asarray(H, float)

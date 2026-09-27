@@ -85,12 +85,7 @@ def lag_matrix(tapers, h):
     return sum(tapers[:, k][:, None] * Hm * tapers[:, k][None, :] for k in range(tapers.shape[1])) / tapers.shape[1]
 
 
-def parabolic_lag_window(N, W):
-    """Lag window of the unit-area parabolic kernel (3 / 4W)(1 - f^2 / W^2) on |f| <= W."""
-    a = 2 * np.pi * W * np.arange(N, dtype=float); h = np.ones(N)
-    nz = a > 1e-6
-    h[nz] = 3 * (np.sin(a[nz]) - a[nz] * np.cos(a[nz])) / a[nz] ** 3
-    return h
+parabolic_lag_window = ss.parabolic_lag_window
 
 
 def screen(m, v, S):
@@ -159,7 +154,8 @@ def run(N, proc="ar4", M=1000, seed=5, shortlist=5):
             add("Welch, Hann segments", f"segments of {L}, {sl}, {U.shape[1]} segments", U, np.full(U.shape[1], 1 / (U ** 2).sum()))
     fixed = {"Paper setting: multitaper, NW=4, K=7, equal weights": (ss.dpss(N, 4, 7)[0], np.full(7, 1 / 7)),
              "Paper setting: multitaper, NW=4, K=6, equal weights": (ss.dpss(N, 4, 6)[0], np.full(6, 1 / 6)),
-             "Paper setting: Hann, then box of half-width 4/N": bank(lag_matrix(ss.unit_taper("hann", N)[:, None], ss.box_lag_window(N, 4 / N)))}
+             "Paper setting: Hann, then box of half-width 4/N": bank(lag_matrix(ss.unit_taper("hann", N)[:, None], ss.box_lag_window(N, 4 / N))),
+             "Recipe (b'): Tukey 25%, then parabola of half-power width 8/N": bank(lag_matrix(ss.unit_taper("tukey", N, alpha=0.25)[:, None], parabolic_lag_window(N, np.sqrt(2) * 4 / N)))}
 
     print(f"\n{P['name']}, N = {N}; {M} records; RMS dB error at {len(freqs)} frequencies (band / peaks / low spectrum); relative RMS error; nu and half-power width (1/N) for white noise")
     print(f"{'family: best setting':98s} {'band':>6s} {'peaks':>6s} {'low':>6s} {'relRMS':>7s} {'nu':>6s} {'width':>6s}")

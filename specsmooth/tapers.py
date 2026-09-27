@@ -34,7 +34,8 @@ def dpss(N, NW, K=None):
 
 
 def unit_taper(name, N, **kw):
-    """A unit-norm single taper: 'rect', 'hann', 'hamming', 'bohman' (= Papoulis minimum-bias), 'gaussian' (std= fraction of N)."""
+    """A unit-norm single taper: 'rect', 'hann', 'hamming', 'bohman' (= Papoulis minimum-bias), 'gaussian' (std= fraction of N),
+    'tukey' (alpha= fraction of the record that is cosine-tapered, half at each end; 0 is rectangular, 1 is Hann)."""
     if name in (None, "rect", "boxcar"):
         w = np.ones(N)
     elif name == "hann":
@@ -43,6 +44,8 @@ def unit_taper(name, N, **kw):
         w = windows.hamming(N)
     elif name in ("bohman", "papoulis"):
         w = windows.bohman(N)
+    elif name == "tukey":
+        w = windows.tukey(N, kw.get("alpha", 0.25))
     elif name == "gaussian":
         w = windows.gaussian(N, std=kw.get("std", 0.2) * N)
     else:

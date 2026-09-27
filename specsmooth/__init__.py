@@ -4,7 +4,8 @@ Python replacement for the 2013-2016 MATLAB scripts (see legacy_matlab/).
 """
 from .tapers import sinc_toeplitz, dpss_all, dpss, unit_taper, sine_tapers, sinc_window
 from .estimators import (periodogram, multitaper, multitaper_adaptive, hybrid_estimate, acs, lag_window_estimate, box_lag_window,
-                         gaussian_lag_window, smooth_on_grid, welch, welch_sliding, quadratic_matrix)
+                         gaussian_lag_window, parabolic_lag_window, matched_lag_window, smooth_on_grid, welch, welch_sliding,
+                         quadratic_matrix)
 from .kernels import (signed_freq, normalize_area, kernel_from_lag, kernel_multitaper, kernel_smoothed,
                       kernel_box, kernel_gaussian, kernel_wosa, kernel_stats, fit_box_gaussian,
                       kernel_quadratic, eigen_tapers, dof_from_weights)
