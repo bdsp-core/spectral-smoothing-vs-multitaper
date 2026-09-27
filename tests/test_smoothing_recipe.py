@@ -119,6 +119,28 @@ def test_recipe_b_prime_skirts_depend_on_the_time_bandwidth_product():
             assert level - 1 < db(Hb) < level and db(Hh) < db(Hb) - 25
 
 
+def test_variance_inflation_factor_of_the_taper():
+    """C_h = N sum h^4 (unit energy; Percival and Walden 1993, eq. (248a)) is 1.95 (Hann) and 1.15 (25% cosine) at N = 256, tending
+    to the closed form (1 - 93p/128) / (1 - 5p/8)^2 of a p-cosine taper (35/18 for Hann). It is asymptotic: at alpha = 4 the exact
+    ratio of nu without and with the taper is 1.94 (box) to 1.98 (parabola) for Hann and 1.17 for the cosine taper (Section II-C3)."""
+    closed = lambda p: (1 - 93 * p / 128) / (1 - 5 * p / 8) ** 2
+    for N in (256, 4096):
+        hann, tuk = ss.unit_taper("hann", N), ss.unit_taper("tukey", N, alpha=0.25)
+        Ch = lambda h: N * np.sum(h ** 4)
+        if N == 256:
+            assert (round(Ch(hann), 2), round(Ch(tuk), 2)) == (1.95, 1.15)
+        else:
+            assert abs(Ch(hann) - 35 / 18) < 1e-3 and abs(Ch(tuk) - closed(0.25)) < 1e-3
+    N, W = 256, 4 / 256
+    hann, tuk = ss.unit_taper("hann", N), ss.unit_taper("tukey", N, alpha=0.25)
+    ratios = {}
+    for name, g in (("box", ss.box_lag_window(N, W)), ("parabola", ss.parabolic_lag_window(N, np.sqrt(2) * W))):
+        nu = lambda h: ss.dof_quadratic(ss.quadratic_matrix(N, 0.25, "lagwindow", h=g, taper=h))
+        ratios[name] = (nu(None) / nu(hann), nu(None) / nu(tuk))
+    assert round(ratios["box"][0], 2) == 1.94 and round(ratios["parabola"][0], 2) == 1.98
+    assert round(ratios["box"][1], 2) == 1.17 and round(ratios["parabola"][1], 2) == 1.17
+
+
 def test_line_leakage_reach_of_recipe_b_prime():
     """A line D dB above a flat background in the expected estimate biases it by 10 log10(1 + 10^(D/10) H(d)/H(0)) at offset d.
     With R = 2 alpha / N the resolution: at D = 30 dB the bias of recipe (b') is 1 dB or more out to 2.3R, 1.7R and 1.4R for
