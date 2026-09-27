@@ -7,7 +7,7 @@ every pair. Prints the half-width and the error over the band, at the peaks and 
 Also prints, for each taper, the factor N sum w^4 / (sum w^2)^2 by which it divides the degrees of freedom after smoothing.
 
 A third kernel is the one matched to a multitaper estimate: the lag window g = q / r_w, which gives the smoothed tapered
-periodogram exactly the kernel of the (NW, K) multitaper estimate (ss.matched_lag_window). It is searched over NW and K.
+periodogram the kernel of the (NW, K) multitaper estimate (ss.matched_lag_window; exactly for tapers that do not vanish at the ends). It is searched over NW and K.
 Its weights are not all positive, so some estimates can be negative; the share is reported, the dB error is taken over
 the positive estimates, and a setting is eligible only if fewer than 0.1 percent of its estimates are negative.
 Run: python demos/taper_and_kernel.py
@@ -38,9 +38,10 @@ def multitaper_lag_sums(N, NW, K):
 
 
 def matched_window(q, w):
+    """ss.matched_lag_window from precomputed lag sums q (exact where r_w != 0; the end lags of the cosine and Hann tapers are not)."""
     rw = np.fft.ifft(np.abs(np.fft.fft(w, 2 * len(w))) ** 2).real[:len(w)]
-    g = np.where(rw > 1e-9 * rw[0], q / np.maximum(rw, 1e-300), 0.0)
-    return g / g[0]
+    ok = np.abs(rw) > 1e-9 * rw[0]
+    return np.where(ok, q / np.where(ok, rw, 1.0), 0.0)
 
 
 def score_any(Sh, S, masks):

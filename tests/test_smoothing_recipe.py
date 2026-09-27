@@ -1,5 +1,6 @@
 """The light taper and parabolic kernel of recipe (b'), and the kernel-matched lag window."""
 import numpy as np
+import pytest
 import specsmooth as ss
 
 
@@ -25,11 +26,12 @@ def test_matched_lag_window_reproduces_the_multitaper_kernel():
     N, NW, K = 128, 4, 7
     V, _ = ss.dpss(N, NW, K); Q = V @ V.T / K
     H_mt = ss.kernel_multitaper(V, 8 * N)
-    for taper in (None, ss.unit_taper("tukey", N, alpha=0.25)):
-        g = ss.matched_lag_window(Q, taper)
-        w = np.ones(N) / np.sqrt(N) if taper is None else taper
-        H = ss.kernel_smoothed(w, g, 8 * N)
-        assert np.abs(H - H_mt).max() < 1e-3 * H_mt.max()
+    g = ss.matched_lag_window(Q)                                                 # no taper: r_w > 0 at every lag, exact
+    assert np.abs(ss.kernel_smoothed(np.ones(N) / np.sqrt(N), g, 8 * N) - H_mt).max() < 1e-12 * H_mt.max()
+    w = ss.unit_taper("tukey", N, alpha=0.25)                                    # zero end samples: the last lags are not matched
+    with pytest.warns(UserWarning, match="not matched"):
+        H = ss.kernel_smoothed(w, ss.matched_lag_window(Q, w), 8 * N)
+    assert np.abs(H - H_mt).max() < 1e-3 * H_mt.max()
     # same kernel, different estimator
     g = ss.matched_lag_window(Q)
     t = np.arange(N); Qs = g[np.abs(t[:, None] - t[None, :])] / N
@@ -70,3 +72,21 @@ def test_least_variance_is_a_white_noise_result():
         assert abs(m_s / m_mt - 1) < 1e-9 and v_s > 10 * v_mt
     c = np.linalg.eigvalsh(Qs)
     assert (c < 0).sum() > N // 2 and -c[c < 0].sum() < 0.05 * c[c > 0].sum()
+
+
+def test_matched_lag_window_exactness_conditions():
+    """Exact when r_w != 0 wherever q != 0, including tapers whose autocorrelation is negative at some lags; the symmetric Hann and
+    cosine tapers (zero end samples) miss the last lags by less than 3e-4 of the peak at N = 256; the kernel keeps the area tr Q."""
+    N, NW, K = 256, 4, 7; nfft = 8 * N; t = np.arange(N)
+    V, _ = ss.dpss(N, NW, K); Q = V @ V.T / K
+    H_mt = ss.kernel_multitaper(V, nfft)
+    w2 = ss.dpss(N, 2, 2)[0][:, 1]                                               # second Slepian taper: r_w changes sign
+    assert (np.correlate(w2, w2, "full")[N - 1:] < 0).any()
+    assert np.abs(ss.kernel_smoothed(w2, ss.matched_lag_window(Q, w2), nfft) - H_mt).max() < 1e-10 * H_mt.max()
+    for w in (ss.unit_taper("tukey", N, alpha=0.25), ss.unit_taper("hann", N)):
+        with pytest.warns(UserWarning, match="not matched"):
+            err = np.abs(ss.kernel_smoothed(w, ss.matched_lag_window(Q, w), nfft) - H_mt).max() / H_mt.max()
+        assert 0 < err < 3e-4
+    w = 7.0 * ss.unit_taper("gaussian", N, std=0.3)                               # no zero end samples, not unit norm
+    g = ss.matched_lag_window(Q, w)
+    assert abs(np.trace(w[:, None] * g[np.abs(t[:, None] - t[None, :])] * w[None, :]) - np.trace(Q)) < 1e-12
