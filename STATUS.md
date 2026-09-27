@@ -159,6 +159,12 @@ Done (`demos/make_figures.py`, `figures/`):
   Thomson & Chave 1991, Bruns 2004, Wahba 1980, Hurvich 1985, Haley & Anitescu 2017, Harris 1978, Mitra & Pesaran 1999,
   Bokil et al. 2010, Satterthwaite 1946.
 
+- **Prose line edit (2026-09-26):** the manuscript text was rewritten against the blader/humanizer checklist (25
+  patterns from Wikipedia's "Signs of AI writing"): staged contrasts, cleft openers, aphorisms, idioms, the packaged
+  "warning / price / surprise" triad, rhetorical questions and colon- or semicolon-joined clauses were replaced with plain
+  declarative sentences; section headings made plain. Numbers and citations verified unchanged against the backup
+  (`review/backups/*_pre_humanize.tex`).
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same

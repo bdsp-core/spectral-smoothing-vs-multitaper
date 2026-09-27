@@ -1,4 +1,4 @@
-# Averaging periodograms, smoothing a periodogram, and multitaper estimation are one estimator
+# Three equivalent routes to spectral estimation: averaging, smoothing, and multitaper
 
 Working repo for a short methods paper (with code): the multitaper (Slepian / Thomson) spectral
 estimate is, to a precise degree, a periodogram smoothed with a designed kernel. Smoothing is easier

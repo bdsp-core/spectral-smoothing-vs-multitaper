@@ -110,9 +110,9 @@ figure; the three-route recipe; the EEG validation.
 
 ## Weak points and decisions for you
 
-1. **Title.** Provisional. "Averaging periodograms, smoothing a periodogram, and multitaper estimation
-   are one estimator: an intuitive account and a practical recipe." Long; the v1 title was
-   "Multitaper spectral estimation is a smoothed periodogram: ...".
+1. **Title.** "Three Equivalent Routes to Spectral Estimation: Averaging, Smoothing, and Multitaper" (chosen by
+   M.B.W., 2026-09-26); alternatives considered: "Three Routes to One Spectrum", "Multitaper Spectral Analysis Is Smoothing", "Averaging, Smoothing, Multitaper: One
+   Spectral Estimator", "The Unity of Spectral Estimators".
 2. **The exact trio is the leaky estimator.** Everything that is exactly equal is the untapered,
    λ-weighted, all-taper estimate, which nobody should use on a coloured spectrum. The paper says this
    plainly (§5.5, §7) and treats the everyday trio as "close, not identical". Is that framing acceptable,
