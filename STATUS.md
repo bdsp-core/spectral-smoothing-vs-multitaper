@@ -155,7 +155,8 @@ Done (`demos/make_figures.py`, `figures/`):
   ν = 13.3 with a −34 dB side lobe (the Riedel–Sidorenko–Thomson hybrid, best of the smoothing family); Welch has the
   lowest errors and ν = 17.6 but two-tone resolution 10.8/N vs 9.0/N. Ictal harmonics measured (0.9 Hz wide in 2-s
   windows, 7.4 Hz apart). Related work rewritten as known / added; paragraphs split; recipes relabelled (a, b, c) =
-  (multitaper, smooth, average). New references were added from memory and need checking (Scholar agents were skipped):
+  (multitaper, smooth, average). New references were added from memory (Scholar agents were skipped); all were checked on 2026-09-26, see
+  `review/reports/reference_verification.md`:
   Thomson & Chave 1991, Bruns 2004, Wahba 1980, Hurvich 1985, Haley & Anitescu 2017, Harris 1978, Mitra & Pesaran 1999,
   Bokil et al. 2010, Satterthwaite 1946.
 
@@ -170,6 +171,12 @@ Done (`demos/make_figures.py`, `figures/`):
   figure*/table* floats, references renumbered in order of first citation, appendices A–C, AI-use statement in the
   Acknowledgment. Figs. S1–S4 moved to `paper/supplement.tex`. Length 14 pages; TBME's standard is 8 and the maximum 12
   (with the Editor-in-Chief's permission; overlength charges apply beyond 8). `paper/main_onecolumn.tex` is draft v6 frozen.
+
+- **Submission details (2026-09-26):** repository link in Data and Code Availability (the repository is public); NIH
+  funding (R01HL161253, R01NS126282) in the first-page footnote; IRB statement in Methods (Stanford #83833, BIDMC
+  #2016P000058, MGH #2013P001024, waiver of consent). All 27 references checked against Crossref, publisher pages and
+  source texts; Thomson 1990 (quadratic-inverse) added as reference 28. Still open in `paper/main.tex`: submission date,
+  corresponding e-mail, and the wording of the AI-use sentence. The repository has no LICENSE file.
 
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
