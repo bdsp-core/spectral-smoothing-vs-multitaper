@@ -188,7 +188,7 @@ Done (`demos/make_figures.py`, `figures/`):
 
 - **Smoothing recipe changed (2026-09-27):** recipe (b') is now a 25% cosine (Tukey) taper followed by a parabola of
   half-power width 2W, in place of Hann then box. At N = 1024, W = 4/N it has nu = 16.7 (Hann then box: 8.9; multitaper
-  K = 7: 14.0) and errors 1.0 / 1.7 / 1.0 dB (band, peaks, low spectrum). On the seizure clips its spectrogram differs
+  K = 7: 14.0). Of that, the taper gives nu = 14.8 with the box; the parabola's wider base (at equal half-power width) adds the rest and errors 1.0 / 1.7 / 1.0 dB (band, peaks, low spectrum). On the seizure clips its spectrogram differs
   from multitaper's by a median of 0.9 and 0.7 dB (Hann then box: 1.5 and 1.2) and its band powers by 0.1-0.3 dB.
   The Hann window divides nu by 1.94 after smoothing; the 25% cosine taper by 1.15. Figures 5-9 still show Hann then
   box; Tables I-IV include the new recipe. Regenerating the figures with the new recipe is an open decision.

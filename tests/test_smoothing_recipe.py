@@ -90,3 +90,17 @@ def test_matched_lag_window_exactness_conditions():
     w = 7.0 * ss.unit_taper("gaussian", N, std=0.3)                               # no zero end samples, not unit norm
     g = ss.matched_lag_window(Q, w)
     assert abs(np.trace(w[:, None] * g[np.abs(t[:, None] - t[None, :])] * w[None, :]) - np.trace(Q)) < 1e-12
+
+
+def test_nu_of_recipe_b_prime_splits_between_taper_and_kernel():
+    """nu of recipe (b') at W = 4/N: the 25% cosine taper alone (with the box) already exceeds multitaper K = 7, and the parabola of
+    the same half-power width adds the rest through its wider base. Values quoted in Sections I and III."""
+    for N in (256, 1024):
+        W = 4 / N; hb = ss.box_lag_window(N, W); hp = ss.parabolic_lag_window(N, np.sqrt(2) * W)
+        tuk = ss.unit_taper("tukey", N, alpha=0.25)
+        nu = lambda **p: ss.dof_quadratic(ss.quadratic_matrix(N, 0.25, **p))
+        nu_mt = nu(method="multitaper", tapers=ss.dpss(N, 4)[0])
+        nu_hann_box = nu(method="lagwindow", h=hb, taper=ss.unit_taper("hann", N))
+        nu_tuk_box = nu(method="lagwindow", h=hb, taper=tuk)
+        nu_tuk_par = nu(method="lagwindow", h=hp, taper=tuk)
+        assert (round(nu_hann_box, 1), round(nu_mt, 1), round(nu_tuk_box, 1), round(nu_tuk_par, 1)) == (8.9, 14.0, 14.8, 16.7)
