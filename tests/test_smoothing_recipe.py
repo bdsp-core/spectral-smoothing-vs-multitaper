@@ -34,3 +34,14 @@ def test_matched_lag_window_reproduces_the_multitaper_kernel():
     g = ss.matched_lag_window(Q)
     t = np.arange(N); Qs = g[np.abs(t[:, None] - t[None, :])] / N
     assert 0.1 < np.linalg.norm(Qs - Q) / np.linalg.norm(Q) < 0.4
+
+
+def test_smoothed_periodogram_has_least_variance_for_a_given_kernel():
+    """Same kernel as the K-taper estimate, but constant along each diagonal: at least as many degrees of freedom."""
+    N, NW = 128, 4; t = np.arange(N); e = np.exp(-2j * np.pi * 0.25 * t)
+    for K in (2, 4, 7):
+        V, _ = ss.dpss(N, NW, K); Q = V @ V.T / K
+        Qs = ss.matched_lag_window(Q)[np.abs(t[:, None] - t[None, :])] / N
+        assert np.sum(Qs ** 2) <= np.sum(Q ** 2) + 1e-12
+        nu_mt = ss.dof_quadratic(e[:, None] * Q * e.conj()[None, :]); nu_s = ss.dof_quadratic(e[:, None] * Qs * e.conj()[None, :])
+        assert abs(nu_mt - 2 * K) < 0.05 and nu_s > nu_mt

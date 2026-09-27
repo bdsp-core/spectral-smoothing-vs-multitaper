@@ -39,6 +39,20 @@ text of the source. The nine entries that had been added from memory are marked 
 
 No entry is retracted according to OpenAlex.
 
+## Added 2026-09-27
+
+The list now has 30 entries, renumbered in order of first citation, so the numbers in the table above are those of 2026-09-26.
+
+| Entry | Result | Source of the check |
+|---|---|---|
+| Priestley 1962, Technometrics 4(4), pp. 551-564 | correct | doi:10.1080/00401706.1962.10490039 |
+| Epanechnikov 1969, Theory Probab. Appl. 14(1), pp. 153-158 | correct | doi:10.1137/1114019 |
+
+Both are cited for the parabolic kernel as the shape with the least mean square error. Priestley's abstract says the paper discusses
+the construction of optimum estimates; the attribution of the quadratic window to it is the standard one (the Bartlett-Priestley
+window) and was not checked against the full text. The efficiencies quoted in the manuscript (box 3%, Gaussian 2% worse in RMS
+error) were recomputed numerically.
+
 ## Sentences changed because the source did not support them as written
 
 | Where | Before | After | Reason |

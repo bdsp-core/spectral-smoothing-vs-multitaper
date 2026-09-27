@@ -5,6 +5,11 @@ For each test case (the AR(4) process at N = 128, 256 and 1024; the EEG-like spe
 the half-width with the smallest RMS dB error over the band is found on 1000 simulated records, the same records for
 every pair. Prints the half-width and the error over the band, at the peaks and where the spectrum is low.
 Also prints, for each taper, the factor N sum w^4 / (sum w^2)^2 by which it divides the degrees of freedom after smoothing.
+
+A third kernel is the one matched to a multitaper estimate: the lag window g = q / r_w, which gives the smoothed tapered
+periodogram exactly the kernel of the (NW, K) multitaper estimate (ss.matched_lag_window). It is searched over NW and K.
+Its weights are not all positive, so some estimates can be negative; the share is reported, the dB error is taken over
+the positive estimates, and a setting is eligible only if fewer than 0.1 percent of its estimates are negative.
 Run: python demos/taper_and_kernel.py
 """
 import sys, pathlib
@@ -24,6 +29,25 @@ def smooth_est(X, w, h, nfft, idx):
     r = np.fft.ifft(np.abs(np.fft.fft(X * w[None, :], nfft, axis=1)) ** 2, axis=1).real
     lw = np.zeros(nfft); lw[:N] = h; lw[nfft - N + 1:] = h[1:][::-1]
     return np.fft.fft(r * lw[None, :], axis=1).real[:, idx]
+
+
+def multitaper_lag_sums(N, NW, K):
+    """Lag sums q_tau, tau = 0..N-1, of the matrix of the K-taper multitaper estimate: the mean autocorrelation of its tapers."""
+    V = ss.dpss(N, NW, K)[0]
+    return np.fft.ifft((np.abs(np.fft.fft(V, 2 * N, axis=0)) ** 2).mean(axis=1)).real[:N]
+
+
+def matched_window(q, w):
+    rw = np.fft.ifft(np.abs(np.fft.fft(w, 2 * len(w))) ** 2).real[:len(w)]
+    g = np.where(rw > 1e-9 * rw[0], q / np.maximum(rw, 1e-300), 0.0)
+    return g / g[0]
+
+
+def score_any(Sh, S, masks):
+    """RMS dB error over the positive estimates (band, peaks, low), the share of estimates that are not positive, relative RMS error."""
+    ok = Sh > 0
+    E = tc.DB * np.log(np.where(ok, Sh, np.nan) / S)
+    return [float(np.sqrt(np.nanmean(E[:, k] ** 2))) for k in masks], float((~ok).mean()), float(np.sqrt(((Sh / S - 1) ** 2).mean()))
 
 
 def tapers_for(N):
@@ -54,3 +78,21 @@ if __name__ == "__main__":
                 best = min(((tc.mc_score(smooth_est(X, w, lagw(N, Wn / N), nfft, idx), S, masks), Wn) for Wn in WIDTHS), key=lambda q: q[0][0])
                 out.append(f"{kn}: {best[1]:>4g}/N  {best[0][0]:5.2f} / {best[0][1]:5.2f} / {best[0][2]:5.2f}")
             print(f"  {tn:14s} " + "     ".join(out))
+        print("  kernel matched to a multitaper estimate: best (NW, K) among settings with fewer than 0.1% negative estimates")
+        qs = {(NW, K): multitaper_lag_sums(N, NW, K) for NW in (1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 10, 12) for K in range(1, int(2 * NW) + 1)}
+        mt = {k: tc.mc_score(tc.mc_estimates(ss.dpss(N, k[0], k[1])[0], np.full(k[1], 1 / k[1]), X, nfft, idx), S, masks) for k in qs}
+        for tn, w in tapers_for(N).items():
+            if tn.startswith("Slepian"):
+                continue
+            res = {k: score_any(smooth_est(X, w, matched_window(q, w), nfft, idx), S, masks) for k, q in qs.items()}
+            elig = {k: r for k, r in res.items() if r[1] < 1e-3}
+            if not elig:
+                k = min(res, key=lambda k: res[k][1]); r = res[k]
+                print(f"  {tn:14s} no eligible setting among {len(res)}; fewest negative estimates {100 * r[1]:.1f}% at NW={k[0]:g}, K={k[1]}, "
+                      f"where the error over the positive estimates is {r[0][0]:5.2f} / {r[0][1]:5.2f} / {r[0][2]:5.2f}")
+                continue
+            k = min(elig, key=lambda k: elig[k][0][0]); r = elig[k]
+            print(f"  {tn:14s} matched to NW={k[0]:g}, K={k[1]:2d}: {r[0][0]:5.2f} / {r[0][1]:5.2f} / {r[0][2]:5.2f}   negative {100 * r[1]:.2f}%   "
+                  f"[the multitaper estimate it is matched to: {mt[k][0]:5.2f} / {mt[k][1]:5.2f} / {mt[k][2]:5.2f}]   eligible settings {len(elig)} of {len(res)}")
+        kb = min(mt, key=lambda k: mt[k][0])
+        print(f"  best multitaper estimate with equal weights in this grid: NW={kb[0]:g}, K={kb[1]}: {mt[kb][0]:5.2f} / {mt[kb][1]:5.2f} / {mt[kb][2]:5.2f}")

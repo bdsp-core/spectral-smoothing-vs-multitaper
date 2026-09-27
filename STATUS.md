@@ -200,6 +200,18 @@ Done (`demos/make_figures.py`, `figures/`):
   development, preparation of the figures and drafting of the manuscript". IEEE policy asks that the AI system be
   named and the sections identified; the statement names neither.
 
+- **Optimal kernel (2026-09-27, Section II-B.5):** the smoothing kernel with the least mean square error is derived, not
+  chosen: the parabola (Priestley 1962; Epanechnikov 1969), one parameter b, half-power width sqrt(2) b,
+  nu = (10/3) N b / c_w, best half-width b_opt = (15 c_w / N)^(1/5) |S / S''|^(2/5). Box and Gaussian are 3% and 2% worse
+  in RMS error at their best widths. For the 1.4 Hz alpha peak in a 2-s record the formula gives a half-power width of
+  1.5 Hz and the exact optimum is 1.9 Hz.
+- **Least variance for a given kernel (2026-09-27, Section II-D):** by Cauchy-Schwarz on each diagonal of Q, the untapered
+  smoothed periodogram has the smallest white-noise variance of all quadratic estimators with the same kernel (N = 256,
+  NW = 4: nu = 14.6 vs 14 for K = 7; 10.9 vs 8 for K = 4). Test in `tests/test_smoothing_recipe.py`.
+- **Matched kernel tested as a family (2026-09-27, Table III):** tuned over taper and (NW, K): 2.48, 1.39, 1.94, 1.38 dB.
+  Matched to the best multitaper estimate it reproduces that estimate's error (1.96 vs 1.97; 1.40 vs 1.40). It is never
+  ahead of the parabola, and without a taper it fails on the AR(4) process (over 10% negative estimates at every setting).
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same

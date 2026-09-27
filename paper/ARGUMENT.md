@@ -122,6 +122,14 @@ multitaper is 4-19% behind the best), and a tapered, smoothed periodogram is nev
 with a Hann taper; it disappears with a lighter taper and a parabolic kernel. Both changes were made on 2026-09-27: the table is in, and recipe (b') is a 25% cosine (Tukey) taper with a parabolic
 kernel. Open decision: Figs. 5-9 still show Hann-then-box as the familiar choice; regenerate them with recipe (b') or not.
 
+## Which smoothing kernel (added 2026-09-27)
+
+Three candidates were considered. (1) The kernel matched to the multitaper estimate (the multitaper kernel deconvolved by the
+taper's spectral window) reproduces multitaper's bias exactly and its accuracy, but has negative lobes, fails without a taper
+when the dynamic range is large, and has two parameters (NW, K). (2) The box is the kernel of the exact identity. (3) The
+parabola is the kernel of least mean square error, derived in Section II-B.5, with one parameter. The paper recommends (3),
+uses (2) in the figures, and reports (1) in Section II-D and Table III as the bridge between smoothing and multitaper.
+
 ## Weak points and decisions for you
 
 1. **Title.** "Three Equivalent Routes to Estimating Power Spectra: Averaging, Multitaper, and Smoothing" (chosen by
