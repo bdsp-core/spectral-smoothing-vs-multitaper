@@ -236,6 +236,14 @@ Done (`demos/make_figures.py`, `figures/`):
   on independent records, the cosine-tapered parabola goes from 2.42 / 1.41 / 1.94 / 1.41 dB to 1.69 / 1.01 / 1.39 /
   1.00 dB (28-30% better); multitaper gains 17-37%. The width matters several times more than the route. A data-driven
   local width (plug-in on the curvature) has not been implemented.
+- **Time resolution, frequency resolution and noise (2026-09-27, Section II-B.6, eq. design):** nu = 2 x window length (s)
+  x half-power width of the kernel (Hz), to within 15% for both routes at every setting tried (multitaper 0.91-0.98,
+  recipe b' 1.03-1.15). EEG transients force small time-bandwidth products (NW = 1-2), where multitaper has 1-3 tapers.
+- **Sleep spindle figure (2026-09-27, Fig. 10, Section III-D, `fig12_sleep_spindles`):** 40 s of stage N2, channel C4-M1,
+  five spindles; windows of 1, 2 and 4 s, each by multitaper and by recipe (b'); a white box in each panel shows the
+  resolution. The recording is a de-identified BDSP polysomnogram kept outside the repository (found by pattern in
+  `~/GithubRepos/sleep-yoda/dev/standardization/output/`; no identifier appears in the code, figure or text).
+  The seizure figures now state resolution in seconds and hertz in the panel titles. Figure 9 was kept.
 - **Not yet combined with GitHub (2026-09-27):** local main holds commits that are not on GitHub, and GitHub holds seven
   commits by E. Keldsen that are not local. Both edit `paper/main.tex`; a rebase with manual conflict resolution is needed.
 

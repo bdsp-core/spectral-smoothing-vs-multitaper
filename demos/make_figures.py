@@ -577,8 +577,9 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
     t_ictal = t_ictal if t_ictal is not None else t_on + 0.35 * (t_off - t_on)
     vmin, vmax = SPEC_VLIM
     t = np.arange(len(x)) / Fs
-    labels = [(pg, f"cosine-tapered periodogram, {win_s:.0f}-s windows: $\\nu$ = 2"), (mt, f"multitaper, NW = {NW}, K = {K}: $\\nu$ = {nus[1]:.0f}"),
-              (sb, f"cosine taper, then parabola {2 * W * Fs:.0f} Hz wide: $\\nu$ = {nus[2]:.1f}")]
+    bws = [ss.kernel_stats(H)["bw3"] * Fs for H in (np.abs(np.fft.fft(cosw, 16 * N)) ** 2, ss.kernel_multitaper(Vk, 16 * N), ss.kernel_smoothed(cosw, hp, 16 * N))]
+    labels = [(pg, f"cosine-tapered periodogram: {win_s:.0f} s by {bws[0]:.1f} Hz, $\\nu$ = 2"), (mt, f"multitaper, K = {K}: {win_s:.0f} s by {bws[1]:.1f} Hz, $\\nu$ = {nus[1]:.0f}"),
+              (sb, f"cosine taper, then parabola: {win_s:.0f} s by {bws[2]:.1f} Hz, $\\nu$ = {nus[2]:.1f}")]
     dd = mt - sb
     if compact:
         fig, axs = plt.subplots(4, 1, figsize=(W2, 5.8), gridspec_kw={"height_ratios": [0.7, 1, 1, 1], "hspace": 0.45}, sharex=True)
@@ -651,6 +652,106 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
           f"(resolution of the tapered {win_s:.0f}-s window: {ss.kernel_stats(np.abs(np.fft.fft(cosw, nf)) ** 2)['bw3'] * Fs:.2f} Hz)")
 
 
+# ---------------------------------------------------------------- fig12: sleep spindles, time resolution against frequency resolution
+SLEEP_DIR = pathlib.Path.home() / "GithubRepos" / "sleep-yoda" / "dev" / "standardization" / "output"   # de-identified BDSP sleep recordings, not in this repo
+SLEEP_SETTINGS = [(1.0, 2.0), (2.0, 2.0), (4.0, 1.0)]                                                  # (window length in s, full bandwidth 2W in Hz)
+
+
+def _spindles(x, fs, band=(11.0, 16.0), factor=2.0, min_s=0.5, max_s=3.0):
+    """Bursts of the 11-16 Hz envelope above `factor` times its median, lasting 0.5 to 3 s: (onsets, offsets) in samples."""
+    from scipy.signal import butter, sosfiltfilt, hilbert
+    sg = sosfiltfilt(butter(4, band, btype="band", fs=fs, output="sos"), x)
+    env = np.abs(hilbert(sg)); k = int(0.2 * fs); env = np.convolve(env, np.ones(k) / k, "same")
+    above = env > factor * np.median(env)
+    d = np.diff(np.r_[0, above.astype(int), 0]); on = np.flatnonzero(d == 1); off = np.flatnonzero(d == -1)
+    keep = ((off - on) >= min_s * fs) & ((off - on) <= max_s * fs)
+    return on[keep], off[keep], sg
+
+
+def fig12_sleep_spindles(channel="c4-m1", t0=2788.0, dur=40.0, fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
+    """Forty seconds of stage N2 sleep with spindles, as spectrograms at three choices of window length and bandwidth,
+    each by the multitaper estimate (K = 2NW - 1, at least 1) and by recipe (b'). A white box in each panel is the
+    resolution of that panel: the window length by the half-power width of the kernel."""
+    import glob, h5py
+    from scipy.signal import butter, sosfiltfilt
+    files = sorted(glob.glob(str(SLEEP_DIR / "sub-S*_std.h5")))
+    if not files:
+        print(f"fig12 skipped: no sleep recording in {SLEEP_DIR}"); return
+    pad = 5.0
+    with h5py.File(files[0], "r") as f:
+        fs = int(f.attrs["sampling_rate"]); a = int((t0 - pad) * fs); b = int((t0 + dur + pad) * fs)
+        x = f["signals/" + channel][a:b, 0].astype(float) * 1e6
+        st = f["annotations_source/original/stage"][a:b, 0]
+    x = x - x.mean(); t = np.arange(len(x)) / fs - pad
+    on, off, sg = _spindles(x, fs)
+    inside = (on / fs - pad > 0) & (off / fs - pad < dur); on, off = on[inside], off[inside]
+    xb = sosfiltfilt(butter(4, [0.3, 35.0], btype="band", fs=fs, output="sos"), x)
+    chn = _pretty_channel(channel.split("-")[0]) + "-" + channel.split("-")[1].upper()
+    print(f"fig12: channel {channel}, {dur:.0f} s of stage {sorted(set(np.unique(st).astype(int)))} (2 = N2), Fs = {fs}; {len(on)} spindles at "
+          f"{np.round(on / fs - pad, 1)} s lasting {np.round((off - on) / fs, 2)} s")
+    step = int(step_s * fs); rows = []
+    for T, B in SLEEP_SETTINGS:
+        N = int(T * fs); nfft = 1 << int(np.ceil(np.log2(8 * N))); W = (B / 2) / fs; NW = N * W; K = max(1, int(round(2 * NW)) - 1)
+        V = ss.dpss(N, NW, K)[0]; cw, hp = _recipe(N, NW)
+        starts = np.arange(0, len(x) - N + 1, step); tc = (starts + N / 2) / fs - pad
+        ff = np.arange(nfft // 2) / nfft * fs; keep = ff <= fmax
+        mt = np.empty((keep.sum(), len(starts))); sm = np.empty_like(mt)
+        for i, s0 in enumerate(starts):
+            seg = x[s0:s0 + N] - x[s0:s0 + N].mean()
+            mt[:, i] = ss.multitaper(seg, V, nfft)[0][:nfft // 2][keep] / fs
+            sm[:, i] = ss.lag_window_estimate(seg, hp, nfft, taper=cw)[0][:nfft // 2][keep] / fs
+        nu_mt = ss.dof_quadratic(ss.quadratic_matrix(N, 0.25, "multitaper", tapers=V))
+        nu_sm = ss.dof_quadratic(ss.quadratic_matrix(N, 0.25, "lagwindow", h=hp, taper=cw))
+        bw_mt = ss.kernel_stats(ss.kernel_multitaper(V, 16 * N))["bw3"] * fs; bw_sm = ss.kernel_stats(ss.kernel_smoothed(cw, hp, 16 * N))["bw3"] * fs
+        sel = (tc >= 0) & (tc <= dur); band = (ff[keep] >= 1) & (ff[keep] <= fmax)
+        dd = np.abs(10 * np.log10(mt[band][:, sel]) - 10 * np.log10(sm[band][:, sel]))
+        # how long and how wide a spindle appears: full widths at half maximum of the 11-16 Hz burst, in time and in frequency
+        sig = (ff[keep] >= 11) & (ff[keep] <= 16); wt, wf = {"mt": [], "sm": []}, {"mt": [], "sm": []}
+        for name, P in (("mt", mt), ("sm", sm)):
+            p_t = P[sig].mean(axis=0)
+            for o1, o2 in zip(on, off):
+                c = (o1 + o2) / 2 / fs - pad; j = int(np.argmin(np.abs(tc - c))); j = j - 10 + int(np.argmax(p_t[max(0, j - 10):j + 11])) if j >= 10 else j
+                base = np.median(p_t[sel]); h = base + (p_t[j] - base) / 2; lo = hi = j
+                while lo > 0 and p_t[lo] > h:
+                    lo -= 1
+                while hi < len(p_t) - 1 and p_t[hi] > h:
+                    hi += 1
+                wt[name].append(tc[hi] - tc[lo])
+                col = P[:, j]; i0 = int(np.argmax(np.where(sig, col, 0))); lo = hi = i0
+                while lo > 0 and col[lo] > col[i0] / 2:
+                    lo -= 1
+                while hi < len(col) - 1 and col[hi] > col[i0] / 2:
+                    hi += 1
+                wf[name].append(ff[keep][hi] - ff[keep][lo])
+        rows.append(dict(T=T, B=B, NW=NW, K=K, mt=mt, sm=sm, tc=tc, f=ff[keep], nu=(nu_mt, nu_sm), bw=(bw_mt, bw_sm)))
+        print(f"fig12: window {T:g} s, 2W = {B:g} Hz (NW = {NW:g}, K = {K}): nu = {nu_mt:.1f} multitaper, {nu_sm:.1f} smoothed; kernel half-power width {bw_mt:.2f} / {bw_sm:.2f} Hz; "
+              f"2 x window x width = {2 * T * bw_mt:.1f} / {2 * T * bw_sm:.1f}; "
+              f"median |difference| {np.median(dd):.2f} dB, 95th percentile {np.percentile(dd, 95):.2f} dB; a spindle appears {np.median(wt['mt']):.1f} / {np.median(wt['sm']):.1f} s long "
+              f"and {np.median(wf['mt']):.1f} / {np.median(wf['sm']):.1f} Hz wide (multitaper / smoothed; median of {len(on)} spindles)")
+    allv = np.concatenate([10 * np.log10(r["sm"][r["f"] >= 4]).ravel() for r in rows]); vmin, vmax = np.percentile(allv, [20, 99.7])
+    fig = plt.figure(figsize=(W2, 7.0))
+    gs = fig.add_gridspec(4, 2, height_ratios=[0.8, 1, 1, 1], hspace=0.62, wspace=0.12)
+    a0 = fig.add_subplot(gs[0, :]); axes = [a0]
+    a0.plot(t, xb, color="black", lw=0.35, label=f"EEG, {chn}, 0.3$-$35 Hz")
+    a0.plot(t, sg - 95, color=COLOR["hann_gauss"], lw=0.4, label="the same, 11$-$16 Hz (offset)")
+    for o1, o2 in zip(on, off):
+        a0.axvspan(o1 / fs - pad, o2 / fs - pad, color=COLOR["hann_gauss"], alpha=0.15, lw=0)
+    a0.set(xlim=(0, dur), ylim=(-125, 150), yticks=[-100, 0, 100], xlabel="time (s)", ylabel="$\\mu$V", title=f"stage N2 sleep, channel {chn}; {len(on)} spindles shaded")
+    a0.legend(loc="upper right", ncol=2, fontsize=5.5)
+    for r, row in enumerate(rows):
+        for c, (key, name) in enumerate((("mt", f"multitaper, K = {row['K']}"), ("sm", "cosine taper, then parabola"))):
+            a = fig.add_subplot(gs[r + 1, c]); axes.append(a)
+            im = a.imshow(10 * np.log10(row[key]), aspect="auto", origin="lower", extent=[row["tc"][0], row["tc"][-1], row["f"][0], row["f"][-1]], vmin=vmin, vmax=vmax, cmap=SPEC_CMAP)
+            a.add_patch(plt.Rectangle((1.0, fmax - 2.0 - row["bw"][c]), row["T"], row["bw"][c], fill=False, ec="white", lw=1.0))
+            a.set(xlim=(0, dur), ylim=(0, fmax), title=f"{name}: {row['T']:g} s by {row['bw'][c]:.1f} Hz, $\\nu$ = {row['nu'][c]:.1f}", ylabel="frequency (Hz)" if c == 0 else "")
+            if c == 1:
+                a.set_yticklabels([])
+            if r == len(rows) - 1:
+                a.set(xlabel="time (s)")
+    cb = fig.colorbar(im, ax=axes[1:], fraction=0.02, pad=0.015); cb.set_label("power (dB re 1 $\\mu$V$^2$/Hz)")
+    _letters(axes, dx=-0.06); _save(fig, out)
+
+
 if __name__ == "__main__":
     fig0_pedagogy(); print("fig0a/fig0b done")
     fig5_slepian_fill(); print("fig5 done")
@@ -662,4 +763,5 @@ if __name__ == "__main__":
     fig3_tradeoff(); print("fig3 done (supplement)")
     fig4_eeg()
     fig10_eeg_seizure(); fig10_eeg_seizure("C", out="fig11_eeg_two_seizures.png", compact=True); print("fig10/fig11 done")
+    fig12_sleep_spindles(); print("fig12 done")
     print("figures in", FIG)

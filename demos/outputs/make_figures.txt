@@ -26,4 +26,9 @@ fig10 case A: ictal window at 318 s: harmonics on the smoothed estimate at [ 7.7
 fig10 case C: channel FP1 (ictal rise 11.0 dB), Fs=200, N=400, W=1.00 Hz, K=3, Welch L=140 (0.70 s), 599 windows
 fig10 case C (compact): channel FP1; nus [2.  6.  8.7 7.7]; multitaper vs recipe (b') median |diff| 0.68 dB, 95% 2.96 dB
 fig10/fig11 done
+fig12: channel c4-m1, 40 s of stage [np.int64(2)] (2 = N2), Fs = 200; 5 spindles at [ 6.2  9.5 18.1 28.2 32.7] s lasting [0.87 0.64 0.87 0.57 0.54] s
+fig12: window 1 s, 2W = 2 Hz (NW = 1, K = 1): nu = 2.0 multitaper, 4.7 smoothed; kernel half-power width 1.06 / 2.06 Hz; 2 x window x width = 2.1 / 4.1; median |difference| 1.83 dB, 95th percentile 10.11 dB; a spindle appears 0.8 / 0.9 s long and 1.5 / 2.6 Hz wide (multitaper / smoothed; median of 5 spindles)
+fig12: window 2 s, 2W = 2 Hz (NW = 2, K = 3): nu = 6.0 multitaper, 8.7 smoothed; kernel half-power width 1.66 / 2.03 Hz; 2 x window x width = 6.6 / 8.1; median |difference| 0.72 dB, 95th percentile 2.95 dB; a spindle appears 1.6 / 1.6 s long and 2.0 / 2.9 Hz wide (multitaper / smoothed; median of 5 spindles)
+fig12: window 4 s, 2W = 1 Hz (NW = 2, K = 3): nu = 6.0 multitaper, 8.7 smoothed; kernel half-power width 0.83 / 1.02 Hz; 2 x window x width = 6.6 / 8.1; median |difference| 0.68 dB, 95th percentile 2.77 dB; a spindle appears 3.0 / 3.0 s long and 1.0 / 1.5 Hz wide (multitaper / smoothed; median of 5 spindles)
+fig12 done
 figures in /Users/mwestover/GithubRepos/spectral-smoothing-vs-multitaper/figures
