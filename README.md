@@ -17,17 +17,17 @@ figures and demos the paper needs, and the plan.
 | `demos/make_data_excerpts.py` | built the excerpts from the original recordings |
 | `demos/verify_equivalence.py` | numerical proof of the central identity plus the kernel / dof tables quoted in STATUS.md |
 | `demos/make_figures.py` | the paper figures (`figures/fig0..fig5`) |
-| `demos/everyday_comparison.py` | Table I: the estimators at one bandwidth over 300 records of the AR(4) process |
-| `demos/tuned_comparison.py` | Table IV (a check): every family tuned to its best setting, on the AR(4) process and an EEG-like spectrum |
+| `demos/everyday_comparison.py` | Table 1: the estimators at one bandwidth over 300 records of the AR(4) process |
+| `demos/tuned_comparison.py` | Table 4 (a check): every family tuned to its best setting, on the AR(4) process and an EEG-like spectrum |
 | `demos/taper_and_kernel.py` | which single taper and smoothing kernel work best (the basis of recipe b') |
 | `demos/frequency_domain_multitaper.py` | multitaper from one FFT, and its split into a smoothed periodogram plus a cross term |
 | `demos/rounded_kernel.py` | smoothing with the rounded-corner kernel built from the K tapers, with and without a taper built from them |
 | `demos/local_width.py` | how much a width chosen separately at each frequency would gain |
 | `demos/kernel_matched.py` | one taper plus a smoothing kernel matched to the multitaper kernel: same bias, different estimates |
-| `demos/band_power_table.py` | Table III: band powers on the two seizure clips |
+| `demos/band_power_table.py` | Table 3: band powers on the two seizure clips |
 | `demos/fit_single_window.py` | least-squares search for the single window closest to the multitaper estimator |
 | `tests/` | the claims as pytest tests |
-| `paper/` | the manuscript in IEEE TBME format (`main.tex`, built with the journal's `ieeecolor2.cls` and `generic.sty`), its supplement (`supplement.tex`), the frozen single-column draft v6 (`main_onecolumn.tex`), the review map (`ARGUMENT.md`), the 2015 draft (`main_2015.tex`) and older notes |
+| `paper/` | the manuscript (`main.tex`, a two-column `article` in Times), its supplement (`supplement.tex`, also in Times), the frozen single-column draft v6 (`main_onecolumn.tex`), the review map (`ARGUMENT.md`), the 2015 draft (`main_2015.tex`), the unused IEEE TBME template (`ieeecolor2.cls`, `generic.sty`) and older notes |
 | `notes/` | the 2001 typed manuscript "Periodogram Averaging with a Sliding Window" (scanned, with annotations) and lecture notes |
 | `legacy_matlab/` | the 2013–2016 MATLAB, unmaintained; `legacy_matlab/README.md` maps each script to the Python that replaced it |
 | `references/` | third-party PDFs (git-ignored; a local copy only) |
