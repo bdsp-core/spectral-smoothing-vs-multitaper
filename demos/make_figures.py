@@ -796,8 +796,8 @@ def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
               f"median |difference| {np.median(dd):.2f} dB, 95th percentile {np.percentile(dd, 95):.2f} dB; a spindle appears {np.median(wt['mt']):.1f} / {np.median(wt['sm']):.1f} s long "
               f"and {np.median(wf['mt']):.1f} / {np.median(wf['sm']):.1f} Hz wide (multitaper / smoothed; median of {len(on)} spindles)")
     allv = np.concatenate([10 * np.log10(r["sm"][r["f"] >= 4]).ravel() for r in rows]); vmin, vmax = np.percentile(allv, [20, 99.7])
-    fig = plt.figure(figsize=(W2, 6.8))
-    gs = fig.add_gridspec(4, 2, height_ratios=[0.8, 1, 1, 1], hspace=0.38, wspace=0.16)
+    fig = plt.figure(figsize=(W2, 8.5))
+    gs = fig.add_gridspec(5, 2, height_ratios=[0.8, 1, 1, 1, 1.1], hspace=0.38, wspace=0.16)
     a0 = fig.add_subplot(gs[0, :]); axes = [a0]
     a0.plot(t, xb, color="black", lw=0.35, label=f"EEG, {chn}, 0.3$-$35 Hz")
     a0.plot(t, sg - 95, color=MATLAB["r"], lw=0.4, label="11$-$16 Hz, offset")
@@ -817,7 +817,27 @@ def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
                 a.set(xlabel=LBL["s"])
     cb = fig.colorbar(im, ax=axes[1:], fraction=0.02, pad=0.015); cb.set_label("PSD (dB re 1 $\\mu$V$^2$/Hz)")
     cb.ax.tick_params(direction="in"); cb.outline.set_linewidth(0.6)
-    _letters(axes, dx=[22] + [22, 6] * len(rows)); _save(fig, out)
+    ah = fig.add_subplot(gs[4, :]); axes.append(ah)
+    widths = [bw for row in rows for bw in row["bw"]]
+    span = max(widths) - min(widths)
+    ah.set(xlim=(max(0, min(widths) - 0.35 * span), max(widths) + 0.35 * span),
+           ylim=(0.45, len(rows) + 0.8), xlabel="Achieved half-power width (Hz)",
+           yticks=list(range(len(rows), 0, -1)),
+           yticklabels=[f"{row['T']:g} s, $R={row['B']:g}$ Hz" for row in rows])
+    ah.grid(axis="x")
+    for i, row in enumerate(rows):
+        y = len(rows) - i
+        ah.plot(row["bw"], [y, y], color="black", lw=0.55, zorder=2)
+        for c, (bw, nu) in enumerate(zip(row["bw"], row["nu"])):
+            ah.plot(bw, y, marker=("o", "s")[c], ms=4, color=ROUTE[("multitaper", "smooth")[c]],
+                    ls="none", label=("Multitaper", "Smoothing")[c] if i == 0 else None, zorder=3)
+            ah.text(bw, y + 0.12, f"{bw:.1f} Hz\n" + rf"$\nu={nu:.1f}$", ha="center", va="bottom", fontsize=7.4)
+        if i == 0:
+            ah.text(np.mean(row["bw"]), y + 0.15,
+                    rf"$\alpha={row['NW']:g},\ L={row['K']}$: small-$\alpha$ regime",
+                    ha="center", va="bottom", fontsize=6.4)
+    ah.legend(loc="lower right", ncol=2, fontsize=6.5)
+    _letters(axes, dx=[22] + [22, 6] * len(rows) + [22]); _save(fig, out)
 
 
 if __name__ == "__main__":
