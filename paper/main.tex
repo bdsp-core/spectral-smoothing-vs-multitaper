@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{booktabs}
+\usepackage{tabularx}
 \usepackage{framed}
 \usepackage{stfloats}
 \usepackage{url}
@@ -490,7 +491,30 @@ Multitaper, $L=7$, equal weights & 8.67 & 5.10 & 2.03 & 1.76\\
 
 \subsection{Recipes for the Three Routes}
 \label{sec:recipe}
-The three routes are close enough in accuracy that the choice among them can be made on practical grounds. In the boxes below, $N$ is the number of samples, $\Delta$ the sampling interval and $R$ the desired resolution in hertz, so that $\alpha=N\Delta R/2$ by \eqref{eq:alpha}. We recommend setting $R$ to about the width of the narrowest feature that must be preserved (Section~\ref{sec:howwide}), and the window length to the duration of the briefest event that must be resolved in time. The degrees of freedom then follow from \eqref{eq:design}.
+The three routes are close enough in accuracy that the choice among them can be made on practical grounds. First choose the window length $T$ from the briefest event to be resolved in time and the desired frequency resolution $R$ from the narrowest feature to be preserved (Section~\ref{sec:howwide}). Table~\ref{tab:resolution_translation} translates $T$ and $R$ into route-specific parameters; the approximate degrees of freedom $\nu$ then follow from \eqref{eq:design}. Here $N$ is the number of samples and $\Delta$ the sampling interval, so that $T=N\Delta$ and $\alpha=TR/2$ by \eqref{eq:alpha}.
+
+\begin{table*}[t]
+\centering
+\caption{Translation from desired time and frequency resolution to practical parameters for the three routes. The scientific choices are the window length $T$ and desired frequency resolution $R$; the method-specific parameters follow from them.}
+\label{tab:resolution_translation}
+\renewcommand{\arraystretch}{1.20}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.30\textwidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Start here $\rightarrow$} & \textbf{Multitaper} & \textbf{Smoothing} & \textbf{Welch / average} \\
+\midrule
+\textbf{Desired time resolution} & $T$ & $T$ & $T$ \\
+\textbf{Desired frequency resolution} & $R$ & $R$ & $R$ \\
+\addlinespace
+\textbf{Translate to method parameters} & $\alpha=TR/2$;\quad $L\approx2\alpha-1$\textsuperscript{*} & smoothing half-power width $=R$ & segment duration $\approx1.4/R$ \\
+\textbf{Practical recipe} & Slepian tapers & 25\% cosine taper + parabola & Hann segments, 50\% overlap \\
+\addlinespace
+\textbf{Approx.\ precision} & $\nu\sim2TR$ & $\nu\sim2TR$ & $\nu\sim2TR$ \\
+\bottomrule
+\end{tabularx}
+
+\vspace{2pt}
+\parbox{\textwidth}{\footnotesize\textsuperscript{*}\textit{Small-$\alpha$ regime:} $L$ is necessarily a small integer, so the achieved kernel width can differ appreciably from the design resolution $R$.}
+\end{table*}
 
 \begin{framed}
 \noindent\textbf{Exact versions.} These give the same estimate, to machine precision for (a) and (b) and to a fraction of a decibel for (c). The windows in (b) and (c) follow from requiring equality with (a) (identity \eqref{eq:identity}, Appendix~\ref{app:welch}).
