@@ -1,7 +1,8 @@
-\documentclass[journal,twoside,web]{ieeecolor2}
-\usepackage{generic}
+\documentclass[10pt,twocolumn]{article}
+\usepackage[letterpaper,margin=0.75in,columnsep=0.25in]{geometry}
 \usepackage{cite}
-\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsmath}
+\usepackage{newtxtext,newtxmath}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{booktabs}
@@ -11,32 +12,28 @@
 \urlstyle{same}
 \def\UrlBreaks{\do\/}\def\UrlBigBreaks{}
 \graphicspath{{../figures/}}
-\def\journalname{IEEE Transactions on Biomedical Engineering}
 \newcommand{\E}{\mathbf{E}}
 \newcommand{\dd}{\,d}
-\markboth{\journalname, VOL. XX, NO. XX, XXXX 2026}
-{Keldsen \MakeLowercase{\textit{et al.}}: Three Equivalent Routes to Estimating Power Spectra}
 \begin{document}
 \title{Three Equivalent Routes to Estimating Power Spectra: Averaging, Multitaper, and Smoothing}
 \author{Elijah Keldsen, Wolfgang Ganglberger, and M. Brandon Westover
-\thanks{Manuscript submitted [date]. This work was supported by the National Institutes of Health under Grants R01HL161253 and R01NS126282.}
+\thanks{This work was supported by the National Institutes of Health under Grants R01HL161253 and R01NS126282.}
 \thanks{E. Keldsen is with Brigham Young University, Provo, UT 84602 USA, and with Stanford University, Stanford, CA 94305 USA.}
 \thanks{W. Ganglberger is with Beth Israel Deaconess Medical Center and Harvard Medical School, Boston, MA 02215 USA.}
 \thanks{M. B. Westover is with Stanford University, Stanford, CA 94305 USA (corresponding author; e-mail to be added).}}
 
+\date{}
 \maketitle
 
 \begin{abstract}
 \textit{Objective:} Multitaper parameters have no counterpart in the two methods most users learn first, averaging the periodograms of segments and smoothing one periodogram across frequency. \textit{Methods:} We write each estimator as a bank of tapers with weights and compare kernels and degrees of freedom. We score the estimators at a fixed resolution on simulated spectra, seizure EEG and sleep spindles, and with each tuned to its best setting. \textit{Results:} The three methods are one estimator, built from one window by shifts in time, shifts in frequency, or orthogonal tapers. With all $N$ Slepian tapers weighted by their eigenvalues, the multitaper estimate equals the periodogram averaged over a box and the average of periodograms of a long sliding sinc window. With fewer tapers it is a smoothed periodogram plus a cross term, which averages to zero for white noise and otherwise removes leakage. For every route the degrees of freedom are about twice the window length times the frequency resolution, so users choose the resolution and the noise follows. Where the spectrum is low, the untapered smoothed periodogram errs by 14~dB, the default multitaper estimate by 6~dB, and a tapered smoothed periodogram by 1~dB. On EEG the routes agree to a median of 0.6 to 0.9~dB. \textit{Conclusion:} At equal resolution, a lightly tapered, smoothed periodogram matches an adaptively weighted multitaper estimate in leakage and accuracy. \textit{Significance:} Users can choose time and frequency resolution from the features of their data and use whichever route their pipeline computes.
 \end{abstract}
 
-\begin{IEEEkeywords}
-Electroencephalography, multitaper, periodogram, seizure, Slepian sequences, spectral estimation, Welch's method.
-\end{IEEEkeywords}
+\noindent\textit{Keywords:} Electroencephalography, multitaper, periodogram, seizure, Slepian sequences, spectral estimation, Welch's method.
 
 \section{Introduction}
 \label{sec:introduction}
-\IEEEPARstart{T}{hree} families of spectral estimator are in common use in neurophysiological signal analysis. The first averages periodograms. The record is cut into segments, a periodogram is computed for each, and the periodograms are averaged. This is Bartlett's method \cite{bartlett1948}, or Welch's \cite{welch1967} when the segments are tapered and overlap, and textbooks such as Kay's \cite{kay1988} present it first. The second smooths a periodogram. One periodogram of the whole record is convolved across frequency with a box (Daniell \cite{daniell1946}) or a Gaussian. This is the Blackman--Tukey estimator \cite{blackman1958}, and many analysis pipelines apply it to spectrograms without naming it. The third is Thomson's multitaper method \cite{thomson1982}, which two tutorials for neuroscientists \cite{babadi2014,prerau2017} recommend because it controls leakage, reduces variance, and is optimal in a defined sense. Its two parameters, however, have no counterpart in the first two methods. A user who knows how to choose a segment length or a smoothing width has no obvious way to decide what time--bandwidth product to use, or whether to keep seven tapers or six. The tapers themselves, Slepian's discrete prolate spheroidal sequences \cite{slepian1978}, are also unfamiliar to most users.
+Three families of spectral estimator are in common use in neurophysiological signal analysis. The first averages periodograms. The record is cut into segments, a periodogram is computed for each, and the periodograms are averaged. This is Bartlett's method \cite{bartlett1948}, or Welch's \cite{welch1967} when the segments are tapered and overlap, and textbooks such as Kay's \cite{kay1988} present it first. The second smooths a periodogram. One periodogram of the whole record is convolved across frequency with a box (Daniell \cite{daniell1946}) or a Gaussian. This is the Blackman--Tukey estimator \cite{blackman1958}, and many analysis pipelines apply it to spectrograms without naming it. The third is Thomson's multitaper method \cite{thomson1982}, which two tutorials for neuroscientists \cite{babadi2014,prerau2017} recommend because it controls leakage, reduces variance, and is optimal in a defined sense. Its two parameters, however, have no counterpart in the first two methods. A user who knows how to choose a segment length or a smoothing width has no obvious way to decide what time--bandwidth product to use, or whether to keep seven tapers or six. The tapers themselves, Slepian's discrete prolate spheroidal sequences \cite{slepian1978}, are also unfamiliar to most users.
 
 \begin{figure*}[!t]
 \centering
@@ -423,7 +420,7 @@ Band powers agree more closely than individual spectral values, because integrat
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4.5pt}
-\input{bandpower_table.tex}
+\resizebox{\textwidth}{!}{\input{bandpower_table.tex}}
 
 \vspace{3pt}
 \parbox{0.92\textwidth}{\footnotesize One channel of each clip, 599 windows of 2~s per clip (75 ictal and 120 pre-ictal windows for the clip of Fig.~\ref{fig:eeg}; 279 and 43 for the second clip, which contains two seizures and is not shown). Left: the mean ictal band power minus the mean pre-ictal band power (the windows in the two minutes before the first seizure, of which the second clip has only 43), in dB, by each estimator. Right: the median over all windows of the absolute difference between each estimator's band power and the multitaper estimate's, in dB. The periodogram is that of the cosine-tapered window. Resolution $R=2$~Hz throughout ($\alpha=2$; box of width 2~Hz after a Hann taper; recipe (b$'$), a parabola of half-power width 2~Hz after a 25\% cosine taper; 0.7-second Welch segments). The degrees of freedom are $\nu=6.0$ for the multitaper estimate, 4.8 for the Hann route, 8.7 for recipe (b$'$) and 7.7 for Welch's method.}
@@ -544,7 +541,7 @@ Averaging periodograms, smoothing a periodogram and multitaper estimation are th
 The code is public at \url{https://github.com/bdsp-core/spectral-smoothing-vs-multitaper}. The scripts in the repository generate every figure and table. The identities \eqref{eq:identity} and \eqref{eq:sliding}, the sliding-window convergence at $N_s=N$ to $32N$, the formulas of Appendix~\ref{app:quadratic} and their Monte Carlo checks are implemented as tests. The simulated data and the 128~Hz EEG epoch of Figs.~\ref{fig:abstract} and \ref{fig:eeg8s} are included. The EEG shown in Figs.~\ref{fig:eeg} and \ref{fig:sleep} and used in Table~\ref{tab:bandpower} is included as de-identified excerpts, one channel of each recording. The complete recordings are clinical recordings from the Brain Data Science Platform and are available to credentialed users under its data-use agreement. The scripts print every number quoted from the clips, and the printed output is in the repository.
 
 
-\appendices
+\appendix
 
 \section{Proof of the Identity}
 \label{app:proof}
