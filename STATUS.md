@@ -275,6 +275,15 @@ Done (`demos/make_figures.py`, `figures/`):
   git history). `demos/make_data_excerpts.py` rebuilds the excerpts from paths in `data/sources.local.json` (ignored).
   The seizure and sleep figures were rerun on the real data in the new figure style.
 
+- **Plain two-column format (2026-09-28, E.K.):** `paper/main.tex` no longer uses the TBME template. It is a standard
+  `article` (10pt, `twocolumn`, 0.75 in margins) set in Times (`newtxtext`, `newtxmath`), and `paper/supplement.tex`
+  is in Times too. Gone with the template: the grey abstract box of its `web` option, the running header, the index-terms
+  block, the drop cap and the "Manuscript submitted" footnote. Sections, tables and appendices are now numbered by
+  `article` (Section 2.1, Table 2, Appendix A); the supplement's cross-references were updated, and the entries above
+  keep the old TBME numbers (Section II-A = 2.1, Table I = 1). Table 3 is scaled to the text width. `ieeecolor2.cls`
+  and `generic.sty` stay in `paper/`, unused. Contact footnotes: E. Keldsen at Stanford only, and M. B. Westover's
+  e-mail added. Length 22 pages.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same
