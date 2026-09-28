@@ -1,5 +1,5 @@
 fig0: AR(4) peaks at f=0.1101, 0.1396; half-power width 7.0/N; separation 30.2/N
-fig0: nu = [2.0, 2.0, 16.7, 98.4]; bws = [0.8, 1.2, 8.2, 47.8]; RMS dB error whole band / peak region: W=0 6.11/6.09, W=4 1.59/1.81, W=24 3.70/5.51; whole-band minimum at W=6.0/N, peak-region minimum at W=4.0/N
+fig0: nu = [2.0, 2.0, 16.7, 98.4]; bws = [0.8, 1.2, 8.2, 47.8]; mass beyond 2W = [0.0127, 0.0002, 0.0012, 0.648]; RMS dB error whole band / peak region: W=0 6.11/6.09, W=4 1.59/1.81, W=24 3.70/5.51; whole-band minimum at W=6.0/N, peak-region minimum at W=4.0/N
 fig0a/fig0b done
 fig5 done
 fig6 average segments: dof 13.4; bw 5.84/N; mass beyond 2W 0.05%; top weights [0.184 0.174 0.16  0.143 0.126 0.111 0.102 0.   ]
@@ -12,7 +12,7 @@ fig6 slide a sinc window: dof 17.2; bw 8.03/N; mass beyond 2W 1.39%; top weights
 fig6 Thomson multitaper: dof 14.0; bw 7.41/N; mass beyond 2W 0.22%; top weights [0.143 0.143 0.143 0.143 0.143 0.143 0.143 0.   ]
 fig6 done (compact + full)
 fig9: max|box-mt| = 2.7e-13 dB; max|sinc-mt| by L/N: {1: 1.1361, 2: 0.5632, 4: 0.2393, 8: 0.1141, 16: 0.056}
-fig7: {'smooth': (np.float64(0.5758524479582476), np.float64(4.221555839007586)), 'average': (np.float64(0.9160754821468231), np.float64(5.912951108350818))} dofs [14.  16.7 17.6] bws(Hz) [0.91 1.03 0.97] nseg 9 step 104 expected log-noise std (dB): [1.64 1.5  1.46]
+fig7: {'smooth': (np.float64(0.5758524479582476), np.float64(4.2215558390075785)), 'average': (np.float64(0.916075482146816), np.float64(5.912951108350825))} dofs [14.  16.7 17.6] bws(Hz) [0.91 1.03 0.97] nseg 9 step 104 expected log-noise std (dB): [1.64 1.5  1.46]
 fig7/fig9 done
 fig8: nu = [17.2, 14.0, 16.7, 17.6]; bw = [8.2, 7.2, 8.2, 7.8]; mass beyond 2W = [0.0137, 0.0022, 0.0012, 0.0048]; median |dB error| vs truth = [11.6, 4.6, 0.9, 0.8]; nseg 9 step 104
 fig8 done
