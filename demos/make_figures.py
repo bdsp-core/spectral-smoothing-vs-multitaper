@@ -11,7 +11,7 @@ Style: that of Babadi and Brown, IEEE Trans. Biomed. Eng. 61(5):1555-1564, 2014,
 with the symbols of the paper as axis labels; boxed axes with inward ticks on all four sides; dotted grids on spectra; boxed
 legends inside the axes; panel letters (a), (b), ... outside the top-left corner and no panel titles; MATLAB's classic colour
 order. The true PSD is blue and dashed, and the multitaper estimate black. Kernels are dark green, in dB relative to their peak,
-centred at f Delta = 0.4 over [0, 1/2], with the main lobe zoomed in at the top left. Spectrograms use the jet colour map with a
+centred at f Delta = 0.4 over [0, 1/2], with the main lobe zoomed in at the top left. The EEG figures read de-identified one-channel excerpts from data/. Spectrograms use the jet colour map with a
 colour bar. Each route keeps one colour in every figure (ROUTE).
 """
 import sys, pathlib
@@ -570,12 +570,18 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
     print("fig7:", out, "dofs", np.round(dofs, 1), "bws(Hz)", np.round(bws, 2), "nseg", nseg, "step", step, "expected log-noise std (dB):", np.round(4.34 * np.sqrt(2 / np.array(dofs)), 2))
 
 
-# ---------------------------------------------------------------- fig10 / fig11: seizure clips (ELROND; de-identified BDSP recordings, not in this repo)
-ELROND_SEG = pathlib.Path.home() / "ELROND" / "Data" / "segments"
-EEG_CASES = {  # tag: (file, [(seizure onset s, offset s), ...]) from labels/mbw_mbw/seizure_annotations.json (annotator mbw)
-    "A": ("sub-I0003175292344_20170823183337.mat", [(292.0, 366.0)]),
-    "C": ("sub-I0003175080331_ses-84_445.mat", [(49.0, 183.0), (298.0, 441.0)]),
-}
+# ---------------------------------------------------------------- fig10 / fig11: seizure clips (de-identified excerpts in data/)
+DATA = ROOT / "data"                   # one channel of each recording, built by demos/make_data_excerpts.py
+EEG_CASES = {"A": "eeg_seizure_1.npz", "C": "eeg_seizure_2.npz"}
+
+
+def load_excerpt(name):
+    """An excerpt from data/ as a dict: x (microvolts), fs, channel, and for the seizure clips seizures_s and ictal_rise_db."""
+    p = DATA / name
+    if not p.exists():
+        return None
+    with np.load(p, allow_pickle=False) as d:
+        return {k: (d[k].astype(float) if d[k].dtype.kind == "f" and d[k].ndim else d[k][()] if d[k].ndim == 0 else d[k]) for k in d.files}
 
 
 def ictal_channel(X, Fs, t_on, t_off, lo=2.0, hi=20.0):
@@ -621,19 +627,16 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
     channel and six seconds of the ictal rhythm; spectrograms by the cosine-tapered periodogram, multitaper (NW, K = 2NW-1) and
     recipe (b') at the same W, each with its colour bar; to their right, spectra at a pre-ictal and an ictal instant by all three
     plus Welch, and the distribution of the multitaper-minus-smoothed differences. compact=True: trace and three spectrograms only."""
-    fname, ivals = EEG_CASES[case]; t_on, t_off = ivals[0]
-    p = ELROND_SEG / fname
-    if not p.exists():
-        print(f"fig10 skipped: {p} not found"); return
-    X, Fs, ch = _load_elrond(p)
-    X = X - X.mean(axis=0, keepdims=True)
+    d = load_excerpt(EEG_CASES[case])
+    if d is None:
+        print(f"fig10 skipped: data/{EEG_CASES[case]} not found"); return
+    x = d["x"]; Fs = float(d["fs"]); chn = str(d["channel"]); ivals = [tuple(v) for v in d["seizures_s"]]; t_on, t_off = ivals[0]
     N = int(win_s * Fs); step = int(step_s * Fs); nfft = 4 * N; W = NW / N; K = 2 * NW - 1
     f = np.arange(nfft // 2) / nfft * Fs; keep = f <= fmax
     Vk, _ = ss.dpss(N, NW); cosw, hp = _recipe(N, NW)
     L = int(round(1.4 / (2 * W))); hann_seg = ss.unit_taper("hann", L); wstep = L // 2
-    starts = list(range(0, X.shape[1] - N + 1, step)); tt = (np.array(starts) + N / 2) / Fs
-    ic, rise = ictal_channel(X, Fs, t_on, t_off); x = X[ic]; chn = _pretty_channel(ch[ic])
-    print(f"fig10 case {case}: channel {ch[ic]} (ictal rise {rise[ic]:.1f} dB), Fs={Fs:.0f}, N={N}, W={W * Fs:.2f} Hz, K={K}, Welch L={L} ({L / Fs:.2f} s), {len(starts)} windows")
+    starts = list(range(0, len(x) - N + 1, step)); tt = (np.array(starts) + N / 2) / Fs
+    print(f"fig10 case {case}: channel {chn} (ictal rise {float(d['ictal_rise_db']):.1f} dB), Fs={Fs:.0f}, N={N}, W={W * Fs:.2f} Hz, K={K}, Welch L={L} ({L / Fs:.2f} s), {len(starts)} windows")
     pg, mt, sb, wl = [], [], [], []
     for s0 in starts:
         seg = x[s0:s0 + N]; seg = seg - seg.mean()
@@ -662,7 +665,7 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
         fig.colorbar(plt.cm.ScalarMappable(cmap=SPEC_CMAP), ax=axs[0], fraction=0.035, pad=0.015).ax.set_visible(False)
         axs[-1].set(xlabel=LBL["s"], xlim=(0, t[-1]))
         _letters(axs, dx=24); _save(fig, out)
-        print(f"fig10 case {case} (compact): channel {ch[ic]}; nus {np.round(nus, 1)}; multitaper vs recipe (b') median |diff| {np.median(np.abs(dd)):.2f} dB, 95% {np.percentile(np.abs(dd), 95):.2f} dB")
+        print(f"fig10 case {case} (compact): channel {chn}; nus {np.round(nus, 1)}; multitaper vs recipe (b') median |diff| {np.median(np.abs(dd)):.2f} dB, 95% {np.percentile(np.abs(dd), 95):.2f} dB")
         return
     fig = plt.figure(figsize=(W2, 6.6))
     gs = fig.add_gridspec(4, 2, width_ratios=[3, 1.15], height_ratios=[0.8, 1, 1, 1], hspace=0.42, wspace=0.34)
@@ -723,7 +726,7 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
 
 
 # ---------------------------------------------------------------- fig12: sleep spindles, time resolution against frequency resolution
-SLEEP_DIR = pathlib.Path.home() / "GithubRepos" / "sleep-yoda" / "dev" / "standardization" / "output"   # de-identified BDSP sleep recordings, not in this repo
+SLEEP_EXCERPT = "eeg_sleep_n2.npz"                                                                   # 40 s of stage N2 with 5 s on each side, in data/
 SLEEP_SETTINGS = [(1.0, 2.0), (2.0, 2.0), (4.0, 1.0)]                                                  # (window length in s, full bandwidth 2W in Hz)
 
 
@@ -738,26 +741,20 @@ def _spindles(x, fs, band=(11.0, 16.0), factor=2.0, min_s=0.5, max_s=3.0):
     return on[keep], off[keep], sg
 
 
-def fig12_sleep_spindles(channel="c4-m1", t0=2788.0, dur=40.0, fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
+def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
     """Forty seconds of stage N2 sleep with spindles, as spectrograms at three choices of window length and bandwidth,
     each by the multitaper estimate (K = 2NW - 1, at least 1) and by recipe (b'). A white box in each panel is the
     resolution of that panel: the window length by the half-power width of the kernel."""
-    import glob, h5py
     from scipy.signal import butter, sosfiltfilt
-    files = sorted(glob.glob(str(SLEEP_DIR / "sub-S*_std.h5")))
-    if not files:
-        print(f"fig12 skipped: no sleep recording in {SLEEP_DIR}"); return
-    pad = 5.0
-    with h5py.File(files[0], "r") as f:
-        fs = int(f.attrs["sampling_rate"]); a = int((t0 - pad) * fs); b = int((t0 + dur + pad) * fs)
-        x = f["signals/" + channel][a:b, 0].astype(float) * 1e6
-        st = f["annotations_source/original/stage"][a:b, 0]
+    d = load_excerpt(SLEEP_EXCERPT)
+    if d is None:
+        print(f"fig12 skipped: data/{SLEEP_EXCERPT} not found"); return
+    x = d["x"]; fs = int(d["fs"]); st = d["stage"]; pad = float(d["pad_s"]); dur = float(d["duration_s"]); chn = str(d["channel"])
     x = x - x.mean(); t = np.arange(len(x)) / fs - pad
     on, off, sg = _spindles(x, fs)
     inside = (on / fs - pad > 0) & (off / fs - pad < dur); on, off = on[inside], off[inside]
     xb = sosfiltfilt(butter(4, [0.3, 35.0], btype="band", fs=fs, output="sos"), x)
-    chn = _pretty_channel(channel.split("-")[0]) + "-" + channel.split("-")[1].upper()
-    print(f"fig12: channel {channel}, {dur:.0f} s of stage {sorted(set(np.unique(st).astype(int)))} (2 = N2), Fs = {fs}; {len(on)} spindles at "
+    print(f"fig12: channel {chn}, {dur:.0f} s of stage {sorted(set(np.unique(st).astype(int)))} (2 = N2), Fs = {fs}; {len(on)} spindles at "
           f"{np.round(on / fs - pad, 1)} s lasting {np.round((off - on) / fs, 2)} s")
     step = int(step_s * fs); rows = []
     for T, B in SLEEP_SETTINGS:

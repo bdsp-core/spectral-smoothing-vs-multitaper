@@ -268,6 +268,13 @@ Done (`demos/make_figures.py`, `figures/`):
   Riedel and Sidorenko 1995) and these are now cited; the exact split with a cross term was not found, but McCloud et al.
   and Percival and Walden could not be read in full. See `review/reports/reference_verification.md`.
 
+- **EEG data in the repository (2026-09-27, cleared by M.B.W. for public release):** `data/` holds three de-identified
+  excerpts, one channel each: seizure clip 1 (C4, 10 min), seizure clip 2 (Fp1, 10 min), stage N2 sleep (C4-M1, 50 s);
+  about 0.9 MB in all. The seizure and sleep figures and the band-power table read only these, and reproduce the
+  numbers obtained from the full recordings. Source file names were removed from the figure code (they remain in the
+  git history). `demos/make_data_excerpts.py` rebuilds the excerpts from paths in `data/sources.local.json` (ignored).
+  The seizure and sleep figures were rerun on the real data in the new figure style.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same

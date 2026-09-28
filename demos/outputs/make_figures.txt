@@ -12,7 +12,7 @@ fig6 slide a sinc window: dof 17.2; bw 8.03/N; mass beyond 2W 1.39%; top weights
 fig6 Thomson multitaper: dof 14.0; bw 7.41/N; mass beyond 2W 0.22%; top weights [0.143 0.143 0.143 0.143 0.143 0.143 0.143 0.   ]
 fig6 done (compact + full)
 fig9: max|box-mt| = 2.7e-13 dB; max|sinc-mt| by L/N: {1: 1.1361, 2: 0.5632, 4: 0.2393, 8: 0.1141, 16: 0.056}
-fig7: {'smooth': (np.float64(0.5758524479582476), np.float64(4.2215558390075785)), 'average': (np.float64(0.916075482146816), np.float64(5.912951108350825))} dofs [14.  16.7 17.6] bws(Hz) [0.91 1.03 0.97] nseg 9 step 104 expected log-noise std (dB): [1.64 1.5  1.46]
+fig7: {'smooth': (np.float64(0.5758524479582476), np.float64(4.221555839007586)), 'average': (np.float64(0.9160754821468231), np.float64(5.912951108350818))} dofs [14.  16.7 17.6] bws(Hz) [0.91 1.03 0.97] nseg 9 step 104 expected log-noise std (dB): [1.64 1.5  1.46]
 fig7/fig9 done
 fig8: nu = [17.2, 14.0, 16.7, 17.6]; bw = [8.2, 7.2, 8.2, 7.8]; mass beyond 2W = [0.0137, 0.0022, 0.0012, 0.0048]; median |dB error| vs truth = [11.6, 4.6, 0.9, 0.8]; nseg 9 step 104
 fig8 done
@@ -23,10 +23,10 @@ fig4: 208 epochs of 4 s; MT vs smoothed |diff| median 1.20 dB, 95% 4.43 dB
 fig10 case A: channel C4 (ictal rise 20.4 dB), Fs=200, N=400, W=1.00 Hz, K=3, Welch L=140 (0.70 s), 599 windows
 fig10 case A: nus [2.  6.  8.7 7.7]; multitaper vs recipe (b') median |diff| 0.90 dB, 95% 4.31 dB; pre 247 s, ictal 318 s
 fig10 case A: ictal window at 318 s: harmonics on the smoothed estimate at [ 7.7 15.  22.5] Hz, spacings [7.4 7.5] Hz; on the unsmoothed periodogram the nearest peaks are at [ 7.8 15.2 22.6] Hz with half-power widths [0.69 0.47 0.47] Hz (resolution of the tapered 2-s window: 0.53 Hz)
-fig10 case C: channel FP1 (ictal rise 11.0 dB), Fs=200, N=400, W=1.00 Hz, K=3, Welch L=140 (0.70 s), 599 windows
-fig10 case C (compact): channel FP1; nus [2.  6.  8.7 7.7]; multitaper vs recipe (b') median |diff| 0.68 dB, 95% 2.96 dB
+fig10 case C: channel Fp1 (ictal rise 11.0 dB), Fs=200, N=400, W=1.00 Hz, K=3, Welch L=140 (0.70 s), 599 windows
+fig10 case C (compact): channel Fp1; nus [2.  6.  8.7 7.7]; multitaper vs recipe (b') median |diff| 0.68 dB, 95% 2.96 dB
 fig10/fig11 done
-fig12: channel c4-m1, 40 s of stage [np.int64(2)] (2 = N2), Fs = 200; 5 spindles at [ 6.2  9.5 18.1 28.2 32.7] s lasting [0.87 0.64 0.87 0.57 0.54] s
+fig12: channel C4-M1, 40 s of stage [np.int64(2)] (2 = N2), Fs = 200; 5 spindles at [ 6.2  9.5 18.1 28.2 32.7] s lasting [0.87 0.64 0.87 0.57 0.54] s
 fig12: window 1 s, 2W = 2 Hz (NW = 1, K = 1): nu = 2.0 multitaper, 4.7 smoothed; kernel half-power width 1.06 / 2.06 Hz; 2 x window x width = 2.1 / 4.1; median |difference| 1.83 dB, 95th percentile 10.11 dB; a spindle appears 0.8 / 0.9 s long and 1.5 / 2.6 Hz wide (multitaper / smoothed; median of 5 spindles)
 fig12: window 2 s, 2W = 2 Hz (NW = 2, K = 3): nu = 6.0 multitaper, 8.7 smoothed; kernel half-power width 1.66 / 2.03 Hz; 2 x window x width = 6.6 / 8.1; median |difference| 0.72 dB, 95th percentile 2.95 dB; a spindle appears 1.6 / 1.6 s long and 2.0 / 2.9 Hz wide (multitaper / smoothed; median of 5 spindles)
 fig12: window 4 s, 2W = 1 Hz (NW = 2, K = 3): nu = 6.0 multitaper, 8.7 smoothed; kernel half-power width 0.83 / 1.02 Hz; 2 x window x width = 6.6 / 8.1; median |difference| 0.68 dB, 95th percentile 2.77 dB; a spindle appears 3.0 / 3.0 s long and 1.0 / 1.5 Hz wide (multitaper / smoothed; median of 5 spindles)

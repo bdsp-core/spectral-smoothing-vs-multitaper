@@ -25,3 +25,5 @@ review/figures/*.png
 review/main_flat.tex
 review/__pycache__/
 *-eps-converted-to.pdf
+# locations of the original recordings on the machine that built data/ (not committed)
+data/sources.local.json

@@ -13,6 +13,8 @@ figures and demos the paper needs, and the plan.
 | path | what |
 |---|---|
 | `specsmooth/` | the Python package (numpy/scipy): tapers, estimators, expected-value kernels, variance/resolution/leakage metrics, test signals |
+| `data/` | the EEG shown in the paper, as de-identified one-channel excerpts (see `data/README.md`); the figures run from these |
+| `demos/make_data_excerpts.py` | built the excerpts from the original recordings |
 | `demos/verify_equivalence.py` | numerical proof of the central identity plus the kernel / dof tables quoted in STATUS.md |
 | `demos/make_figures.py` | the paper figures (`figures/fig0..fig5`) |
 | `demos/everyday_comparison.py` | Table I: the estimators at one bandwidth over 300 records of the AR(4) process |

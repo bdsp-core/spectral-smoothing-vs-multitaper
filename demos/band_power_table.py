@@ -11,21 +11,19 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "demos"))
 import numpy as np
 import specsmooth as ss
-from make_figures import _load_elrond, ictal_channel, ELROND_SEG, EEG_CASES
+from make_figures import load_excerpt, EEG_CASES
 
 BANDS = [("delta", 1, 4), ("theta", 4, 8), ("alpha", 8, 13), ("beta", 13, 30)]
 
 
 def band_powers(case="A", win_s=2.0, step_s=1.0, NW=2):
-    fname, ivals = EEG_CASES[case]
-    X, Fs, ch = _load_elrond(ELROND_SEG / fname); X = X - X.mean(axis=0, keepdims=True)
+    ex = load_excerpt(EEG_CASES[case]); x = ex["x"]; Fs = float(ex["fs"]); ivals = [tuple(v) for v in ex["seizures_s"]]
     N = int(win_s * Fs); step = int(step_s * Fs); nfft = 4 * N; W = NW / N
     f = np.arange(nfft // 2) / nfft * Fs
     Vk, _ = ss.dpss(N, NW); hann = ss.unit_taper("hann", N); hb = ss.box_lag_window(N, W)
     tuk = ss.unit_taper("tukey", N, alpha=0.25); hp = ss.parabolic_lag_window(N, np.sqrt(2) * W)
     L = int(round(1.4 / (2 * W))); hann_seg = ss.unit_taper("hann", L); wstep = L // 2
     t_on, t_off = ivals[0]
-    ic, _ = ictal_channel(X, Fs, t_on, t_off); x = X[ic]
     starts = np.arange(0, len(x) - N + 1, step); tt = (starts + N / 2) / Fs
     ests = {"periodogram": [], "multitaper": [], "Hann+box": [], "Tukey+parabola": [], "Welch": []}
     for s0 in starts:
@@ -53,7 +51,7 @@ def band_powers(case="A", win_s=2.0, step_s=1.0, NW=2):
     for on, off in ivals:
         ictal |= (tt >= on) & (tt <= off)
     pre = (tt < ivals[0][0] - 5) & (tt >= ivals[0][0] - 125)
-    return out, tt, ictal, pre, ch[ic]
+    return out, tt, ictal, pre, str(ex["channel"])
 
 
 def main(cases=("A", "C")):
@@ -67,7 +65,7 @@ def main(cases=("A", "C")):
         for k, (b, lo, hi) in enumerate(BANDS):
             chg = {n: out[n][b][ictal].mean() - out[n][b][pre].mean() for n in names}
             dev = {n: np.median(np.abs(out[n][b] - out["multitaper"][b])) for n in names if n != "multitaper"}
-            label = f"Fig.~\\ref{{fig:eeg}} ({chan.title()})" if case == "A" else f"second clip ({chan.title()})"
+            label = f"Fig.~\\ref{{fig:eeg}} ({chan})" if case == "A" else f"second clip ({chan})"
             lines.append((label if k == 0 else "") + f" & {b} ({lo}--{hi} Hz) & " + " & ".join(f"{chg[n]:+.1f}" for n in names) + " & " + " & ".join(f"{dev[n]:.2f}" for n in names if n != "multitaper") + r"\\")
         if case != cases[-1]:
             lines.append(r"\midrule")

@@ -5,7 +5,7 @@ case A: channel C4; windows: 75 ictal, 120 pre-ictal, 599 total
 case C: spectrogram values up to 30 Hz, Hann+box        (nu =  4.8) against multitaper (nu = 6.0): median |difference| 1.21 dB, 95th percentile 4.25 dB
 case C: spectrogram values up to 30 Hz, Tukey+parabola  (nu =  8.7) against multitaper (nu = 6.0): median |difference| 0.68 dB, 95th percentile 2.96 dB
 case C: spectrogram values up to 30 Hz, Welch           (nu =  7.7) against multitaper (nu = 6.0): median |difference| 1.05 dB, 95th percentile 4.08 dB
-case C: channel FP1; windows: 279 ictal, 43 pre-ictal, 599 total
+case C: channel Fp1; windows: 279 ictal, 43 pre-ictal, 599 total
 \begin{tabular}{llccccc|cccc}
 \toprule
 clip & band & periodogram & multitaper & Hann+box & recipe (b$'$) & Welch & periodogram & Hann+box & recipe (b$'$) & Welch\\
