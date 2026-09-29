@@ -304,8 +304,26 @@ Done (`demos/make_figures.py`, `figures/`):
   `paper/main.tex` and `paper/supplement.tex` name the new colours. `review/prepare_figure_review.py` builds the inputs
   of the figure review from the LaTeX sources, into `review/figures/` or a named folder.
 
+- **Figure review of the earlier figures, and what was done about it (2026-09-28):** the review of the Babadi-and-Brown
+  figures (`review/reports/review_20260928_224408.md`) asked for major revisions, nearly all of them matters of
+  consistency between figures. Done in response, beyond the colours:
+  - One name for each method, word for word in every figure (`NAME` in `demos/make_figures.py`): Multitaper; Cosine
+    taper, then parabola; Untapered, then box; Welch; Periodogram; Sliding sinc window. Parameters follow the name.
+    "Recipe (b′)" no longer appears inside a figure, where it could be read as panel (b). The tables keep their wording.
+  - The seizure figure (Fig. 8) is now in dB re 1 µV²/Hz, as the sleep figure already was: the estimates are divided by
+    the sampling rate, which lowers every level by 23.0 dB and changes no difference. Its colour scale is −13 to 22 dB
+    (was 10 to 45), on one colour bar in place of three.
+  - Axis labels start with a capital letter.
+  - Each figure is also written as PDF, and the paper includes the PDFs, so lettering stays sharp in print. The PNGs
+    remain for the README and the figure review. The long EEG trace in Fig. 8 is a picture inside the PDF.
+  - The supplementary figures are numbered in the order in which the main text cites them: S1 the banks in full (was
+    S4), S2 the leakiest taper, S3 the kernels (was S1), S4 the sweep over resolution (was S3, and not cited before;
+    the note of Table 2 now cites it).
+  Not done: a perceptually uniform colour map for the spectrograms (jet is M.B.W.'s choice and the EEG convention), and
+  Monte Carlo intervals on Fig. 3 (its curves are averages over 300 records).
+
 Still needed:
-- ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
+- ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S4 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same
   half-power bandwidth, report dof and leakage (Fig 3 read at fixed x).
 - **Time-frequency version of Fig 3** on EEG: bias/variance of band powers (delta/theta/alpha/beta)

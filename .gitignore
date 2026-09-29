@@ -28,3 +28,6 @@ review/__pycache__/
 *-eps-converted-to.pdf
 # locations of the original recordings on the machine that built data/ (not committed)
 data/sources.local.json
+# vector copies of figures that are not in the paper
+figures/fig11_eeg_two_seizures.pdf
+figures/fig4_eeg_spectrograms.pdf

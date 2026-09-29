@@ -38,9 +38,10 @@ def main():
     for src, prefix in ((ROOT / "paper" / "main.tex", "figure"), (ROOT / "paper" / "supplement.tex", "efigure")):
         for k, (png, label, cap) in enumerate(figures(src.read_text()), start=1):
             name = f"{prefix}{k}.png"
-            shutil.copyfile(ROOT / "figures" / pathlib.Path(png).name, OUT / name)
+            src_png = pathlib.Path(png).with_suffix(".png").name       # the paper includes the PDF; the reviewers read its PNG twin
+            shutil.copyfile(ROOT / "figures" / src_png, OUT / name)
             lines.append(f"## {name} ({label})\n\n{cap}\n")
-            print(f"{name:14s} <- {pathlib.Path(png).name:30s} {label}")
+            print(f"{name:14s} <- {src_png:30s} {label}")
     (OUT / "captions.md").write_text("\n".join(lines))
 
 
