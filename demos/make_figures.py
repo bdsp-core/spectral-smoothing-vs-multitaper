@@ -208,10 +208,17 @@ def fig1_kernels(N=256, NW=4, nfft=8192):
     for name, H, c, st, lw in ks:
         ax[0].plot(fs[o] * N, H[o] / N, color=c, ls=st, lw=lw, label=name)
         ax[1].plot(fs[o] * N, _db(H[o]), color=c, ls=st, lw=lw, label=name)
-    ax[0].set(xlim=(-2.5 * NW, 2.5 * NW), ylim=(0, 0.22), xticks=np.arange(-10, 11, 2), xlabel=LBL["fND"], ylabel=r"$\mathcal{K}(f)/N\Delta$")
+    ax[0].set(xlim=(-2.5 * NW, 2.5 * NW), ylim=(0, 0.27 if TUFTE else 0.22), xticks=np.arange(-10, 11, 2), xlabel=LBL["fND"], ylabel=r"$\mathcal{K}(f)/N\Delta$")
     ax[1].set(xlim=(-6 * NW, 6 * NW), ylim=(-100, 5), xlabel=LBL["fND"], ylabel=LBL["K"])
-    ax[0].legend(loc="upper center", ncol=2, fontsize=6.5)
-    _grid(*ax); _letters(ax); fig.tight_layout(w_pad=2.0)
+    ax[0].legend(loc="upper left", ncol=1, fontsize=6.3, borderaxespad=0.2) if TUFTE else ax[0].legend(loc="upper center", ncol=2, fontsize=6.5)
+    _grid(*ax); _letters(ax); fig.tight_layout(w_pad=2.0, rect=(0, 0, 0.83, 1) if TUFTE else None)
+    if TUFTE:                              # each curve of (b) named at its right-hand end, moved apart where two ends are close
+        edge = (fs[o] * N >= 5 * NW) & (fs[o] * N <= 6 * NW)
+        ends = sorted([[max(float(_db(H[o])[edge].max()), -97.0), name, c] for name, H, c, st, lw in ks[1:]], reverse=True)
+        for k in range(1, len(ends)):
+            ends[k][0] = min(ends[k][0], ends[k - 1][0] - 8.0)
+        for y, name, c in ends:
+            ax[1].text(6 * NW + 0.6, y, name, color=c, fontsize=6.5, va="center", ha="left", clip_on=False)
     _save(fig, "fig1_kernels.png")
 
 
@@ -284,6 +291,8 @@ def fig3_tradeoff(N=256, nfft=8192, f0=0.25):
     for a in ax:
         a.axvline(8, color="black", lw=0.7, ls=":")
         a.set_xlabel("Half-power width $\\times\\, N\\Delta$")
+    if TUFTE:
+        ax[0].text(8.5, 0.97, "$8/(N\\Delta)$, the width in Table 2", transform=ax[0].get_xaxis_transform(), fontsize=6.5, va="top", color="0.25")
     ax[0].set(ylabel="$\\nu$"); ax[1].set(ylabel="Kernel power beyond twice\nthe half-power half-width", yscale="log")
     ax[2].set(ylabel="Peak beyond 1.5 times the\nhalf-power half-width (dB)")
     _grid(*ax)
@@ -346,6 +355,8 @@ def fig5_slepian_fill(N=256, NW=4, nfft=8192):
     for s_ in (-NW, NW):
         a.axvline(s_, color="black", ls=":", lw=0.8)
     a.set(xlim=(-2 * NW, 2 * NW), ylim=(0, 0.65), xlabel=LBL["fND"], ylabel="$|H^{(i)}(f)|^2/N\\Delta^2$")
+    if TUFTE:
+        a.text(-NW + 0.2, 0.62, "$-R/2$", fontsize=6.5, ha="left", va="center"); a.text(NW - 0.2, 0.62, "$R/2$", fontsize=6.5, ha="right", va="center")
     a.legend(loc="upper right", fontsize=7)
     a = ax[1, 0]
     cum = np.cumsum(Uk * lam, axis=1)
@@ -414,11 +425,11 @@ def _motif_rows(fig, ax_top, ax_bot, f, truth, ests, kers, fs, colors, lws, zoom
         if j == 0:
             a.set_ylabel(LBL["S"])
             if TUFTE:
-                _label(a, 0.015, -30, "True PSD", "black"); _label(a, 0.015, -39, "Estimate", c if c != "black" else "0.35")
+                _label(a, 0.015, -37, "True PSD", "black")
             else:
                 a.legend(loc="upper right", fontsize=6.5)
-        if notes:
-            _note(a, notes[j])
+        if notes:                          # the note names the estimate and is written in its colour
+            _note(a, notes[j], color="0.35" if c in ("black", ROUTE["periodogram"]) else c)
     for j, (a, H, z) in enumerate(zip(ax_bot, kers, zooms)):
         _kernel_panel(fig, a, fs, H, zoom=z)
         a.set_xlabel(LBL["fD"])
@@ -532,7 +543,14 @@ def fig8_everyday_motif(N=1024, NW=4, nfft=4096, seed=11, seg_len=192):
     fig, ax = plt.subplots(2, 4, figsize=(W2, 3.9))
     notes = [f"{n}\n$\\nu = {v:.1f}$" for n, v in zip((NAME["raw_box"], f"{NAME['multitaper']}, $L = {K}$", NAME["smooth"], f"{NAME['welch']}, {nseg} Hann segments"), nus)]
     _motif_rows(fig, ax[0], ax[1], f, truth, ests, kers, fs, [c[2] for c in cols], [0.8] * 4, [0.01] * 4, notes)
+    floors = [float(np.median(10 * np.log10(S[f >= 0.4] / truth[f >= 0.4]))) for S in ests]
+    if TUFTE:                              # how far above the truth the two leaky estimates level off
+        for a, gap in zip(ax[0][:2], floors[:2]):
+            x0 = 0.45; y0 = 10 * np.log10(truth[np.argmin(np.abs(f - x0))])
+            a.annotate("", xy=(x0, y0 + gap), xytext=(x0, y0), arrowprops=dict(arrowstyle="<->", lw=0.5, color="0.15", shrinkA=0, shrinkB=0, mutation_scale=5), zorder=6)
+            a.text(x0, y0 - 4, f"{gap:.0f} dB", ha="center", va="top", fontsize=6.5, zorder=6)
     _letters(ax, dx=18); fig.tight_layout(w_pad=0.5, h_pad=0.8); _save(fig, "fig8_everyday_motif.png")
+    print(f"fig8: median level above the truth for f Delta >= 0.4, in dB = {[round(v, 1) for v in floors]}")
     err = [np.median(np.abs(10 * np.log10(S) - 10 * np.log10(truth))) for S in ests]
     print(f"fig8: nu = {[round(float(v), 1) for v in nus]}; bw = {[round(float(v), 1) for v in bws]}; mass beyond 2W = {[round(float(v), 4) for v in masses]}; median |dB error| vs truth = {[round(float(v), 1) for v in err]}; nseg {nseg} step {step}")
 
@@ -562,6 +580,8 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
             for i, s in enumerate(range(0, N - seg_len + 1, step)):
                 u = np.zeros(N); u[s:s + seg_len] = hann_seg; a.plot(t, u, lw=0.8, color=hue[j] if TUFTE else cyc[i % 7])
             a.set_ylabel("$h_{k-n}$")
+            if TUFTE:
+                a.set_ylim(-0.005, 0.27); _note(a, f"shifts $n = 0, {step}, \\ldots, {N - seg_len}$", size=5.8)
         elif j == 1:
             for i, fk in enumerate([0, 1, 2, 3]):
                 a.plot(t, cosw * np.cos(2 * np.pi * fk / N * t), lw=0.8, color=four[i] if TUFTE else cyc[i], label=f"$f'N\\Delta = {fk}$")
@@ -573,6 +593,8 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
                 u[lo:hi] = w[lo - (s - 4 * N):hi - (s - 4 * N)]
                 a.plot(t, u / w.max(), lw=0.8, color=four[i] if TUFTE else cyc[i])
             a.set_ylabel("$h_{k-n}/\\max h$")
+            if TUFTE:
+                a.set_ylim(-0.28, 1.4); _note(a, f"centred at $k = {-N // 2}, 0, {N // 2}, {N}$", size=5.8)
         else:
             for i in range(4):
                 a.plot(t, _signed(V[:, i]), lw=0.8, color=four[i] if TUFTE else ["black", MATLAB["b"], MATLAB["g"], MATLAB["r"]][i], label=f"$i = {i + 1}$")
@@ -586,7 +608,9 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
             a = ax[1, j]
             for i in range(4):
                 a.plot(t, _signed(U[:, i]), lw=0.8, color=four[i] if TUFTE else ["black", MATLAB["b"], MATLAB["g"], MATLAB["r"]][i], label=f"$i = {i + 1}$")
-            a.set(xlabel="$k$", xlim=(0, N - 1), xticks=[0, N // 2, N], ylabel="$h^{(i)}_k$" if j == 0 else "")
+            a.set(xlabel="$k$", xlim=(0, N - 1), xticks=[0, N // 2, N], ylabel=("Eigen-taper $h^{(i)}_k$" if TUFTE else "$h^{(i)}_k$") if j == 0 else "")
+            if j == 3:
+                _note(a, "the bank itself, as in (d)", size=5.8)
             a.set_ylim(a.get_ylim()[0], a.get_ylim()[1] + 0.45 * (a.get_ylim()[1] - a.get_ylim()[0]))
             if j == 0:
                 a.legend(loc="upper center", fontsize=5.5, ncol=2, handlelength=1.2, columnspacing=0.6)
@@ -597,7 +621,7 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
             a.bar(np.arange(1, kmax + 1), cc[:kmax], color=hue[j], lw=0, width=0.8); _note(a, f"$\\nu = {ss.dof_from_weights(c):.1f}$")
         else:
             a.bar(np.arange(1, kmax + 1), cc[:kmax], color=BAR, edgecolor="black", lw=0.4, width=0.8)
-        a.set(xlabel="$i$", ylabel="$c_i/\\sum c_i$" if j == 0 else "", ylim=(0, 0.2), xlim=(0.3, kmax + 0.7))
+        a.set(xlabel="$i$", ylabel=("Weight $c_i/\\sum c_i$" if TUFTE else "$c_i/\\sum c_i$") if j == 0 else "", ylim=(0, 0.2), xlim=(0.3, kmax + 0.7))
         H = ss.kernel_quadratic(Q, nfft); st = ss.kernel_stats(H, W)
         if full:
             a = ax[3, j]
@@ -675,11 +699,14 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
         a.plot(f[keep], dB(S[:nfft // 2][keep]), color=c, lw=lw, label=name)
     a.set(ylabel=LBL["S"], xlim=(0, fmax)); a.legend(loc="upper right", fontsize=6.8)
     a = ax[1]; ref = dB(every[0][2][:nfft // 2][keep]); out = {}
-    for key, name, S, c, lw in every[1:]:
+    for z, (key, name, S, c, lw) in enumerate(every[1:]):
         dd = dB(S[:nfft // 2][keep]) - ref
         out[key] = (np.median(np.abs(dd)), np.percentile(np.abs(dd), 95))
-        a.plot(f[keep], dd, color=c, lw=0.7, label=f"{name} $-$ multitaper")
+        a.plot(f[keep], dd, color=c, lw=0.7, label=f"{name} $-$ multitaper", zorder=3 - z)
     a.axhline(0, color="black", lw=0.5)
+    sd = 4.34 * np.sqrt(2 / dofs[0])
+    if TUFTE:
+        a.axhspan(-sd, sd, color="0.9", lw=0, zorder=0); _note(a, f"Grey band: $\\pm${sd:.1f} dB, the standard deviation\nof the multitaper estimate", size=6)
     a.set(xlabel=LBL["Hz"], ylabel="Difference (dB)", xlim=(0, fmax), ylim=(-15, 15)); a.legend(loc="lower right", fontsize=6.3)
     _grid(*ax); _letters(ax, dx=22); fig.tight_layout(h_pad=0.6); _save(fig, "fig7_everyday_eeg.png")
     print("fig7:", out, "dofs", np.round(dofs, 1), "bws(Hz)", np.round(bws, 2), "nseg", nseg, "step", step, "expected log-noise std (dB):", np.round(4.34 * np.sqrt(2 / np.array(dofs)), 2))

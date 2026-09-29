@@ -14,6 +14,7 @@ fig6 done (compact + full)
 fig9: max|box-mt| = 2.7e-13 dB; max|sinc-mt| by L/N: {1: 1.1361, 2: 0.5632, 4: 0.2393, 8: 0.1141, 16: 0.056}
 fig7: {'smooth': (np.float64(0.5758524479582476), np.float64(4.221555839007586)), 'average': (np.float64(0.9160754821468231), np.float64(5.912951108350818))} dofs [14.  16.7 17.6] bws(Hz) [0.91 1.03 0.97] nseg 9 step 104 expected log-noise std (dB): [1.64 1.5  1.46]
 fig7/fig9 done
+fig8: median level above the truth for f Delta >= 0.4, in dB = [21.9, 14.1, 0.5, 0.6]
 fig8: nu = [17.2, 14.0, 16.7, 17.6]; bw = [8.2, 7.2, 8.2, 7.8]; mass beyond 2W = [0.0137, 0.0022, 0.0012, 0.0048]; median |dB error| vs truth = [11.6, 4.6, 0.9, 0.8]; nseg 9 step 104
 fig8 done
 fig1 done (supplement)
