@@ -12,12 +12,13 @@ fig6 slide a sinc window: dof 17.2; bw 8.03/N; mass beyond 2W 1.39%; top weights
 fig6 Thomson multitaper: dof 14.0; bw 7.41/N; mass beyond 2W 0.22%; top weights [0.143 0.143 0.143 0.143 0.143 0.143 0.143 0.   ]
 fig6 done (compact + full)
 fig9: max|box-mt| = 2.7e-13 dB; max|sinc-mt| by L/N: {1: 1.1361, 2: 0.5632, 4: 0.2393, 8: 0.1141, 16: 0.056}
-fig7: {'smooth': (np.float64(0.5758524479582476), np.float64(4.221555839007586)), 'average': (np.float64(0.9160754821468231), np.float64(5.912951108350818))} dofs [14.  16.7 17.6] bws(Hz) [0.91 1.03 0.97] nseg 9 step 104 expected log-noise std (dB): [1.64 1.5  1.46]
+fig7: {'smooth': (np.float64(0.5758524479582476), np.float64(4.221555839007584)), 'average': (np.float64(0.9160754821468202), np.float64(5.912951108350816))} dofs [14.  16.7 17.6] bws(Hz) [0.91 1.03 0.97] nseg 9 step 104 expected log-noise std (dB): [1.64 1.5  1.46]
 fig7/fig9 done
 fig8: median level above the truth for f Delta >= 0.4, in dB = [21.9, 14.1, 0.5, 0.6]
 fig8: nu = [17.2, 14.0, 16.7, 17.6]; bw = [8.2, 7.2, 8.2, 7.8]; mass beyond 2W = [0.0137, 0.0022, 0.0012, 0.0048]; median |dB error| vs truth = [11.6, 4.6, 0.9, 0.8]; nseg 9 step 104
 fig8 done
 fig1 done (supplement)
+fig2: median level above the truth for f Delta >= 0.4, in dB: {'Untapered, then box': 18.1, 'Multitaper, $L = 7$': 10.4, 'Multitaper, $L = 6$': 3.8, 'Multitaper, $L = 7$, adaptive': -0.2, 'Cosine taper, then parabola': 0.3}
 fig2 done (supplement)
 fig3 done (supplement)
 fig4: 208 epochs of 4 s; MT vs smoothed |diff| median 1.20 dB, 95% 4.43 dB

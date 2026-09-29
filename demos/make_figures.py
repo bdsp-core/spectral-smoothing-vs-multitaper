@@ -55,8 +55,8 @@ if TUFTE:
         "legend.frameon": False, "axes.prop_cycle": plt.cycler(color=[MATLAB[c] for c in "bygrcmk"]),
     })
     TRUTH = dict(color="black", ls="-", lw=1.1, zorder=5)               # the true PSD: black, drawn over the estimate
-    ROUTE = {"multitaper": "#0072B2", "smooth": "#E69F00", "raw_box": "#009E73", "welch": "#CC79A7", "hann_box": "#999933",
-             "bohman_box": "#56B4E9", "hann_gauss": "#D55E00", "periodogram": "0.6"}
+    ROUTE = {"multitaper": "#0072B2", "smooth": "#E69F00", "raw_box": "#009E73", "sinc": "#005C43", "welch": "#CC79A7", "hann_box": "0.3",
+             "bohman_box": "#56B4E9", "hann_gauss": "0.3", "periodogram": "0.6"}
     KERNEL, BAR, SHADE, INK = "0.15", "0.55", "0.91", "0.45"
 else:
     MATLAB = {"b": (0, 0, 1), "g": (0, 0.5, 0), "r": (1, 0, 0), "c": (0, 0.75, 0.75), "m": (0.75, 0, 0.75), "y": (0.75, 0.75, 0),
@@ -68,7 +68,7 @@ else:
         "axes.prop_cycle": plt.cycler(color=[MATLAB[c] for c in "bgrcmyk"]),
     })
     TRUTH = dict(color=MATLAB["b"], ls="--", lw=1.2)                       # the true PSD, as in Babadi and Brown
-    ROUTE = {"multitaper": "black", "smooth": MATLAB["r"], "raw_box": MATLAB["g"], "welch": MATLAB["m"], "hann_box": MATLAB["c"],
+    ROUTE = {"multitaper": "black", "smooth": MATLAB["r"], "raw_box": MATLAB["g"], "sinc": MATLAB["m"], "welch": MATLAB["m"], "hann_box": MATLAB["c"],
              "bohman_box": MATLAB["y"], "hann_gauss": MATLAB["k"], "periodogram": "0.6"}
     KERNEL = (0.11, 0.30, 0.21)            # the dark green of their kernels
     BAR = (0, 0, 0.5625)                   # MATLAB's default bar colour
@@ -81,7 +81,7 @@ SPEC_CMAP, SPEC_VLIM = "jet", (10.0, 45.0)      # jet is the convention for EEG 
 TAPER_ALPHA = 0.25                     # recipe (b'): half a cosine on the first and last eighth of the record (a 25% Tukey taper)
 # Labels follow the notation of the paper (Babadi and Brown 2014): sample k, taper index i = 1, 2, ..., L tapers, time-bandwidth
 # product alpha, resolution R = 2 alpha / (N Delta) (the full width; the code's half-bandwidth W = NW / N is R / 2 with Delta = 1).
-LBL = {"S": r"$\hat{S}(f)$ (dB)", "fD": r"$f\Delta$", "fND": r"$fN\Delta$", "K": r"$\mathcal{K}(f)$ (dB)", "Hz": "Frequency (Hz)",
+LBL = {"S": r"PSD (dB re $\sigma^2\Delta$)" if TUFTE else r"$\hat{S}(f)$ (dB)", "fD": r"$f\Delta$", "fND": r"$fN\Delta$", "K": r"$\mathcal{K}(f)$ (dB)", "Hz": "Frequency (Hz)",
        "s": "Time (s)"}
 
 
@@ -127,11 +127,14 @@ def _label(a, x, y, text, color, ha="left", va="center", size=6.5):
     a.text(x, y, text, color=color, ha=ha, va=va, fontsize=size)
 
 
-def _ramp(color, n, lightest=0.62):
-    """n shades of one hue, from the hue itself to a light tint: a family of curves ordered by an index."""
+def _ramp(color, n, darkest=0.35, lightest=0.68):
+    """n shades of one hue, from a shade darker than the hue to a light tint: a family of curves ordered by an index."""
     from matplotlib.colors import to_rgb
-    c = np.array(to_rgb(color))
-    return [tuple(c + (1 - c) * lightest * k / max(1, n - 1)) for k in range(n)]
+    c = np.array(to_rgb(color)); out = []
+    for k in range(n):
+        u = -darkest + (darkest + lightest) * k / max(1, n - 1)
+        out.append(tuple(c * (1 + u)) if u < 0 else tuple(c + (1 - c) * u))
+    return out
 
 
 def _save(fig, name):
@@ -234,8 +237,8 @@ def fig2_ar4(N=1024, NW=4, nfft=8192, seed=3):
     ests = [("Periodogram", ss.periodogram(x, nfft)[0], ROUTE["periodogram"], 0.5, "-"),
             ("Untapered, then box", ss.lag_window_estimate(x, hb, nfft)[0], ROUTE["raw_box"], 0.9, "-"),
             (f"Multitaper, $L = {2 * NW - 1}$", ss.multitaper(x, Vk, nfft)[0], ROUTE["multitaper"], 0.9, "-"),
-            (f"Multitaper, $L = {2 * NW - 2}$", ss.multitaper(x, Vk[:, :-1], nfft)[0], ROUTE["multitaper"] if TUFTE else MATLAB["c"], 0.9, "--" if TUFTE else "-"),
-            (f"Multitaper, $L = {2 * NW - 1}$, adaptive", ss.multitaper_adaptive(x, Vk, lam, nfft)[0], ROUTE["multitaper"] if TUFTE else MATLAB["y"], 0.9, ":" if TUFTE else "-"),
+            (f"Multitaper, $L = {2 * NW - 2}$", ss.multitaper(x, Vk[:, :-1], nfft)[0], _ramp(ROUTE["multitaper"], 3)[2] if TUFTE else MATLAB["c"], 0.9, "-"),
+            (f"Multitaper, $L = {2 * NW - 1}$, adaptive", ss.multitaper_adaptive(x, Vk, lam, nfft)[0], _ramp(ROUTE["multitaper"], 3)[0] if TUFTE else MATLAB["y"], 0.9, "-"),
             (NAME["smooth"], ss.lag_window_estimate(x, _recipe(N, NW)[1], nfft, taper=_recipe(N, NW)[0])[0], ROUTE["smooth"], 0.9, "-")]
     fig, ax = plt.subplots(1, 2, figsize=(W2, 2.7), gridspec_kw={"width_ratios": [1.3, 1]})
     for name, S, c, lw, st in ests:
@@ -244,9 +247,18 @@ def fig2_ar4(N=1024, NW=4, nfft=8192, seed=3):
             ax[1].plot(f, 10 * np.log10(S[:nfft // 2]) - 10 * np.log10(truth), color=c, lw=lw, ls=st)
     ax[0].plot(f, 10 * np.log10(truth), label="True PSD", **TRUTH)
     ax[0].set(ylabel=LBL["S"], ylim=(-35, 60)); _freq_axis(ax[0])
-    ax[1].axhline(0, color="black", lw=0.6); ax[1].set(ylabel=r"$\hat{S}(f)-S(f)$ (dB)", ylim=(-10, 30)); _freq_axis(ax[1])
+    ax[1].axhline(0, color="black", lw=0.6); ax[1].set(ylabel="Estimate $-$ true PSD (dB)" if TUFTE else r"$\hat{S}(f)-S(f)$ (dB)", ylim=(-10, 30)); _freq_axis(ax[1])
     ax[0].legend(loc="upper right", fontsize=6.3)
-    _grid(*ax); _letters(ax); fig.tight_layout(w_pad=2.0); _save(fig, "fig2_ar4_leakage.png")
+    _grid(*ax); _letters(ax); fig.tight_layout(w_pad=2.0, rect=(0, 0, 0.84, 1) if TUFTE else None)
+    floors = {name: float(np.median((10 * np.log10(S[:nfft // 2]) - 10 * np.log10(truth))[f >= 0.4])) for name, S, c, lw, st in ests[1:]}
+    if TUFTE:                              # each curve of (b) named at its right-hand end, moved apart where two ends are close
+        ends = sorted([[floors[name], name, c] for name, S, c, lw, st in ests[1:]], reverse=True)
+        for k in range(1, len(ends)):
+            ends[k][0] = min(ends[k][0], ends[k - 1][0] - 2.6)
+        for y, name, c in ends:
+            ax[1].text(0.508, y, name, color=c, fontsize=6.3, va="center", ha="left", clip_on=False)
+    _save(fig, "fig2_ar4_leakage.png")
+    print(f"fig2: median level above the truth for f Delta >= 0.4, in dB: { {k: round(v, 1) for k, v in floors.items()} }")
 
 
 def fig3_tradeoff(N=256, nfft=8192, f0=0.25):
@@ -281,19 +293,22 @@ def fig3_tradeoff(N=256, nfft=8192, f0=0.25):
              "Multitaper, sine tapers": (ROUTE["multitaper"], "^", ":"), "Untapered, then box": (ROUTE["raw_box"], "o", "-"),
              NAME["smooth"]: (ROUTE["smooth"], "o", "-"),
              "Hann, then box": (ROUTE["hann_box"], "o", "-"), "Bohman, then box": (ROUTE["bohman_box"], "s", "-"),
-             "Hann, then Gaussian": (ROUTE["hann_gauss"], "^", "-"), "Welch, Hann segments, 50% overlap": (ROUTE["welch"], "D", "-")}
+             "Hann, then Gaussian": (ROUTE["hann_gauss"], "^", "--" if TUFTE else "-"), "Welch, Hann segments, 50% overlap": (ROUTE["welch"], "D", "-")}
+    skirt = (NAME["smooth"], "Hann, then Gaussian", "Welch, Hann segments, 50% overlap")     # no flat top: beyond 1.5 half-widths lies the skirt of the main lobe
     fig, axs = plt.subplots(2, 2, figsize=(W2, 4.6))
     ax = [axs[0, 0], axs[0, 1], axs[1, 0]]
     for name, pts in curves.items():
         p = np.array(sorted(pts)); c, m, st = style[name]
         for k, a in enumerate(ax):
-            a.plot(p[:, 0], p[:, k + 1], color=c, marker=m, ls=st, ms=2.5, lw=0.8, mfc="none", label=name)
+            a.plot(p[:, 0], p[:, k + 1], color=c, marker=m, ls=st, ms=2.5, lw=0.8, mfc=c if TUFTE and k == 2 and name in skirt else "none", label=name)
     for a in ax:
         a.axvline(8, color="black", lw=0.7, ls=":")
         a.set_xlabel("Half-power width $\\times\\, N\\Delta$")
     if TUFTE:
         ax[0].text(8.5, 0.97, "$8/(N\\Delta)$, the width in Table 2", transform=ax[0].get_xaxis_transform(), fontsize=6.5, va="top", color="0.25")
-    ax[0].set(ylabel="$\\nu$"); ax[1].set(ylabel="Kernel power beyond twice\nthe half-power half-width", yscale="log")
+    if TUFTE:
+        ax[2].text(0.97, 0.9, "filled markers: no flat top,\nso this is the skirt of the main lobe", transform=ax[2].transAxes, fontsize=6, ha="right", va="top", color="0.25")
+    ax[0].set(ylabel="Equivalent degrees of freedom $\\nu$" if TUFTE else "$\\nu$"); ax[1].set(ylabel="Kernel power beyond twice\nthe half-power half-width", yscale="log")
     ax[2].set(ylabel="Peak beyond 1.5 times the\nhalf-power half-width (dB)")
     _grid(*ax)
     axs[1, 1].axis("off"); h, l = ax[0].get_legend_handles_labels(); axs[1, 1].legend(h, l, loc="center", fontsize=7)
@@ -345,13 +360,14 @@ def fig5_slepian_fill(N=256, NW=4, nfft=8192):
     fig, ax = plt.subplots(2, 2, figsize=(W2, 4.6))
     t = np.arange(N)
     a = ax[0, 0]                                                   # Babadi and Brown, Fig. 5(a): the first, second and seventh tapers
-    for i, c in ((0, "black"), (1, MATLAB["b"]), (6, MATLAB["r"])):
-        a.plot(t, _signed(V[:, i]), color=c, lw=0.9, label=f"$h^{{({i + 1})}}_k$")
+    three = _ramp(ROUTE["multitaper"], 3) if TUFTE else None
+    for j, (i, c) in enumerate(((0, "black"), (1, MATLAB["b"]), (6, MATLAB["r"]))):
+        a.plot(t, _signed(V[:, i]), color=three[j] if TUFTE else c, lw=0.9, label=f"$h^{{({i + 1})}}_k$")
     a.set(xlim=(0, N), xticks=[0, N // 4, N // 2, 3 * N // 4, N], ylim=(-0.2, 0.2), xlabel="$k$", ylabel="$h^{(i)}_k$")
     a.legend(loc="lower left", fontsize=7)
     a = ax[0, 1]
-    for i, c in ((0, "black"), (1, MATLAB["b"]), (2, MATLAB["g"])):
-        a.plot(fs[o] * N, Uk[o, i], color=c, lw=0.9, label=f"$i = {i + 1}$")
+    for j, (i, c) in enumerate(((0, "black"), (1, MATLAB["b"]), (2, MATLAB["g"]))):
+        a.plot(fs[o] * N, Uk[o, i], color=three[j] if TUFTE else c, lw=0.9, label=f"$i = {i + 1}$")
     for s_ in (-NW, NW):
         a.axvline(s_, color="black", ls=":", lw=0.8)
     a.set(xlim=(-2 * NW, 2 * NW), ylim=(0, 0.65), xlabel=LBL["fND"], ylabel="$|H^{(i)}(f)|^2/N\\Delta^2$")
@@ -369,7 +385,7 @@ def fig5_slepian_fill(N=256, NW=4, nfft=8192):
     a.legend(loc="upper center", ncol=4, fontsize=6.5, handlelength=1.5, columnspacing=0.8)
     a = ax[1, 1]
     a.semilogy(np.arange(1, N + 1), np.maximum(1 - lam, 1e-16), "o-", ms=2.5, lw=0.7, mfc="none", color="black")
-    a.axvline(2 * NW - 1, color=INK, ls=":", lw=0.8, label="$L = 2\\alpha-1$"); a.axvline(2 * NW, color=MATLAB["r"], ls="--", lw=0.8, label="$2\\alpha$")
+    a.axvline(2 * NW - 1, color=INK, ls=":", lw=0.8, label="$L = 2\\alpha-1$"); a.axvline(2 * NW, color="black" if TUFTE else MATLAB["r"], ls="--", lw=0.8, label="$2\\alpha$")
     a.set(xlim=(0.5, 2 * NW + 9), ylim=(1e-16, 2), xlabel="$i$", ylabel="$1 - \\lambda_i$")
     a.legend(loc="lower right", fontsize=7)
     _grid(ax[0, 1], ax[1, 0], ax[1, 1]); _letters(ax, dx=22)
@@ -468,7 +484,7 @@ def fig0_pedagogy(N=1024, nfft=4096, seed=11, W_right=4, W_wide=24, mc=300):
     cols4 = [ROUTE["periodogram"]] + [ROUTE["smooth"]] * 3 if TUFTE else ["black"] * 4
     notes = [f"{NAME['periodogram']}, untapered", f"{NAME['periodogram']}, cosine taper", f"{NAME['smooth']},\n$R = {2 * W_right}/(N\\Delta)$",
              f"{NAME['smooth']},\n$R = {2 * W_wide}/(N\\Delta)$"]
-    notes = [f"{n}\n$\\nu = {v:.0f}$" if v < 3 or v > 50 else f"{n}\n$\\nu = {v:.1f}$" for n, v in zip(notes, nus)]
+    notes = [f"{n}\n$\\nu = {v:.1f}$" for n, v in zip(notes, nus)]
     _motif_rows(fig, ax[0], ax[1], f, truth, ests, kers, fs, cols4, [0.45, 0.45, 0.8, 0.8], [0.01, 0.01, 0.01, 0.04], notes)
     _letters(ax, dx=18); fig.tight_layout(w_pad=0.5, h_pad=0.8); _save(fig, "fig0b_estimates_kernels.png")
 
@@ -494,7 +510,7 @@ def fig0_pedagogy(N=1024, nfft=4096, seed=11, W_right=4, W_wide=24, mc=300):
     for Wn, word, (tx, ty), ha in cases:
         i = np.argmin(np.abs(Ws - Wn)); ax_err.plot(2 * Wn, sw["total"][i], "o", ms=7, mfc="none", mec="black", mew=0.9)
         if TUFTE:
-            ax_err.annotate(f"{word}, $\\nu = {sw['nu'][i]:.0f}$", xy=(2 * Wn, sw["total"][i]), xytext=(tx, ty), fontsize=6.5, ha=ha, va="center",
+            ax_err.annotate(f"{word}, $\\nu = {sw['nu'][i]:.1f}$", xy=(2 * Wn, sw["total"][i]), xytext=(tx, ty), fontsize=6.5, ha=ha, va="center",
                             arrowprops=dict(arrowstyle="-", lw=0.4, color=INK, shrinkA=1.5, shrinkB=4.5))
     top = 9.3 if TUFTE else 8.5
     for xv, word in ((peak_width, "peak width"), (peak_sep, "peak separation")):
@@ -503,6 +519,9 @@ def fig0_pedagogy(N=1024, nfft=4096, seed=11, W_right=4, W_wide=24, mc=300):
             ax_err.text(xv + 0.7, top - 0.12, word, fontsize=6, color="0.35", va="top")
     ax_err.set(xlim=(-1, 2 * Ws[-1] + (5 if TUFTE else 1)), ylim=(0, top), yticks=[0, 2, 4, 6, 8], xlabel="$RN\\Delta$", ylabel="RMS error (dB)")
     if TUFTE:
+        top_ax = ax_err.secondary_xaxis("top"); at = [i for i, w in enumerate(Ws) if w in (0, 4, 8, 12, 16, 24, 32)]
+        top_ax.set_xticks([R[i] for i in at]); top_ax.set_xticklabels([f"{sw['nu'][i]:.0f}" for i in at]); top_ax.set_xlabel("$\\nu$", labelpad=3)
+        top_ax.tick_params(direction="out", length=3, width=0.5, labelsize=7.5); top_ax.spines["top"].set_linewidth(0.5)
         e = len(R) - 1
         _label(ax_err, R[e], sw["total_band"][e] + 0.3, "Total, peak region", "black", ha="right", va="bottom")
         _label(ax_err, R[e] + 1.2, sw["total"][e], "Total,\nwhole\nband", "black", ha="left", va="center")
@@ -652,7 +671,7 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
     S_box = ss.lag_window_estimate(x, hb, nfft)[0][:nfft // 2][keep]
     Ls = [N, 2 * N, 4 * N, 8 * N, 16 * N]
     S_sinc = {L: ss.welch_sliding(x, ss.sinc_window(L, W), nfft)[0][:nfft // 2][keep] for L in Ls}
-    dB = lambda S: 10 * np.log10(S)
+    dB = lambda S: 10 * np.log10(S / Fs)                              # per hertz: dB re 1 microvolt squared per hertz
     d_box = np.abs(dB(S_box) - dB(S_mt_all)); d_sinc = {L: np.abs(dB(S_sinc[L]) - dB(S_mt_all)) for L in Ls}
     # fig9 (Fig. 1), laid out as Babadi and Brown's Fig. 1: (a) across the top, (b) and (c) below
     fig = plt.figure(figsize=(W2, 4.0))
@@ -660,20 +679,21 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
     a = fig.add_subplot(gs[0, :]); axes = [a]
     a.plot(f[keep], dB(S_mt_all), color=ROUTE["multitaper"], lw=2.4, label="Multitaper, all $N$ tapers, weights $\\lambda_i$")
     a.plot(f[keep], dB(S_box), color=ROUTE["raw_box"], lw=1.0, ls="--", label=f"{NAME['raw_box']} of width $R$")
-    a.plot(f[keep], dB(S_sinc[16 * N]), color=ROUTE["welch"], lw=1.0, ls=":", label=f"{NAME['sinc']}, $N_s = 16N$")
-    a.set(xlabel=LBL["Hz"], ylabel=LBL["S"], xlim=(0, fmax)); a.legend(loc="upper right")
+    a.plot(f[keep], dB(S_sinc[16 * N]), color=ROUTE["sinc"], lw=1.0, ls=":", label=f"{NAME['sinc']}, $N_s = 16N$")
+    a.set(xlabel=LBL["Hz"], ylabel=PSD_UNIT if TUFTE else LBL["S"], xlim=(0, fmax))
+    a.legend(loc="upper right", **({"title": "Three estimates that coincide", "title_fontsize": 7, "alignment": "left"} if TUFTE else {}))
     a = fig.add_subplot(gs[1, 0]); axes.append(a)
     a.semilogy(f[keep], np.maximum(d_box, 1e-16), color=ROUTE["raw_box"], lw=0.7, label=f"{NAME['raw_box']} $-$ multitaper")
-    a.semilogy(f[keep], np.maximum(d_sinc[16 * N], 1e-16), color=ROUTE["welch"], lw=0.7, label=f"{NAME['sinc']} $-$ multitaper")
+    a.semilogy(f[keep], np.maximum(d_sinc[16 * N], 1e-16), color=ROUTE["sinc"], lw=0.7, label=f"{NAME['sinc']} $-$ multitaper")
     a.set(xlabel=LBL["Hz"], ylabel="|Difference| (dB)", xlim=(0, fmax), ylim=(1e-15, 100 if TUFTE else 10), yticks=[1e-15, 1e-10, 1e-5, 1])
     if TUFTE:
-        _label(a, 0.98 * fmax, 8, f"{NAME['sinc']} $-$ multitaper", ROUTE["welch"], ha="right")
-        _label(a, 0.98 * fmax, 1e-11, f"{NAME['raw_box']} $-$ multitaper", ROUTE["raw_box"], ha="right")
+        _label(a, 0.98 * fmax, 8, f"{NAME['sinc']} $-$ multitaper", ROUTE["sinc"], ha="right")
+        _label(a, 0.98 * fmax, 1e-11, f"{NAME['raw_box']} $-$ multitaper: rounding error", ROUTE["raw_box"], ha="right")
     else:
         a.legend(loc="center right", fontsize=6.5)
     a = fig.add_subplot(gs[1, 1]); axes.append(a)
     mx = [d_sinc[L].max() for L in Ls]
-    a.loglog(np.array(Ls) / N, mx, "o-", color=ROUTE["welch"], ms=3.5, mfc="none", lw=0.9, label="Maximum |difference|")
+    a.loglog(np.array(Ls) / N, mx, "o-", color=ROUTE["sinc"], ms=3.5, mfc="none", lw=0.9, label="Maximum |difference|")
     a.loglog(np.array(Ls) / N, mx[1] * (Ls[1] / np.array(Ls)), color="black", ls=":", lw=0.9, label="$1/N_s$")
     a.set(xlabel="$N_s/N$", ylabel="Max. |difference| (dB)", xticks=[1, 2, 4, 8, 16], xticklabels=["1", "2", "4", "8", "16"])
     a.minorticks_off()
@@ -697,7 +717,7 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
     a = ax[0]
     for key, name, S, c, lw in every:
         a.plot(f[keep], dB(S[:nfft // 2][keep]), color=c, lw=lw, label=name)
-    a.set(ylabel=LBL["S"], xlim=(0, fmax)); a.legend(loc="upper right", fontsize=6.8)
+    a.set(ylabel=PSD_UNIT if TUFTE else LBL["S"], xlim=(0, fmax)); a.legend(loc="upper right", fontsize=6.8)
     a = ax[1]; ref = dB(every[0][2][:nfft // 2][keep]); out = {}
     for z, (key, name, S, c, lw) in enumerate(every[1:]):
         dd = dB(S[:nfft // 2][keep]) - ref
@@ -871,8 +891,9 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
     a = fig.add_subplot(gs[3, 1]); side.append(a)
     if TUFTE:
         cnt, edges = np.histogram(dd.ravel(), bins=np.linspace(-8, 8, 81))
-        a.bar(edges[:-1], cnt / 1e3, width=np.diff(edges), align="edge", color=BAR, lw=0)
-        a.set(xlabel="Multitaper $-$ smoothed (dB)", ylabel="Pixels (thousands)", xlim=(-8, 8))
+        a.bar(edges[:-1], cnt / 1e3, width=np.diff(edges), align="edge", color=BAR, lw=0); a.axvline(0, color="black", lw=0.5)
+        a.set(xlabel="Difference (dB)", ylabel="Pixels (thousands)", xlim=(-8, 8)); _head(a, "Panel (e) minus panel (g)")
+        _note(a, f"median\n|difference|\n{np.median(np.abs(dd)):.1f} dB", size=6)
     else:
         a.hist(dd.ravel(), bins=np.linspace(-8, 8, 81), color=BAR, edgecolor="black", lw=0.2)
         a.set(xlabel="Multitaper $-$ smoothed (dB)", ylabel="Pixels", xlim=(-8, 8))
@@ -973,12 +994,12 @@ def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
     gs = fig.add_gridspec(5, 2, height_ratios=[0.8, 1, 1, 1, 1.1], hspace=0.5 if TUFTE else 0.38, wspace=0.16)
     a0 = fig.add_subplot(gs[0, :]); axes = [a0]
     a0.plot(t, xb, color="black", lw=0.35, label=f"EEG, {chn}, 0.3$-$35 Hz")
-    a0.plot(t, sg - 95, color=MATLAB["r"], lw=0.4, label="11$-$16 Hz, offset")
+    a0.plot(t, sg - 95, color="0.4" if TUFTE else MATLAB["r"], lw=0.4, label="11$-$16 Hz, offset")
     for o1, o2 in zip(on, off):
         a0.axvspan(o1 / fs - pad, o2 / fs - pad, color=SHADE, lw=0)
     a0.set(xlim=(0, dur), ylim=(-125, 150), yticks=[-100, 0, 100], xlabel=LBL["s"], ylabel="EEG ($\\mu$V)")
     if TUFTE:
-        _label(a0, 0.4, 135, f"EEG, {chn}, 0.3$-$35 Hz", "black"); _label(a0, 0.4, -66, "11$-$16 Hz, offset", MATLAB["r"])
+        _label(a0, 0.4, 135, f"EEG, {chn}, 0.3$-$35 Hz", "black"); _label(a0, 0.4, -66, "11$-$16 Hz, offset", "0.3")
     else:
         a0.legend(loc="upper right", ncol=2, fontsize=6.5)
     for r, row in enumerate(rows):
@@ -987,6 +1008,8 @@ def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
             _head(a, f"{(f'Multitaper, $L = {row[chr(75)]}$', NAME['smooth'])[c]}: {row['T']:g} s by {row['bw'][c]:.1f} Hz, $\\nu = {row['nu'][c]:.1f}$", size=6.5)
             im = a.imshow(10 * np.log10(row[key]), aspect="auto", origin="lower", extent=[row["tc"][0], row["tc"][-1], row["f"][0], row["f"][-1]], vmin=vmin, vmax=vmax, cmap=SPEC_CMAP)
             a.add_patch(plt.Rectangle((1.0, fmax - 2.0 - row["bw"][c]), row["T"], row["bw"][c], fill=False, ec="white", lw=1.0))
+            if TUFTE and r == 0 and c == 0:
+                a.text(1.0 + row["T"] + 0.7, fmax - 2.0 - row["bw"][c] / 2, "resolution of the panel", color="white", fontsize=6, va="center")
             a.set(xlim=(0, dur), ylim=(0, fmax), ylabel=LBL["Hz"] if c == 0 else "")
             if c == 1:
                 a.set_yticklabels([])

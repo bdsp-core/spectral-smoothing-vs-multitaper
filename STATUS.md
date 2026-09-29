@@ -322,6 +322,27 @@ Done (`demos/make_figures.py`, `figures/`):
   Not done: a perceptually uniform colour map for the spectrograms (jet is M.B.W.'s choice and the EEG convention), and
   Monte Carlo intervals on Fig. 3 (its curves are averages over 300 records).
 
+- **Figure review of the restyled figures, and what was done about it (2026-09-29):** the second review
+  (`review/reports/review_20260928_230006.md`) again asked for major revisions, and named two things as essential: a
+  colour that changed its meaning, and jet. Done:
+  - The sliding sinc window is a dark shade of the green of the untapered box in every figure, because the two are one
+    estimator. In Fig. 1 it had been pink, which is Welch's colour.
+  - One orange only. The Hann routes are grey, the tapers of Fig. 4 are shades of the multitaper blue, and the guide
+    lines and the band-passed trace of Fig. 9 are grey or black.
+  - The shades that order the members of a bank run from darker than the hue to a light tint.
+  - Every axis of a spectrum reads "PSD (dB re ...)": re 1 µV²/Hz for EEG and re σ²Δ for simulated records. **The
+    128 Hz epoch of Figs. 1 and 7 is assumed to be in microvolts.** The file does not say; the 2013 scripts label EEG
+    from the same archive in µV, and the amplitudes (standard deviation 52, range ±165) fit. To be confirmed by M.B.W.
+  - Fig. 3 has an upper axis of ν. ν is given to one decimal wherever it appears (98.4, not 98).
+  - Fig. 8(h) says which panels are differenced, has a line at zero, and states the median absolute difference.
+  - Fig. S2 shows the three multitaper estimates in three shades and names the curves of panel (b) at their ends.
+  - Captions state which figures are computed exactly, how many pixels or frequencies lie behind a summary, and what
+    4.3√(2/ν) is.
+  Declined: jet stays. The short labels above panels stay, although the journal configuration of the review asks for no
+  titles inside figures, because they carry the resolution and ν. Captions do not open with a bold title sentence, and
+  symbols defined in Section 2.1 are not redefined in every caption. The manuscript is 23 pages (was 22): Figs. 3 and 8
+  are taller and several captions are longer.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S4 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same
