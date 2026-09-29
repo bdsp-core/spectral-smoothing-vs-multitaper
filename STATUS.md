@@ -284,6 +284,26 @@ Done (`demos/make_figures.py`, `figures/`):
   and `generic.sty` stay in `paper/`, unused. Contact footnotes: E. Keldsen at Stanford only, and M. B. Westover's
   e-mail added. Length 22 pages.
 
+- **New abstract (2026-09-28, M.B.W.):** five labelled paragraphs, opening with the question of whether the three methods
+  are different estimators. It has 351 words; IEEE TBME allows 250, so it needs cutting if the paper goes there.
+
+- **Figure style (2026-09-28, M.B.W.: the colours and the departures from Tufte's principles):** `demos/make_figures.py`
+  has two styles, chosen by the environment variable `FIG_STYLE`. The default, `tufte`, is new. `babadi_brown` is the
+  earlier look (MATLAB's classic colours, boxed axes, dotted grid, boxed legends) and still renders. In the default style:
+  - Colour means the route, and the same in every figure: multitaper blue, smoothing (recipe b′) orange, the untapered
+    box green, averaging (Welch, sliding sinc) pink, Hann olive, Bohman light blue (Okabe and Ito's palette, which
+    survives colour-blindness and grey-scale printing). The true PSD is black and the periodogram grey. Members of one
+    bank are shades of the route's hue. Quantities that are not routes (noise and bias in Fig. 3, the two instants in
+    Fig. 8) are grey or black and are named on the figure.
+  - Axes have two spines, ticks point outward, the grid is faint horizontal hairlines, and legends have no boxes.
+  - Curves are labelled directly where there is room, and each panel says what it shows (the estimator, its
+    resolution in s and Hz, and ν), so the figure can be read without the caption.
+  - Kernel panels draw the envelope of the side lobes where the lobes are too close to draw; the insets show the lobes.
+  - Spectrograms keep the jet colour map, with a thin frame and a labelled colour bar.
+  The numbers printed by the script are unchanged (`demos/outputs/make_figures.txt` is identical). Captions and text in
+  `paper/main.tex` and `paper/supplement.tex` name the new colours. `review/prepare_figure_review.py` builds the inputs
+  of the figure review from the LaTeX sources, into `review/figures/` or a named folder.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S3 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same

@@ -7,14 +7,20 @@ Main text (paper order): fig9 three routes, one estimate (Fig. 1) | fig0b four e
 Supplement: fig1 kernels at equal resolution | fig2 AR(4): dropping the leakiest taper | fig3 resolution, variance and leakage |
   fig6_full the taper banks with their eigen-tapers and kernels. fig4 and fig11 are kept but are not in the paper.
 
-Style: that of Babadi and Brown, IEEE Trans. Biomed. Eng. 61(5):1555-1564, 2014, whose figures are MATLAB figures. Times text,
-with the symbols of the paper as axis labels; boxed axes with inward ticks on all four sides; dotted grids on spectra; boxed
-legends inside the axes; panel letters (a), (b), ... outside the top-left corner and no panel titles; MATLAB's classic colour
-order. The true PSD is blue and dashed, and the multitaper estimate black. Kernels are dark green, in dB relative to their peak,
-centred at f Delta = 0.4 over [0, 1/2], with the main lobe zoomed in at the top left. The EEG figures read de-identified one-channel excerpts from data/. Spectrograms use the jet colour map with a
-colour bar. Each route keeps one colour in every figure (ROUTE).
+Style. Two looks share one code path, chosen by the environment variable FIG_STYLE.
+  "tufte" (the default) follows Tufte's principles: ink is spent on data. Axes have only a left and a bottom spine, ticks point
+  outward, grids are faint hairlines, legends have no frame and curves are labelled directly where there is room, and each panel
+  carries a short note saying what it shows. Colours are the Okabe-Ito set, which is safe for colour-blind readers: the true PSD is
+  black, multitaper blue, the smoothing recipe orange, the untapered box green, Welch purple. A family of curves ordered by an
+  index is drawn in shades of one hue. A kernel whose side lobes are too dense to draw is shown by its envelope over a light fill.
+  "babadi_brown" is the MATLAB look of Babadi and Brown, IEEE Trans. Biomed. Eng. 61(5):1555-1564, 2014: boxed axes with inward
+  ticks on all four sides, dotted grids, boxed legends, MATLAB's classic colours, true PSD blue and dashed, multitaper black.
+In both: Times text with the symbols of the paper as axis labels; panel letters (a), (b), ... outside the top-left corner; kernels
+in dB relative to their peak, centred at f Delta = 0.4 over [0, 1/2], with the main lobe zoomed in at the top left. The EEG figures
+read de-identified one-channel excerpts from data/. Spectrograms use the jet colour map with a colour bar. Each route keeps one
+colour in every figure (ROUTE).
 """
-import sys, pathlib
+import os, sys, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import numpy as np
@@ -27,30 +33,46 @@ import specsmooth as ss
 FIG = ROOT / "figures"
 FIG.mkdir(exist_ok=True)
 
-# ---------------------------------------------------------------- shared style (Babadi and Brown 2014)
+# ---------------------------------------------------------------- shared style
 W2, W1 = 7.16, 3.5                     # IEEE double- and single-column widths, inches
-MATLAB = {"b": (0, 0, 1), "g": (0, 0.5, 0), "r": (1, 0, 0), "c": (0, 0.75, 0.75), "m": (0.75, 0, 0.75), "y": (0.75, 0.75, 0),
-          "k": (0.25, 0.25, 0.25)}     # MATLAB's classic ColorOrder, used for families of curves
+STYLE = os.environ.get("FIG_STYLE", "tufte")
+TUFTE = STYLE != "babadi_brown"
 plt.rcParams.update({
     "font.family": "serif", "font.serif": ["Times New Roman", "Times", "STIXGeneral", "DejaVu Serif"], "mathtext.fontset": "stix",
     "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 9, "xtick.labelsize": 7.5, "ytick.labelsize": 7.5, "legend.fontsize": 7,
-    "axes.linewidth": 0.6, "axes.spines.top": True, "axes.spines.right": True, "axes.labelpad": 2,
-    "xtick.direction": "in", "ytick.direction": "in", "xtick.top": True, "ytick.right": True,
-    "xtick.major.size": 3, "ytick.major.size": 3, "xtick.major.width": 0.5, "ytick.major.width": 0.5,
+    "axes.labelpad": 2, "xtick.major.size": 3, "ytick.major.size": 3, "xtick.major.width": 0.5, "ytick.major.width": 0.5,
     "xtick.minor.size": 1.5, "ytick.minor.size": 1.5, "xtick.minor.width": 0.4, "ytick.minor.width": 0.4,
-    "grid.linestyle": ":", "grid.linewidth": 0.5, "grid.color": "0.2",
-    "legend.frameon": True, "legend.fancybox": False, "legend.edgecolor": "black", "legend.framealpha": 1.0,
-    "legend.borderpad": 0.35, "legend.handlelength": 2.0, "legend.labelspacing": 0.2, "legend.borderaxespad": 0.5,
-    "legend.handletextpad": 0.5, "patch.linewidth": 0.6, "lines.linewidth": 0.8,
-    "axes.prop_cycle": plt.cycler(color=[MATLAB[c] for c in "bgrcmyk"]),
+    "legend.fancybox": False, "legend.borderpad": 0.35, "legend.handlelength": 2.0, "legend.labelspacing": 0.2,
+    "legend.borderaxespad": 0.5, "legend.handletextpad": 0.5, "patch.linewidth": 0.6, "lines.linewidth": 0.8,
     "savefig.dpi": 300, "figure.dpi": 100,
 })
-TRUTH = dict(color=MATLAB["b"], ls="--", lw=1.2)                       # the true PSD, as in Babadi and Brown
-ROUTE = {"multitaper": "black", "smooth": MATLAB["r"], "raw_box": MATLAB["g"], "welch": MATLAB["m"], "hann_box": MATLAB["c"],
-         "bohman_box": MATLAB["y"], "hann_gauss": MATLAB["k"], "periodogram": "0.6"}
-KERNEL = (0.11, 0.30, 0.21)            # the dark green of their kernels
-BAR = (0, 0, 0.5625)                   # MATLAB's default bar colour
-SHADE = "0.85"                         # shading of seizures and spindles
+if TUFTE:
+    # Okabe-Ito colours under MATLAB's letters, so that a family of curves keeps its order of hues in both styles
+    MATLAB = {"b": "#0072B2", "g": "#009E73", "r": "#D55E00", "c": "#56B4E9", "m": "#CC79A7", "y": "#E69F00", "k": "0.35"}
+    plt.rcParams.update({
+        "axes.linewidth": 0.5, "axes.spines.top": False, "axes.spines.right": False, "xtick.direction": "out", "ytick.direction": "out",
+        "xtick.top": False, "ytick.right": False, "grid.linestyle": "-", "grid.linewidth": 0.35, "grid.color": "0.88",
+        "legend.frameon": False, "axes.prop_cycle": plt.cycler(color=[MATLAB[c] for c in "bygrcmk"]),
+    })
+    TRUTH = dict(color="black", ls="-", lw=1.1, zorder=5)               # the true PSD: black, drawn over the estimate
+    ROUTE = {"multitaper": "#0072B2", "smooth": "#E69F00", "raw_box": "#009E73", "welch": "#CC79A7", "hann_box": "#999933",
+             "bohman_box": "#56B4E9", "hann_gauss": "#D55E00", "periodogram": "0.6"}
+    KERNEL, BAR, SHADE, INK = "0.15", "0.55", "0.91", "0.45"
+else:
+    MATLAB = {"b": (0, 0, 1), "g": (0, 0.5, 0), "r": (1, 0, 0), "c": (0, 0.75, 0.75), "m": (0.75, 0, 0.75), "y": (0.75, 0.75, 0),
+              "k": (0.25, 0.25, 0.25)}     # MATLAB's classic ColorOrder, used for families of curves
+    plt.rcParams.update({
+        "axes.linewidth": 0.6, "axes.spines.top": True, "axes.spines.right": True, "xtick.direction": "in", "ytick.direction": "in",
+        "xtick.top": True, "ytick.right": True, "grid.linestyle": ":", "grid.linewidth": 0.5, "grid.color": "0.2",
+        "legend.frameon": True, "legend.edgecolor": "black", "legend.framealpha": 1.0,
+        "axes.prop_cycle": plt.cycler(color=[MATLAB[c] for c in "bgrcmyk"]),
+    })
+    TRUTH = dict(color=MATLAB["b"], ls="--", lw=1.2)                       # the true PSD, as in Babadi and Brown
+    ROUTE = {"multitaper": "black", "smooth": MATLAB["r"], "raw_box": MATLAB["g"], "welch": MATLAB["m"], "hann_box": MATLAB["c"],
+             "bohman_box": MATLAB["y"], "hann_gauss": MATLAB["k"], "periodogram": "0.6"}
+    KERNEL = (0.11, 0.30, 0.21)            # the dark green of their kernels
+    BAR = (0, 0, 0.5625)                   # MATLAB's default bar colour
+    SHADE, INK = "0.85", "black"           # shading of seizures and spindles; guide lines
 SPEC_CMAP, SPEC_VLIM = "jet", (10.0, 45.0)      # jet is the convention for EEG spectrograms (M.B.W.)
 TAPER_ALPHA = 0.25                     # recipe (b'): half a cosine on the first and last eighth of the record (a 25% Tukey taper)
 # Labels follow the notation of the paper (Babadi and Brown 2014): sample k, taper index i = 1, 2, ..., L tapers, time-bandwidth
@@ -76,8 +98,36 @@ def _letters(axes, dx=20, size=9):
 
 
 def _grid(*axes):
+    """Babadi and Brown: a dotted grid. Tufte: faint horizontal hairlines, enough to read a level and no more."""
     for a in axes:
-        a.grid(True); a.set_axisbelow(True)
+        a.grid(True, axis="y" if TUFTE else "both"); a.set_axisbelow(True)
+
+
+def _note(a, text, loc="upper right", size=6.5, color="0.1"):
+    """A short note inside a panel saying what it shows (Tufte style only): words belong on the graphic."""
+    if not TUFTE:
+        return
+    x, ha = (0.97, "right") if "right" in loc else (0.03, "left")
+    y, va = (0.96, "top") if "upper" in loc else (0.04, "bottom")
+    a.text(x, y, text, transform=a.transAxes, ha=ha, va=va, fontsize=size, color=color, linespacing=1.15)
+
+
+def _head(a, text, size=7):
+    """A short label above the left end of a panel (Tufte style only), for panels such as spectrograms that have no room inside."""
+    if TUFTE:
+        a.set_title(text, loc="left", fontsize=size, pad=2.5)
+
+
+def _label(a, x, y, text, color, ha="left", va="center", size=6.5):
+    """A curve labelled directly, in its own colour."""
+    a.text(x, y, text, color=color, ha=ha, va=va, fontsize=size)
+
+
+def _ramp(color, n, lightest=0.62):
+    """n shades of one hue, from the hue itself to a light tint: a family of curves ordered by an index."""
+    from matplotlib.colors import to_rgb
+    c = np.array(to_rgb(color))
+    return [tuple(c + (1 - c) * lightest * k / max(1, n - 1)) for k in range(n)]
 
 
 def _save(fig, name):
@@ -93,7 +143,15 @@ def _kernel_panel(fig, a, f_off, H, f0=0.4, zoom=0.01, ylim=(-150, 40), zylim=(-
     """The kernel in dB relative to its peak, centred at f Delta = f0 over [0, 1/2], with its main lobe zoomed in at the top left
     (Babadi and Brown, Figs. 2(b), 3(b) and 6(b)). f_off is the signed frequency grid of H, in cycles per sample."""
     o = np.argsort(f_off); x = f0 + f_off[o]; y = _db(H[o]); keep = (x >= 0) & (x <= 0.5)
-    a.plot(x[keep], y[keep], color=KERNEL, lw=0.6)
+    from scipy.signal import find_peaks
+    from scipy.ndimage import maximum_filter1d
+    lobes, _ = find_peaks(y[keep])
+    if TUFTE and len(lobes) > 60:          # side lobes too dense to draw: the envelope of their peaks; the inset shows the lobes
+        gap = int(np.ceil(1.5 * np.median(np.diff(lobes))))
+        env = maximum_filter1d(y, size=2 * gap + 1, mode="nearest")
+        a.plot(x[keep], env[keep], color=KERNEL, lw=0.7)
+    else:
+        a.plot(x[keep], y[keep], color=KERNEL, lw=0.6)
     a.set(xlim=(0, 0.5), ylim=ylim, yticks=[-150, -100, -50, 0], xticks=[0, 0.1, 0.2, 0.3, 0.4, 0.5],
           xticklabels=["0", "0.1", "0.2", "0.3", "0.4", "0.5"])
     ai = a.inset_axes(inset); z = (x >= f0 - zoom) & (x <= f0 + zoom)
@@ -101,10 +159,14 @@ def _kernel_panel(fig, a, f_off, H, f0=0.4, zoom=0.01, ylim=(-150, 40), zylim=(-
     ai.set(xlim=(f0 - zoom, f0 + zoom), ylim=zylim, xticks=[f0 - zoom, f0, f0 + zoom], yticks=[-50, -25, 0])
     ai.set_xticklabels([f"{f0 - zoom:g}", f"{f0:g}", f"{f0 + zoom:g}"])
     ai.tick_params(labelsize=5.5, length=2, pad=1)
-    a.add_patch(Rectangle((f0 - zoom, zylim[0]), 2 * zoom, zylim[1] - zylim[0], fill=False, ec="black", lw=0.8, zorder=5))
+    a.add_patch(Rectangle((f0 - zoom, zylim[0]), 2 * zoom, zylim[1] - zylim[0], fill=False, ec=INK, lw=0.5 if TUFTE else 0.8, zorder=5))
     for yA, yB in ((zylim[1], 1), (zylim[0], 0)):
-        fig.add_artist(ConnectionPatch(xyA=(f0 - zoom, yA), coordsA=a.transData, xyB=(1, yB), coordsB=ai.transAxes, ls="--", lw=0.6,
-                                       color="black"))
+        fig.add_artist(ConnectionPatch(xyA=(f0 - zoom, yA), coordsA=a.transData, xyB=(1, yB), coordsB=ai.transAxes, ls="-" if TUFTE else "--",
+                                       lw=0.4 if TUFTE else 0.6, color=INK))
+    if TUFTE:
+        for sp in ai.spines.values():
+            sp.set_visible(True); sp.set_linewidth(0.4); sp.set_color(INK)
+        ai.tick_params(color=INK)
     return ai
 
 
@@ -159,8 +221,8 @@ def fig2_ar4(N=1024, NW=4, nfft=8192, seed=3):
     ests = [("Periodogram", ss.periodogram(x, nfft)[0], ROUTE["periodogram"], 0.5, "-"),
             ("Untapered, then box", ss.lag_window_estimate(x, hb, nfft)[0], ROUTE["raw_box"], 0.9, "-"),
             (f"Multitaper, $L = {2 * NW - 1}$", ss.multitaper(x, Vk, nfft)[0], ROUTE["multitaper"], 0.9, "-"),
-            (f"Multitaper, $L = {2 * NW - 2}$", ss.multitaper(x, Vk[:, :-1], nfft)[0], MATLAB["c"], 0.9, "-"),
-            (f"Multitaper, $L = {2 * NW - 1}$, adaptive", ss.multitaper_adaptive(x, Vk, lam, nfft)[0], MATLAB["y"], 0.9, "-"),
+            (f"Multitaper, $L = {2 * NW - 2}$", ss.multitaper(x, Vk[:, :-1], nfft)[0], ROUTE["multitaper"] if TUFTE else MATLAB["c"], 0.9, "--" if TUFTE else "-"),
+            (f"Multitaper, $L = {2 * NW - 1}$, adaptive", ss.multitaper_adaptive(x, Vk, lam, nfft)[0], ROUTE["multitaper"] if TUFTE else MATLAB["y"], 0.9, ":" if TUFTE else "-"),
             ("25% cosine taper, then parabola", ss.lag_window_estimate(x, _recipe(N, NW)[1], nfft, taper=_recipe(N, NW)[0])[0], ROUTE["smooth"], 0.9, "-")]
     fig, ax = plt.subplots(1, 2, figsize=(W2, 2.7), gridspec_kw={"width_ratios": [1.3, 1]})
     for name, S, c, lw, st in ests:
@@ -281,14 +343,16 @@ def fig5_slepian_fill(N=256, NW=4, nfft=8192):
     a.legend(loc="upper right", fontsize=7)
     a = ax[1, 0]
     cum = np.cumsum(Uk * lam, axis=1)
-    for K, c in [(1, MATLAB["b"]), (3, MATLAB["g"]), (5, MATLAB["r"]), (7, MATLAB["c"]), (9, MATLAB["m"]), (N, "black")]:
+    shades = _ramp(ROUTE["multitaper"], 5)[::-1] if TUFTE else [MATLAB[c] for c in "bgrcm"]
+    for K, c in list(zip((1, 3, 5, 7, 9), shades)) + [(N, "black")]:
         a.plot(fs[o] * N, cum[o, K - 1] / (2 * NW), color=c, lw=0.9 if K < N else 1.6, label=f"$L = {K}$" if K < N else "$L = N$")
     a.plot(fs[o] * N, (np.abs(fs[o]) <= W) / (2 * W) / N, color="black", ls="--", lw=0.7, label="Box")
-    a.set(xlim=(-2 * NW, 2 * NW), ylim=(0, 0.2), xlabel=LBL["fND"], ylabel="$\\mathcal{K}(f)/N\\Delta$")
+    a.set(xlim=(-2 * NW, 2 * NW), ylim=(0, 0.2), yticks=[0, 0.05, 0.1, 0.15, 0.2], yticklabels=["0.00", "0.05", "0.10", "0.15", "0.20"],
+          xlabel=LBL["fND"], ylabel="$\\mathcal{K}(f)/N\\Delta$")
     a.legend(loc="upper center", ncol=4, fontsize=6.5, handlelength=1.5, columnspacing=0.8)
     a = ax[1, 1]
     a.semilogy(np.arange(1, N + 1), np.maximum(1 - lam, 1e-16), "o-", ms=2.5, lw=0.7, mfc="none", color="black")
-    a.axvline(2 * NW - 1, color="black", ls=":", lw=0.8, label="$L = 2\\alpha-1$"); a.axvline(2 * NW, color=MATLAB["r"], ls="--", lw=0.8, label="$2\\alpha$")
+    a.axvline(2 * NW - 1, color=INK, ls=":", lw=0.8, label="$L = 2\\alpha-1$"); a.axvline(2 * NW, color=MATLAB["r"], ls="--", lw=0.8, label="$2\\alpha$")
     a.set(xlim=(0.5, 2 * NW + 9), ylim=(1e-16, 2), xlabel="$i$", ylabel="$1 - \\lambda_i$")
     a.legend(loc="lower right", fontsize=7)
     _grid(ax[0, 1], ax[1, 0], ax[1, 1]); _letters(ax, dx=22)
@@ -335,14 +399,20 @@ def _sweep_width(N, nfft, Ws, mc, rng, band):
     return {k: np.array(v) for k, v in res.items()}
 
 
-def _motif_rows(fig, ax_top, ax_bot, f, truth, ests, kers, fs, colors, lws, zooms):
-    """The repeated motif: the estimate over the true PSD (top), and the estimator's kernel in the style of Babadi and Brown (bottom)."""
+def _motif_rows(fig, ax_top, ax_bot, f, truth, ests, kers, fs, colors, lws, zooms, notes=None):
+    """The repeated motif: the estimate over the true PSD (top), and the estimator's kernel (bottom)."""
     for j, (a, S, c, lw) in enumerate(zip(ax_top, ests, colors, lws)):
         a.plot(f, 10 * np.log10(S), color=c, lw=lw, label="Estimate")
         a.plot(f, 10 * np.log10(truth), label="True PSD", **TRUTH)
         a.set(ylim=(-45, 60)); _freq_axis(a, label=False)
         if j == 0:
-            a.set_ylabel(LBL["S"]); a.legend(loc="upper right", fontsize=6.5)
+            a.set_ylabel(LBL["S"])
+            if TUFTE:
+                _label(a, 0.015, -30, "True PSD", "black"); _label(a, 0.015, -39, "Estimate", c if c != "black" else "0.35")
+            else:
+                a.legend(loc="upper right", fontsize=6.5)
+        if notes:
+            _note(a, notes[j])
     for j, (a, H, z) in enumerate(zip(ax_bot, kers, zooms)):
         _kernel_panel(fig, a, fs, H, zoom=z)
         a.set_xlabel(LBL["fD"])
@@ -378,7 +448,10 @@ def fig0_pedagogy(N=1024, nfft=4096, seed=11, W_right=4, W_wide=24, mc=300):
 
     # fig0b: the motif
     fig, ax = plt.subplots(2, 4, figsize=(W2, 3.9))
-    _motif_rows(fig, ax[0], ax[1], f, truth, ests, kers, fs, ["black"] * 4, [0.45, 0.45, 0.8, 0.8], [0.01, 0.01, 0.01, 0.04])
+    cols4 = [ROUTE["periodogram"]] + [ROUTE["smooth"]] * 3 if TUFTE else ["black"] * 4
+    notes = ["No taper", "25% cosine taper", f"then parabola,\n$R = {2 * W_right}/(N\\Delta)$", f"then parabola,\n$R = {2 * W_wide}/(N\\Delta)$"]
+    notes = [f"{n}\n$\\nu = {v:.0f}$" if v < 3 or v > 50 else f"{n}\n$\\nu = {v:.1f}$" for n, v in zip(notes, nus)]
+    _motif_rows(fig, ax[0], ax[1], f, truth, ests, kers, fs, cols4, [0.45, 0.45, 0.8, 0.8], [0.01, 0.01, 0.01, 0.04], notes)
     _letters(ax, dx=18); fig.tight_layout(w_pad=0.5, h_pad=0.8); _save(fig, "fig0b_estimates_kernels.png")
 
     # fig0a: the record and the sweep
@@ -387,18 +460,38 @@ def fig0_pedagogy(N=1024, nfft=4096, seed=11, W_right=4, W_wide=24, mc=300):
     ax_ts.plot(t, x, color="black", lw=0.35)
     ax_ts.plot(t, env * x, color=ROUTE["smooth"], lw=0.35)
     ax_ts.plot(t, amp * env, color="black", ls="--", lw=0.8); ax_ts.plot(t, -amp * env, color="black", ls="--", lw=0.8)
-    ax_ts.set(xlim=(0, N - 1), xticks=[0, 255, 511, 767, 1023], ylim=(-1.15 * amp, 1.15 * amp), xlabel="$k$", ylabel="$x_k$")
+    if TUFTE:
+        ax_ts.set_ylim(-1.15 * amp, 1.45 * amp)
+        _label(ax_ts, 8, 1.36 * amp, "Record", "black"); _label(ax_ts, 300, 1.36 * amp, "Tapered record", ROUTE["smooth"])
+        _label(ax_ts, 700, 1.36 * amp, "Taper (dashed)", "black")
+    ax_ts.set(xlim=(0, N - 1), xticks=[0, 255, 511, 767, 1023], ylim=(-1.15 * amp, (1.45 if TUFTE else 1.15) * amp), xlabel="$k$", ylabel="$x_k$")
     R = 2 * Ws
     ax_err.plot(R, sw["total"], color="black", marker="o", ms=2.2, lw=1.1, label="Total, whole band")
     ax_err.plot(R, sw["total_band"], color="black", marker="s", ms=2.2, mfc="none", lw=0.9, ls="--", label="Total, peak region")
-    ax_err.plot(R, sw["noise"], color=MATLAB["b"], lw=1.0, label="Noise")
-    ax_err.plot(R, sw["blur"], color=MATLAB["r"], lw=1.0, label="Bias")
-    for Wn in (0, W_right, W_wide):
+    part = dict(color="0.5", zorder=1.5) if TUFTE else None      # Tufte: the two parts of the error in grey, under their total
+    ax_err.plot(R, sw["noise"], lw=1.0, label="Noise", **(part or dict(color=MATLAB["b"])))
+    ax_err.plot(R, sw["blur"], lw=1.0, label="Bias", **(part or dict(color=MATLAB["r"])))
+    # the three cases of Fig. 2, each named beside its circle: (where the text starts, its alignment)
+    cases = ((0, "too noisy", (9.0, 6.6), "left"), (W_right, "just right", (10.0, 5.0), "left"), (W_wide, "too smooth", (2 * W_wide + 1.5, 2.9), "left"))
+    for Wn, word, (tx, ty), ha in cases:
         i = np.argmin(np.abs(Ws - Wn)); ax_err.plot(2 * Wn, sw["total"][i], "o", ms=7, mfc="none", mec="black", mew=0.9)
-    for xv in (peak_width, peak_sep):
-        ax_err.axvline(xv, color="black", ls=":", lw=0.9)
-    ax_err.set(xlim=(-1, 2 * Ws[-1] + 1), ylim=(0, 8.5), xlabel="$RN\\Delta$", ylabel="RMS error (dB)")
-    ax_err.legend(loc="upper right", fontsize=6.8)
+        if TUFTE:
+            ax_err.annotate(f"{word}, $\\nu = {sw['nu'][i]:.0f}$", xy=(2 * Wn, sw["total"][i]), xytext=(tx, ty), fontsize=6.5, ha=ha, va="center",
+                            arrowprops=dict(arrowstyle="-", lw=0.4, color=INK, shrinkA=1.5, shrinkB=4.5))
+    top = 9.3 if TUFTE else 8.5
+    for xv, word in ((peak_width, "peak width"), (peak_sep, "peak separation")):
+        ax_err.axvline(xv, color=INK, ls=":", lw=0.7 if TUFTE else 0.9)
+        if TUFTE:
+            ax_err.text(xv + 0.7, top - 0.12, word, fontsize=6, color="0.35", va="top")
+    ax_err.set(xlim=(-1, 2 * Ws[-1] + (5 if TUFTE else 1)), ylim=(0, top), yticks=[0, 2, 4, 6, 8], xlabel="$RN\\Delta$", ylabel="RMS error (dB)")
+    if TUFTE:
+        e = len(R) - 1
+        _label(ax_err, R[e], sw["total_band"][e] + 0.3, "Total, peak region", "black", ha="right", va="bottom")
+        _label(ax_err, R[e] + 1.2, sw["total"][e], "Total,\nwhole\nband", "black", ha="left", va="center")
+        _label(ax_err, R[e], sw["noise"][e] + 0.25, "Noise", "0.3", ha="right", va="bottom")
+        _label(ax_err, R[e - 6], sw["blur"][e - 6] - 0.4, "Bias", "0.3", ha="left", va="top")
+    else:
+        ax_err.legend(loc="upper right", fontsize=6.8)
     _grid(ax_err); _letters([ax_ts, ax_err], dx=22); fig.tight_layout(h_pad=1.0); _save(fig, "fig0a_record_sweep.png")
     i_r, i_w = np.argmin(np.abs(Ws - W_right)), np.argmin(np.abs(Ws - W_wide))
     print(f"fig0: nu = {[round(float(v), 1) for v in nus]}; bws = {[round(float(v), 1) for v in bws]}; mass beyond 2W = {[round(float(v), 4) for v in masses]}; RMS dB error whole band / peak region: "
@@ -430,7 +523,8 @@ def fig8_everyday_motif(N=1024, NW=4, nfft=4096, seed=11, seg_len=192):
         H = ss.kernel_quadratic(Q0, nfft); st = ss.kernel_stats(H, W)
         ests.append(S[:nfft // 2]); kers.append(H); nus.append(ss.dof_quadratic(Qf)); bws.append(st["bw3"] * N); masses.append(st["mass_out_2W"])
     fig, ax = plt.subplots(2, 4, figsize=(W2, 3.9))
-    _motif_rows(fig, ax[0], ax[1], f, truth, ests, kers, fs, [c[2] for c in cols], [0.8] * 4, [0.01] * 4)
+    notes = [f"{n}\n$\\nu = {v:.1f}$" for n, v in zip(("No taper, then box", f"Multitaper, $L = {K}$", "Recipe (b$'$)", f"Welch, {nseg} segments"), nus)]
+    _motif_rows(fig, ax[0], ax[1], f, truth, ests, kers, fs, [c[2] for c in cols], [0.8] * 4, [0.01] * 4, notes)
     _letters(ax, dx=18); fig.tight_layout(w_pad=0.5, h_pad=0.8); _save(fig, "fig8_everyday_motif.png")
     err = [np.median(np.abs(10 * np.log10(S) - 10 * np.log10(truth))) for S in ests]
     print(f"fig8: nu = {[round(float(v), 1) for v in nus]}; bw = {[round(float(v), 1) for v in bws]}; mass beyond 2W = {[round(float(v), 4) for v in masses]}; median |dB error| vs truth = {[round(float(v), 1) for v in err]}; nseg {nseg} step {step}")
@@ -452,26 +546,29 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
     nrows = 4 if full else 2
     fig, ax = plt.subplots(nrows, 4, figsize=(W2, 1.6 * nrows + 0.3))
     cyc = [MATLAB[c] for c in "bgrcmyk"]
+    hue = [ROUTE[k] for k in ("welch", "smooth", "raw_box", "multitaper")]
+    heads = ("Average segments (Welch)", "Smooth one periodogram", "Slide a sinc window", f"Multitaper, $L = {K}$")
     for j, (title, Q) in enumerate(Qs):
-        a = ax[0, j]
+        a = ax[0, j]; _head(a, heads[j], size=6.5)
+        four = _ramp(hue[j], 4) if TUFTE else None
         if j == 0:
             for i, s in enumerate(range(0, N - seg_len + 1, step)):
-                u = np.zeros(N); u[s:s + seg_len] = hann_seg; a.plot(t, u, lw=0.8, color=cyc[i % 7])
+                u = np.zeros(N); u[s:s + seg_len] = hann_seg; a.plot(t, u, lw=0.8, color=hue[j] if TUFTE else cyc[i % 7])
             a.set_ylabel("$h_{k-n}$")
         elif j == 1:
             for i, fk in enumerate([0, 1, 2, 3]):
-                a.plot(t, cosw * np.cos(2 * np.pi * fk / N * t), lw=0.8, color=cyc[i], label=f"$f'N\\Delta = {fk}$")
+                a.plot(t, cosw * np.cos(2 * np.pi * fk / N * t), lw=0.8, color=four[i] if TUFTE else cyc[i], label=f"$f'N\\Delta = {fk}$")
             a.set(ylabel="$h_k\\cos(2\\pi f'k\\Delta)$", ylim=(-0.08, 0.13)); a.legend(loc="upper center", fontsize=5.5, ncol=2, handlelength=1.2, columnspacing=0.6)
         elif j == 2:
             w = ss.sinc_window(8 * N, W)
             for i, s in enumerate([-N // 2, 0, N // 2, N]):
                 u = np.zeros(N); lo, hi = max(0, s - 4 * N), min(N, s + 4 * N)
                 u[lo:hi] = w[lo - (s - 4 * N):hi - (s - 4 * N)]
-                a.plot(t, u / w.max(), lw=0.8, color=cyc[i])
+                a.plot(t, u / w.max(), lw=0.8, color=four[i] if TUFTE else cyc[i])
             a.set_ylabel("$h_{k-n}/\\max h$")
         else:
             for i in range(4):
-                a.plot(t, _signed(V[:, i]), lw=0.8, color=["black", MATLAB["b"], MATLAB["g"], MATLAB["r"]][i], label=f"$i = {i + 1}$")
+                a.plot(t, _signed(V[:, i]), lw=0.8, color=four[i] if TUFTE else ["black", MATLAB["b"], MATLAB["g"], MATLAB["r"]][i], label=f"$i = {i + 1}$")
             a.set(ylabel="$h^{(i)}_k$", ylim=(-0.13, 0.2)); a.legend(loc="upper center", fontsize=5.5, ncol=2, handlelength=1.2, columnspacing=0.6)
         a.set(xlabel="$k$", xlim=(0, N - 1), xticks=[0, N // 2, N])
         c, U = ss.eigen_tapers(Q)
@@ -481,7 +578,7 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
         if full:
             a = ax[1, j]
             for i in range(4):
-                a.plot(t, _signed(U[:, i]), lw=0.8, color=["black", MATLAB["b"], MATLAB["g"], MATLAB["r"]][i], label=f"$i = {i + 1}$")
+                a.plot(t, _signed(U[:, i]), lw=0.8, color=four[i] if TUFTE else ["black", MATLAB["b"], MATLAB["g"], MATLAB["r"]][i], label=f"$i = {i + 1}$")
             a.set(xlabel="$k$", xlim=(0, N - 1), xticks=[0, N // 2, N], ylabel="$h^{(i)}_k$" if j == 0 else "")
             a.set_ylim(a.get_ylim()[0], a.get_ylim()[1] + 0.45 * (a.get_ylim()[1] - a.get_ylim()[0]))
             if j == 0:
@@ -489,14 +586,17 @@ def fig6_taper_banks(N=256, NW=4, nfft=8192, seg_len=64, full=False):
             r = 2
         a = ax[r, j]
         cc = c / c.sum(); kmax = 12
-        a.bar(np.arange(1, kmax + 1), cc[:kmax], color=BAR, edgecolor="black", lw=0.4, width=0.8)
+        if TUFTE:
+            a.bar(np.arange(1, kmax + 1), cc[:kmax], color=hue[j], lw=0, width=0.8); _note(a, f"$\\nu = {ss.dof_from_weights(c):.1f}$")
+        else:
+            a.bar(np.arange(1, kmax + 1), cc[:kmax], color=BAR, edgecolor="black", lw=0.4, width=0.8)
         a.set(xlabel="$i$", ylabel="$c_i/\\sum c_i$" if j == 0 else "", ylim=(0, 0.2), xlim=(0.3, kmax + 0.7))
         H = ss.kernel_quadratic(Q, nfft); st = ss.kernel_stats(H, W)
         if full:
             a = ax[3, j]
-            a.plot(fs[o] * N, _db(H[o]), color=KERNEL, lw=0.8)
+            a.plot(fs[o] * N, _db(H[o]), color=hue[j] if TUFTE else KERNEL, lw=0.8)
             for s_ in (-NW, NW):
-                a.axvline(s_, color="black", ls=":", lw=0.7)
+                a.axvline(s_, color=INK, ls=":", lw=0.7)
             a.set(xlim=(-24, 24), ylim=(-80, 5), xlabel=LBL["fND"], ylabel=LBL["K"] if j == 0 else "")
             _grid(a)
         print(f"fig6 {title}: dof {ss.dof_from_weights(c):.1f}; bw {st['bw3']*N:.2f}/N; mass beyond 2W {100*st['mass_out_2W']:.2f}%; top weights {np.round(cc[:8], 3)}")
@@ -535,14 +635,22 @@ def fig7_three_routes(NW=4, win_s=8.0, start_s=200.0, fmax=40.0, L_sinc_mult=16,
     a.semilogy(f[keep], np.maximum(d_box, 1e-16), color=ROUTE["raw_box"], lw=0.7, label="Box $-$ multitaper")
     a.semilogy(f[keep], np.maximum(d_sinc[16 * N], 1e-16), color=ROUTE["welch"], lw=0.7, label="Sliding sinc $-$ multitaper")
     a.set(xlabel=LBL["Hz"], ylabel="|difference| (dB)", xlim=(0, fmax), ylim=(1e-15, 10), yticks=[1e-15, 1e-10, 1e-5, 1])
-    a.legend(loc="center right", fontsize=6.5)
+    if TUFTE:
+        _label(a, 0.98 * fmax, 0.8, "Sliding sinc $-$ multitaper", ROUTE["welch"], ha="right")
+        _label(a, 0.98 * fmax, 1e-11, "Box $-$ multitaper", ROUTE["raw_box"], ha="right")
+    else:
+        a.legend(loc="center right", fontsize=6.5)
     a = fig.add_subplot(gs[1, 1]); axes.append(a)
     mx = [d_sinc[L].max() for L in Ls]
     a.loglog(np.array(Ls) / N, mx, "o-", color=ROUTE["welch"], ms=3.5, mfc="none", lw=0.9, label="Maximum |difference|")
     a.loglog(np.array(Ls) / N, mx[1] * (Ls[1] / np.array(Ls)), color="black", ls=":", lw=0.9, label="$1/N_s$")
     a.set(xlabel="$N_s/N$", ylabel="max. |difference| (dB)", xticks=[1, 2, 4, 8, 16], xticklabels=["1", "2", "4", "8", "16"])
-    a.minorticks_off(); a.legend(loc="upper right", fontsize=6.5)
-    _grid(*axes); _letters(axes, dx=22); _save(fig, "fig9_graphical_abstract.png")
+    a.minorticks_off()
+    if TUFTE:
+        _label(a, 1.0, mx[3] * 1.05, "Maximum\n|difference|", ROUTE["welch"], va="center"); _label(a, 6.0, mx[1] * (Ls[1] / (6.0 * N)) * 1.9, "$1/N_s$", "black")
+    else:
+        a.legend(loc="upper right", fontsize=6.5)
+    _grid(*axes); _letters(axes, dx=[22, 22, 30]); _save(fig, "fig9_graphical_abstract.png")
     print("fig9: max|box-mt| = %.2g dB; max|sinc-mt| by L/N: %s" % (d_box.max(), {L // N: round(float(d_sinc[L].max()), 4) for L in Ls}))
     # fig7: the everyday trio, stacked in one column as Babadi and Brown's Fig. 2
     step = (N - seg_len) // 8; hann_seg = ss.unit_taper("hann", seg_len); nseg = len(range(0, N - seg_len + 1, step))
@@ -618,8 +726,18 @@ def _pretty_channel(name):
 def _spectrogram(fig, a, img, tt, f, vmin, vmax):
     """A spectrogram with its own colour bar at the right, as in Babadi and Brown's Figs. 7 and 8."""
     im = a.imshow(img, aspect="auto", origin="lower", extent=[tt[0], tt[-1], f[0], f[-1]], vmin=vmin, vmax=vmax, cmap=SPEC_CMAP)
-    cb = fig.colorbar(im, ax=a, fraction=0.035, pad=0.015); cb.ax.tick_params(labelsize=6.5, direction="in"); cb.outline.set_linewidth(0.6)
+    cb = fig.colorbar(im, ax=a, fraction=0.035, pad=0.015); cb.ax.tick_params(labelsize=6.5, direction="out" if TUFTE else "in")
+    cb.outline.set_linewidth(0.4 if TUFTE else 0.6); _frame(a)
+    if TUFTE:
+        cb.set_label("PSD (dB)", fontsize=7, labelpad=2)
     return cb
+
+
+def _frame(a):
+    """An image has an edge: in the Tufte style, where line panels have two spines, an image keeps a thin frame on all four sides."""
+    if TUFTE:
+        for sp in a.spines.values():
+            sp.set_visible(True); sp.set_linewidth(0.4)
 
 
 def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=None, t_ictal=None, out="fig10_eeg_seizure.png", compact=False):
@@ -653,6 +771,8 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
     vmin, vmax = SPEC_VLIM
     t = np.arange(len(x)) / Fs
     imgs = (pg, mt, sb)
+    bws = [ss.kernel_stats(H)["bw3"] * Fs for H in (np.abs(np.fft.fft(cosw, 16 * N)) ** 2, ss.kernel_multitaper(Vk, 16 * N), ss.kernel_smoothed(cosw, hp, 16 * N))]
+    heads = [f"{n}: {win_s:g} s by {b:.1f} Hz, $\\nu = {v:.1f}$" for n, b, v in zip(("Periodogram", f"Multitaper, $L = {K}$", "Recipe (b$'$)"), bws, nus)]
     dd = mt - sb
     if compact:
         fig, axs = plt.subplots(4, 1, figsize=(W2, 5.8), gridspec_kw={"height_ratios": [0.7, 1, 1, 1], "hspace": 0.3}, sharex=True)
@@ -660,8 +780,8 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
         for on, off in ivals:
             axs[0].axvspan(on, off, color=SHADE, lw=0)
         axs[0].set(ylabel="EEG ($\\mu$V)")
-        for a, img in zip(axs[1:], imgs):
-            _spectrogram(fig, a, img, tt, f[keep], vmin, vmax); a.set(ylabel=LBL["Hz"])
+        for a, img, hd in zip(axs[1:], imgs, heads):
+            _spectrogram(fig, a, img, tt, f[keep], vmin, vmax); a.set(ylabel=LBL["Hz"]); _head(a, hd)
         fig.colorbar(plt.cm.ScalarMappable(cmap=SPEC_CMAP), ax=axs[0], fraction=0.035, pad=0.015).ax.set_visible(False)
         axs[-1].set(xlabel=LBL["s"], xlim=(0, t[-1]))
         _letters(axs, dx=24); _save(fig, out)
@@ -673,8 +793,12 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
     a.plot(t, x, color="black", lw=0.25); a.set_ylim(-500, 500)
     for on, off in ivals:
         a.axvspan(on, off, color=SHADE, lw=0)
-    for tq, c in [(t_pre, MATLAB["b"]), (t_ictal, MATLAB["r"])]:
-        a.axvline(tq, color=c, ls="--", lw=1.0)
+    for tq, c, word in [(t_pre, MATLAB["b"], "(d)"), (t_ictal, MATLAB["r"], "(f)")]:
+        if TUFTE:                          # colour is kept for the routes: a mark above the trace, named by the panel that uses it
+            a.plot(tq, 1.04, marker="v", ms=3.5, color="black", transform=a.get_xaxis_transform(), clip_on=False)
+            a.annotate(word, xy=(tq, 1.04), xycoords=a.get_xaxis_transform(), xytext=(4, -1), textcoords="offset points", fontsize=6.5, va="center")
+        else:
+            a.axvline(tq, color=c, ls="--", lw=1.0)
     a.set(xlim=(0, t[-1]), ylabel="EEG ($\\mu$V)", xlabel=LBL["s"])
     fig.colorbar(plt.cm.ScalarMappable(cmap=SPEC_CMAP), ax=a, fraction=0.035, pad=0.015).ax.set_visible(False)   # aligns the trace with the spectrograms
     a = fig.add_subplot(gs[0, 1]); axes_all.append(a); z0 = int(t_ictal * Fs); zl = int(6 * Fs)
@@ -683,7 +807,7 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
     sp_axes = []
     for r, img in enumerate(imgs):
         a = fig.add_subplot(gs[r + 1, 0]); sp_axes.append(a)
-        _spectrogram(fig, a, img, tt, f[keep], vmin, vmax)
+        _spectrogram(fig, a, img, tt, f[keep], vmin, vmax); _head(a, heads[r])
         for tq in (t_pre, t_ictal):
             a.axvline(tq, color="white", ls="--", lw=0.8)
         a.set(ylabel=LBL["Hz"], xlim=(tt[0], tt[-1]))
@@ -700,9 +824,15 @@ def fig10_eeg_seizure(case="A", win_s=2.0, step_s=1.0, NW=2, fmax=30.0, t_pre=No
         _grid(a)
         if r == 1:
             lo_, hi_ = a.get_ylim(); a.set_ylim(lo_, hi_ + 0.5 * (hi_ - lo_)); a.legend(loc="upper right", fontsize=5.8)
+        _note(a, f"{('Before the seizure', 'In the seizure')[r]},\n$t = {tq:.0f}$ s", loc=("upper right", "upper left")[r], size=6)
     a = fig.add_subplot(gs[3, 1]); side.append(a)
-    a.hist(dd.ravel(), bins=np.linspace(-8, 8, 81), color=BAR, edgecolor="black", lw=0.2)
-    a.set(xlabel="Multitaper $-$ smoothed (dB)", ylabel="Pixels", xlim=(-8, 8))
+    if TUFTE:
+        cnt, edges = np.histogram(dd.ravel(), bins=np.linspace(-8, 8, 81))
+        a.bar(edges[:-1], cnt / 1e3, width=np.diff(edges), align="edge", color=BAR, lw=0)
+        a.set(xlabel="Multitaper $-$ smoothed (dB)", ylabel="Pixels (thousands)", xlim=(-8, 8))
+    else:
+        a.hist(dd.ravel(), bins=np.linspace(-8, 8, 81), color=BAR, edgecolor="black", lw=0.2)
+        a.set(xlabel="Multitaper $-$ smoothed (dB)", ylabel="Pixels", xlim=(-8, 8))
     order = [axes_all[0], axes_all[1], sp_axes[0], side[0], sp_axes[1], side[1], sp_axes[2], side[2]]
     _letters(order, dx=24)
     _save(fig, out)
@@ -797,17 +927,21 @@ def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
               f"and {np.median(wf['mt']):.1f} / {np.median(wf['sm']):.1f} Hz wide (multitaper / smoothed; median of {len(on)} spindles)")
     allv = np.concatenate([10 * np.log10(r["sm"][r["f"] >= 4]).ravel() for r in rows]); vmin, vmax = np.percentile(allv, [20, 99.7])
     fig = plt.figure(figsize=(W2, 8.5))
-    gs = fig.add_gridspec(5, 2, height_ratios=[0.8, 1, 1, 1, 1.1], hspace=0.38, wspace=0.16)
+    gs = fig.add_gridspec(5, 2, height_ratios=[0.8, 1, 1, 1, 1.1], hspace=0.5 if TUFTE else 0.38, wspace=0.16)
     a0 = fig.add_subplot(gs[0, :]); axes = [a0]
     a0.plot(t, xb, color="black", lw=0.35, label=f"EEG, {chn}, 0.3$-$35 Hz")
     a0.plot(t, sg - 95, color=MATLAB["r"], lw=0.4, label="11$-$16 Hz, offset")
     for o1, o2 in zip(on, off):
         a0.axvspan(o1 / fs - pad, o2 / fs - pad, color=SHADE, lw=0)
     a0.set(xlim=(0, dur), ylim=(-125, 150), yticks=[-100, 0, 100], xlabel=LBL["s"], ylabel="EEG ($\\mu$V)")
-    a0.legend(loc="upper right", ncol=2, fontsize=6.5)
+    if TUFTE:
+        _label(a0, 0.4, 135, f"EEG, {chn}, 0.3$-$35 Hz", "black"); _label(a0, 0.4, -66, "11$-$16 Hz, offset", MATLAB["r"])
+    else:
+        a0.legend(loc="upper right", ncol=2, fontsize=6.5)
     for r, row in enumerate(rows):
         for c, key in enumerate(("mt", "sm")):
-            a = fig.add_subplot(gs[r + 1, c]); axes.append(a)
+            a = fig.add_subplot(gs[r + 1, c]); axes.append(a); _frame(a)
+            _head(a, f"{(f'Multitaper, $L = {row[chr(75)]}$', 'Recipe (b$' + chr(39) + '$)')[c]}: {row['T']:g} s by {row['bw'][c]:.1f} Hz, $\\nu = {row['nu'][c]:.1f}$", size=6.5)
             im = a.imshow(10 * np.log10(row[key]), aspect="auto", origin="lower", extent=[row["tc"][0], row["tc"][-1], row["f"][0], row["f"][-1]], vmin=vmin, vmax=vmax, cmap=SPEC_CMAP)
             a.add_patch(plt.Rectangle((1.0, fmax - 2.0 - row["bw"][c]), row["T"], row["bw"][c], fill=False, ec="white", lw=1.0))
             a.set(xlim=(0, dur), ylim=(0, fmax), ylabel=LBL["Hz"] if c == 0 else "")
@@ -816,18 +950,18 @@ def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
             if r == len(rows) - 1:
                 a.set(xlabel=LBL["s"])
     cb = fig.colorbar(im, ax=axes[1:], fraction=0.02, pad=0.015); cb.set_label("PSD (dB re 1 $\\mu$V$^2$/Hz)")
-    cb.ax.tick_params(direction="in"); cb.outline.set_linewidth(0.6)
+    cb.ax.tick_params(direction="out" if TUFTE else "in"); cb.outline.set_linewidth(0.4 if TUFTE else 0.6)
     ah = fig.add_subplot(gs[4, :]); axes.append(ah)
     widths = [bw for row in rows for bw in row["bw"]]
     span = max(widths) - min(widths)
     ah.set(xlim=(max(0, min(widths) - 0.35 * span), max(widths) + 0.35 * span),
-           ylim=(0.45, len(rows) + 0.8), xlabel="Achieved half-power width (Hz)",
+           ylim=(0.1 if TUFTE else 0.45, len(rows) + 0.8), xlabel="Achieved half-power width (Hz)",
            yticks=list(range(len(rows), 0, -1)),
            yticklabels=[f"{row['T']:g} s, $R={row['B']:g}$ Hz" for row in rows])
     ah.grid(axis="x")
     for i, row in enumerate(rows):
         y = len(rows) - i
-        ah.plot(row["bw"], [y, y], color="black", lw=0.55, zorder=2)
+        ah.plot(row["bw"], [y, y], color=INK, lw=0.55, zorder=2)
         for c, (bw, nu) in enumerate(zip(row["bw"], row["nu"])):
             ah.plot(bw, y, marker=("o", "s")[c], ms=4, color=ROUTE[("multitaper", "smooth")[c]],
                     ls="none", label=("Multitaper", "Smoothing")[c] if i == 0 else None, zorder=3)
@@ -836,7 +970,11 @@ def fig12_sleep_spindles(fmax=25.0, step_s=0.1, out="fig12_sleep_spindles.png"):
             ah.text(np.mean(row["bw"]), y + 0.15,
                     rf"$\alpha={row['NW']:g},\ L={row['K']}$: small-$\alpha$ regime",
                     ha="center", va="bottom", fontsize=6.4)
-    ah.legend(loc="lower right", ncol=2, fontsize=6.5)
+    if TUFTE:
+        r0 = rows[-1]; yb = 1 - 0.28
+        _label(ah, r0["bw"][0], yb, "Multitaper", ROUTE["multitaper"], ha="center", va="top"); _label(ah, r0["bw"][1], yb, "Smoothing", ROUTE["smooth"], ha="center", va="top")
+    else:
+        ah.legend(loc="lower right", ncol=2, fontsize=6.5)
     _letters(axes, dx=[22] + [22, 6] * len(rows) + [22]); _save(fig, out)
 
 

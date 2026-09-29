@@ -16,7 +16,7 @@ figures and demos the paper needs, and the plan.
 | `data/` | the EEG shown in the paper, as de-identified one-channel excerpts (see `data/README.md`); the figures run from these |
 | `demos/make_data_excerpts.py` | built the excerpts from the original recordings |
 | `demos/verify_equivalence.py` | numerical proof of the central identity plus the kernel / dof tables quoted in STATUS.md |
-| `demos/make_figures.py` | the paper figures (`figures/fig0..fig5`) |
+| `demos/make_figures.py` | the paper figures (`figures/*.png`), in one of two styles: `FIG_STYLE=tufte` (the default) or `FIG_STYLE=babadi_brown` |
 | `demos/everyday_comparison.py` | Table 1: the estimators at one bandwidth over 300 records of the AR(4) process |
 | `demos/tuned_comparison.py` | Table 4 (a check): every family tuned to its best setting, on the AR(4) process and an EEG-like spectrum |
 | `demos/taper_and_kernel.py` | which single taper and smoothing kernel work best (the basis of recipe b') |
@@ -38,7 +38,7 @@ figures and demos the paper needs, and the plan.
 pip install -r requirements.txt        # numpy, scipy, matplotlib, pytest
 python -m pytest -q                    # the identity, kernel, and variance claims as tests
 python demos/verify_equivalence.py     # prints the numbers, writes figures/verify_equivalence.png
-python demos/make_figures.py           # writes figures/fig0_pedagogy.png ... fig5_slepian_fill.png
+python demos/make_figures.py           # writes the paper figures to figures/
 ```
 
 ## The result in one paragraph

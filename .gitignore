@@ -22,6 +22,7 @@ __pycache__/
 review/backups/
 review/repo_snapshot/
 review/figures/*.png
+review/figures_*/
 review/main_flat.tex
 review/__pycache__/
 *-eps-converted-to.pdf
