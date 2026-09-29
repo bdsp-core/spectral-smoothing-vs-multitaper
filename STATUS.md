@@ -343,6 +343,24 @@ Done (`demos/make_figures.py`, `figures/`):
   symbols defined in Section 2.1 are not redefined in every caption. The manuscript is 23 pages (was 22): Figs. 3 and 8
   are taller and several captions are longer.
 
+- **Third figure review, and where the loop stopped (2026-09-29):** the review of the figures as they stood after the
+  changes above (`review/reports/review_20260929_000915.md`) still reads "major revisions". Items marked blocking:
+  149 for the earlier figures, 148 after the restyle, 136 now. By a rough sort on key words, about 37 of the 136 are
+  about file format and resolution (the reviewers are given the PNGs; the paper now includes PDFs), about 62 about
+  caption conventions, one about jet, and about 35 about design and content; that last number was 39 at the start. The
+  reviews did not move much, and the figures should be judged by eye. Done after the third review, and not reviewed
+  again:
+  - The Hann routes are brown, so grey is the periodogram alone; the noise and bias of Fig. 3 are thin black lines.
+  - The sliding sinc is named "Sliding sinc window (= untapered, then box)" above its column in Figs. 5 and S1.
+  - Kernel axes read "dB re peak". The kernels of Fig. S1 go down to -100 dB, as in Fig. S3.
+  - Fig. S2: panel (a) shows the four estimates that can be told apart; panel (b) shows the running median of every
+    error over 0.02/Δ, with the two variants of the multitaper estimate dashed and dotted.
+  - No lettering in a figure is smaller than 6.5 points. The lightest shade of a ramp is darker than before.
+  - Fig. 1 gives ν = 17.2 (was 17). Every panel has the faint hairlines.
+  Left open: the kernel panels of Figs. 2 and 6 are centred at fΔ = 0.4 with a floor of -150 dB and those of the
+  supplement at 0 with a floor of -100 dB; spelling is mixed ("colour", "centered"); the leakage of the recipe is
+  0.13% at N = 256 and 0.12% at N = 1024, and the captions do not say that the difference comes from N.
+
 Still needed:
 - ~~Adaptive-weight multitaper~~ done (in Fig S2 and Table 3; not in the Fig S4 sweep).
 - **Matched-resolution comparison** as a table: for each method pick the parameter giving the same
